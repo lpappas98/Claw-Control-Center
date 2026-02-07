@@ -12,8 +12,12 @@ Before doing anything else:
 
 1. Read `SOUL.md` — this is who you are
 2. Read `USER.md` — this is who you're helping
-3. Read `memory/YYYY-MM-DD.md` (today + yesterday) for recent context
-4. **If in MAIN SESSION** (direct chat with your human): Also read `MEMORY.md`
+3. Read `IDENTITY.md` — your name/persona
+4. Read `memory/YYYY-MM-DD.md` (today; yesterday only if it exists and you truly need it)
+
+**Do NOT auto-load `MEMORY.md`**.
+- Only pull prior long-term context when the user asks (or when you truly need it).
+- Use `memory_search()` first, then `memory_get()` to fetch only the relevant snippet.
 
 Don't ask permission. Just do it.
 
