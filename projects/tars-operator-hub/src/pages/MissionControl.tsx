@@ -5,7 +5,7 @@ import { usePoll } from '../lib/usePoll'
 import { Badge } from '../components/Badge'
 import { CopyButton } from '../components/CopyButton'
 import { Sparkline } from '../components/Sparkline'
-import type { ControlAction } from '../types'
+import type { ControlAction, ControlResult } from '../types'
 
 function fmtAgo(iso?: string) {
   if (!iso) return '—'
@@ -34,7 +34,7 @@ export function MissionControl({
   const blockers = usePoll(blockersFn, 7000)
 
   const [controlBusy, setControlBusy] = useState<string | null>(null)
-  const [controlMsg, setControlMsg] = useState<string | null>(null)
+  const [controlResult, setControlResult] = useState<(ControlResult & { kind: string }) | null>(null)
 
   const workerSummary = useMemo(() => {
     const list = workers.data ?? []
@@ -44,13 +44,13 @@ export function MissionControl({
   }, [workers.data])
 
   async function run(action: ControlAction) {
-    setControlMsg(null)
+    setControlResult(null)
     setControlBusy(action.kind)
     try {
       const res = await adapter.runControl(action)
-      setControlMsg(res.ok ? `OK: ${res.message}` : `FAILED: ${res.message}`)
+      setControlResult({ ...res, kind: action.kind })
     } catch (e) {
-      setControlMsg(e instanceof Error ? e.message : String(e))
+      setControlResult({ ok: false, message: e instanceof Error ? e.message : String(e), kind: action.kind })
     } finally {
       setControlBusy(null)
     }
@@ -128,7 +128,22 @@ export function MissionControl({
           <button className="btn ghost" disabled={!!controlBusy} onClick={() => run({ kind: 'nodes.refresh' })} type="button">
             Refresh nodes
           </button>
-          {controlMsg && <div className="muted">{controlMsg}</div>}
+          {controlResult && (
+            <div className={`callout ${controlResult.ok ? '' : 'warn'}`}>
+              <div className="stack-h">
+                <strong>{controlResult.ok ? 'OK' : 'FAILED'}:</strong>
+                <span>{controlResult.kind}</span>
+                <span className="muted">· {controlResult.message}</span>
+              </div>
+              {controlResult.output && (
+                <details>
+                  <summary className="muted">output</summary>
+                  <pre className="code">{controlResult.output}</pre>
+                  <CopyButton text={controlResult.output} label="Copy output" />
+                </details>
+              )}
+            </div>
+          )}
         </div>
       </section>
 
