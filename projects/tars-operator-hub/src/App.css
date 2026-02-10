@@ -243,6 +243,28 @@ textarea {
   min-width: 200px;
 }
 
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  background: #6c728a;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08) inset;
+}
+
+.dot.active {
+  background: #26d07c;
+}
+.dot.waiting {
+  background: #9ac3ff;
+}
+.dot.stale {
+  background: #ffb347;
+}
+.dot.offline {
+  background: #ff6b6b;
+}
+
 .badge {
   font-size: 0.75rem;
   border-radius: 999px;

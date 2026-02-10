@@ -174,7 +174,7 @@ export function MissionControl({
       <section className="panel span-2">
         <div className="panel-header">
           <div>
-            <h3>Workers</h3>
+            <h3>Agents</h3>
             <div className="muted">
               active {workerSummary.active} · waiting {workerSummary.waiting} · stale {workerSummary.stale} · offline {workerSummary.offline}
             </div>
@@ -183,21 +183,32 @@ export function MissionControl({
         </div>
 
         <div className="table-like">
-          {(workers ?? []).map((w) => (
-            <div className="row" key={w.slot}>
-              <div className="row-main">
-                <div className="row-title">
-                  <strong>{w.slot}</strong> <Badge kind={w.status} />
+          {(workers ?? [])
+            .slice()
+            .sort((a, b) => {
+              const order = { active: 0, waiting: 1, stale: 2, offline: 3 } as const
+              const d = order[a.status] - order[b.status]
+              if (d !== 0) return d
+              return (a.slot ?? '').localeCompare(b.slot ?? '')
+            })
+            .map((w) => (
+              <div className="row" key={w.slot}>
+                <div className="row-main">
+                  <div className="row-title">
+                    <span className={`dot ${w.status}`} title={w.status} aria-label={`agent ${w.status}`} role="img" />
+                    <strong>{w.slot}</strong>
+                    {w.label && <span className="muted">· {w.label}</span>}
+                    <Badge kind={w.status} />
+                  </div>
+                  <div className="muted">{w.task ?? '—'}</div>
                 </div>
-                <div className="muted">{w.task ?? '—'}</div>
+                <div className="row-side">
+                  <div className="muted">last: {fmtAgo(w.lastBeatAt)}</div>
+                  <Sparkline points={w.beats.slice(0, 24)} />
+                </div>
               </div>
-              <div className="row-side">
-                <div className="muted">last: {fmtAgo(w.lastBeatAt)}</div>
-                <Sparkline points={w.beats.slice(0, 24)} />
-              </div>
-            </div>
-          ))}
-          {!live.loading && (workers?.length ?? 0) === 0 && <div className="muted">No workers reported.</div>}
+            ))}
+          {!live.loading && (workers?.length ?? 0) === 0 && <div className="muted">No agents reported.</div>}
         </div>
       </section>
 

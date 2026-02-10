@@ -64,8 +64,12 @@ export function normalizeWorkers(data, nowMs = Date.now()) {
       lastBeatAt = newestBeatAt
     }
 
+    const slot = w?.slot ?? w?.id ?? 'unknown'
+    const label = typeof w?.label === 'string' ? w.label : typeof w?.name === 'string' ? w.name : undefined
+
     return {
-      slot: w?.slot ?? w?.id ?? 'unknown',
+      slot,
+      label: label && label !== slot ? label : undefined,
       status: computeWorkerStatus(lastBeatAt, nowMs),
       task: w?.task,
       lastBeatAt,
