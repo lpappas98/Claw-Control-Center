@@ -6,6 +6,8 @@ import fs from 'node:fs/promises'
 import { existsSync } from 'node:fs'
 import { execFile } from 'node:child_process'
 import { promisify } from 'node:util'
+
+import { listWorkersFromCandidates } from './workers.mjs'
 import { parseGatewayStatus } from './parseGatewayStatus.mjs'
 
 const execFileAsync = promisify(execFile)
@@ -153,51 +155,13 @@ async function listProjects() {
   return projects
 }
 
-function loadHeartbeatsFromFile(filePath) {
-  if (!existsSync(filePath)) return null
-  return fs
-    .readFile(filePath, 'utf8')
-    .then((raw) => JSON.parse(raw))
-    .catch(() => null)
-}
-
-function computeWorkerStatus(lastBeatAt) {
-  if (!lastBeatAt) return 'offline'
-  const ageMs = Date.now() - new Date(lastBeatAt).getTime()
-  if (ageMs < 45_000) return 'active'
-  if (ageMs < 5 * 60_000) return 'waiting'
-  if (ageMs < 30 * 60_000) return 'stale'
-  return 'offline'
-}
-
 async function listWorkers() {
   const candidates = [
     path.join(WORKSPACE, 'worker-heartbeats.json'),
     path.join(WORKSPACE, '.clawhub', 'worker-heartbeats.json'),
   ]
 
-  let data = null
-  for (const c of candidates) {
-    data = await loadHeartbeatsFromFile(c)
-    if (data) break
-  }
-
-  if (!data) return []
-
-  const list = Array.isArray(data) ? data : data.workers
-  if (!Array.isArray(list)) return []
-
-  return list.map((w) => {
-    const beats = Array.isArray(w.beats) ? w.beats : []
-    const lastBeatAt = w.lastBeatAt ?? beats[0]?.at
-    return {
-      slot: w.slot ?? w.id ?? 'unknown',
-      status: computeWorkerStatus(lastBeatAt),
-      task: w.task,
-      lastBeatAt,
-      beats: beats.slice(0, 48),
-    }
-  })
+  return listWorkersFromCandidates(candidates)
 }
 
 async function getStatus() {
