@@ -85,7 +85,7 @@ export function MissionControl({
             <p className="muted">Live operator visibility (local mode). Polling every few seconds.</p>
           </div>
           <div className="right" style={{ textAlign: 'right' }}>
-            <div className="muted">updated: {status?.updatedAt ? new Date(status.updatedAt).toLocaleTimeString() : '—'}</div>
+            <div className="muted">updated: {live.data?.updatedAt ? new Date(live.data.updatedAt).toLocaleTimeString() : '—'}</div>
             <div className="muted" style={{ fontSize: 12 }}>
               {live.refreshing ? 'refreshing…' : live.lastSuccessAt ? `last ok: ${new Date(live.lastSuccessAt).toLocaleTimeString()}` : ''}
             </div>
