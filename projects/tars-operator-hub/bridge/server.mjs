@@ -22,6 +22,9 @@ const activity = []
 let lastGatewayHealth = null
 let lastGatewaySummary = null
 
+/** @type {Set<string>} */
+let lastBlockerIds = new Set()
+
 function pushActivity(evt) {
   activity.unshift(evt)
   while (activity.length > 500) activity.pop()
@@ -225,6 +228,8 @@ async function getStatus() {
 
 async function computeBlockers() {
   const status = await getStatus()
+  const workers = await listWorkers()
+
   /** @type {import('../src/types').Blocker[]} */
   const blockers = []
 
@@ -239,6 +244,28 @@ async function computeBlockers() {
         { label: 'Gateway status', command: 'openclaw gateway status' },
         { label: 'Restart gateway', command: 'openclaw gateway restart', action: { kind: 'gateway.restart' } },
         { label: 'Start gateway', command: 'openclaw gateway start', action: { kind: 'gateway.start' } },
+      ],
+    })
+  }
+
+  const stale = workers.filter((w) => w.status === 'stale')
+  const offline = workers.filter((w) => w.status === 'offline')
+  if (stale.length || offline.length) {
+    const worst = offline.length ? 'High' : 'Medium'
+    blockers.push({
+      id: 'workers-unhealthy',
+      title: offline.length ? 'Some workers are offline' : 'Some workers are stale',
+      severity: worst,
+      detectedAt: new Date().toISOString(),
+      details: [
+        stale.length ? `stale: ${stale.map((w) => w.slot).join(', ')}` : null,
+        offline.length ? `offline: ${offline.map((w) => w.slot).join(', ')}` : null,
+      ]
+        .filter(Boolean)
+        .join(' · '),
+      remediation: [
+        { label: 'Inspect heartbeat file', command: `ls -la "${WORKSPACE}" && ls -la "${path.join(WORKSPACE, '.clawhub')}"` },
+        { label: 'Restart gateway (may restart workers)', command: 'openclaw gateway restart', action: { kind: 'gateway.restart' } },
       ],
     })
   }
@@ -262,7 +289,24 @@ app.get('/api/workers', async (_req, res) => {
 })
 
 app.get('/api/blockers', async (_req, res) => {
-  res.json(await computeBlockers())
+  const blockers = await computeBlockers()
+  const ids = new Set(blockers.map((b) => b.id))
+
+  const added = [...ids].filter((id) => !lastBlockerIds.has(id))
+  const removed = [...lastBlockerIds].filter((id) => !ids.has(id))
+  if (added.length || removed.length) {
+    pushActivity({
+      id: newId('blockers'),
+      at: new Date().toISOString(),
+      level: blockers.length ? 'warn' : 'info',
+      source: 'bridge',
+      message: `blockers changed (+${added.length} -${removed.length}): now ${blockers.length}`,
+      meta: { added, removed },
+    })
+  }
+  lastBlockerIds = ids
+
+  res.json(blockers)
 })
 
 app.get('/api/activity', async (req, res) => {
