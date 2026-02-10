@@ -12,7 +12,7 @@ export function Activity({ adapter }: { adapter: Adapter }) {
   const [q, setQ] = useState('')
 
   const fn = useCallback(() => adapter.listActivity(200), [adapter])
-  const { data, error, loading } = usePoll(fn, 5000)
+  const { data, error, loading, refreshing, lastSuccessAt } = usePoll(fn, 5000)
 
   const filtered = useMemo(() => {
     const list = data ?? []
@@ -33,6 +33,9 @@ export function Activity({ adapter }: { adapter: Adapter }) {
             <p className="muted">Clear feed of recent events (poll: 5s). Use filters to isolate issues.</p>
           </div>
           <div className="right">
+            <div className="muted" style={{ textAlign: 'right', marginBottom: 6 }}>
+              {refreshing ? 'refreshing…' : lastSuccessAt ? `last ok: ${new Date(lastSuccessAt).toLocaleTimeString()}` : ''}
+            </div>
             <div className="stack-h">
               <label className="field inline">
                 <span className="muted">level</span>

@@ -19,7 +19,7 @@ function fmtAgo(iso?: string) {
 
 export function Projects({ adapter }: { adapter: Adapter }) {
   const fn = useCallback(() => adapter.listProjects(), [adapter])
-  const { data, error, loading } = usePoll(fn, 10_000)
+  const { data, error, loading, refreshing, lastSuccessAt } = usePoll(fn, 10_000)
 
   return (
     <main className="main-grid">
@@ -29,7 +29,10 @@ export function Projects({ adapter }: { adapter: Adapter }) {
             <h2>Projects</h2>
             <p className="muted">Detected projects in the local OpenClaw workspace (bridge) or mock list.</p>
           </div>
-          <div className="right muted">poll: 10s</div>
+          <div className="right muted">
+            {refreshing ? 'refreshing…' : lastSuccessAt ? `last ok: ${new Date(lastSuccessAt).toLocaleTimeString()}` : ''}
+            {' · '}poll: 10s
+          </div>
         </div>
 
         {error && <div className="callout warn">{error.message}</div>}

@@ -36,6 +36,8 @@ export function MissionControl({
   const [controlBusy, setControlBusy] = useState<string | null>(null)
   const [controlResult, setControlResult] = useState<(ControlResult & { kind: string }) | null>(null)
 
+  const controlsEnabled = cfg.kind === 'bridge'
+
   const workerSummary = useMemo(() => {
     const list = workers.data ?? []
     const counts = { active: 0, waiting: 0, stale: 0, offline: 0 }
@@ -64,8 +66,11 @@ export function MissionControl({
             <h2>Mission Control</h2>
             <p className="muted">Live operator visibility (local mode). Polling every few seconds.</p>
           </div>
-          <div className="right">
+          <div className="right" style={{ textAlign: 'right' }}>
             <div className="muted">updated: {status.data?.updatedAt ? new Date(status.data.updatedAt).toLocaleTimeString() : '—'}</div>
+            <div className="muted" style={{ fontSize: 12 }}>
+              {status.refreshing ? 'refreshing…' : status.lastSuccessAt ? `last ok: ${new Date(status.lastSuccessAt).toLocaleTimeString()}` : ''}
+            </div>
           </div>
         </div>
 
@@ -113,19 +118,20 @@ export function MissionControl({
       <section className="panel">
         <h3>Controls (scaffold)</h3>
         <p className="muted">Bridge-backed controls only. Mock adapter is read-only.</p>
+        {!controlsEnabled && <div className="callout warn">Controls disabled: switch Adapter to Bridge.</div>}
         <div className="stack">
-          <button className="btn" disabled={!!controlBusy} onClick={() => run({ kind: 'gateway.restart' })} type="button">
+          <button className="btn" disabled={!controlsEnabled || !!controlBusy} onClick={() => run({ kind: 'gateway.restart' })} type="button">
             {controlBusy === 'gateway.restart' ? 'Restarting…' : 'Restart gateway'}
           </button>
           <div className="stack-h">
-            <button className="btn ghost" disabled={!!controlBusy} onClick={() => run({ kind: 'gateway.start' })} type="button">
+            <button className="btn ghost" disabled={!controlsEnabled || !!controlBusy} onClick={() => run({ kind: 'gateway.start' })} type="button">
               Start
             </button>
-            <button className="btn ghost" disabled={!!controlBusy} onClick={() => run({ kind: 'gateway.stop' })} type="button">
+            <button className="btn ghost" disabled={!controlsEnabled || !!controlBusy} onClick={() => run({ kind: 'gateway.stop' })} type="button">
               Stop
             </button>
           </div>
-          <button className="btn ghost" disabled={!!controlBusy} onClick={() => run({ kind: 'nodes.refresh' })} type="button">
+          <button className="btn ghost" disabled={!controlsEnabled || !!controlBusy} onClick={() => run({ kind: 'nodes.refresh' })} type="button">
             Refresh nodes
           </button>
           {controlResult && (
