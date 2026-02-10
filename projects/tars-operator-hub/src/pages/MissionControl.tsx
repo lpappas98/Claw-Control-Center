@@ -5,7 +5,7 @@ import { usePoll } from '../lib/usePoll'
 import { Badge } from '../components/Badge'
 import { CopyButton } from '../components/CopyButton'
 import { Sparkline } from '../components/Sparkline'
-import type { ControlAction, ControlResult } from '../types'
+import type { ControlAction, ControlResult, LiveSnapshot } from '../types'
 
 function fmtAgo(iso?: string) {
   if (!iso) return '—'
@@ -14,6 +14,14 @@ function fmtAgo(iso?: string) {
   if (ms < 60_000) return `${Math.round(ms / 1000)}s ago`
   if (ms < 3_600_000) return `${Math.round(ms / 60_000)}m ago`
   return `${Math.round(ms / 3_600_000)}h ago`
+}
+
+function fmtAgeMs(ms?: number) {
+  if (ms === undefined || ms === null) return '—'
+  if (!Number.isFinite(ms)) return '—'
+  if (ms < 60_000) return `${Math.round(ms / 1000)}s`
+  if (ms < 3_600_000) return `${Math.round(ms / 60_000)}m`
+  return `${Math.round(ms / 3_600_000)}h`
 }
 
 export function MissionControl({
@@ -25,13 +33,23 @@ export function MissionControl({
   cfg: AdapterConfig
   onCfg: (cfg: AdapterConfig) => void
 }) {
-  const statusFn = useCallback(() => adapter.getSystemStatus(), [adapter])
-  const workersFn = useCallback(() => adapter.listWorkers(), [adapter])
-  const blockersFn = useCallback(() => adapter.listBlockers(), [adapter])
+  const liveFn = useCallback(async (): Promise<LiveSnapshot> => {
+    if (adapter.getLiveSnapshot) return adapter.getLiveSnapshot()
+    const [status, workers, blockers] = await Promise.all([adapter.getSystemStatus(), adapter.listWorkers(), adapter.listBlockers()])
+    return {
+      updatedAt: new Date().toISOString(),
+      status,
+      workers,
+      blockers,
+      watchdog: { health: 'unknown', summary: 'not supported by adapter' },
+    }
+  }, [adapter])
 
-  const status = usePoll(statusFn, 5000)
-  const workers = usePoll(workersFn, 5000)
-  const blockers = usePoll(blockersFn, 7000)
+  const live = usePoll(liveFn, 5000)
+  const status = live.data?.status
+  const workers = live.data?.workers
+  const blockers = live.data?.blockers
+  // watchdog reserved for future integration
 
   const [controlBusy, setControlBusy] = useState<string | null>(null)
   const [controlResult, setControlResult] = useState<(ControlResult & { kind: string }) | null>(null)
@@ -39,11 +57,11 @@ export function MissionControl({
   const controlsEnabled = cfg.kind === 'bridge'
 
   const workerSummary = useMemo(() => {
-    const list = workers.data ?? []
+    const list = workers ?? []
     const counts = { active: 0, waiting: 0, stale: 0, offline: 0 }
     for (const w of list) counts[w.status] = (counts[w.status] ?? 0) + 1
     return counts
-  }, [workers.data])
+  }, [workers])
 
   async function run(action: ControlAction) {
     setControlResult(null)
@@ -67,16 +85,16 @@ export function MissionControl({
             <p className="muted">Live operator visibility (local mode). Polling every few seconds.</p>
           </div>
           <div className="right" style={{ textAlign: 'right' }}>
-            <div className="muted">updated: {status.data?.updatedAt ? new Date(status.data.updatedAt).toLocaleTimeString() : '—'}</div>
+            <div className="muted">updated: {status?.updatedAt ? new Date(status.updatedAt).toLocaleTimeString() : '—'}</div>
             <div className="muted" style={{ fontSize: 12 }}>
-              {status.refreshing ? 'refreshing…' : status.lastSuccessAt ? `last ok: ${new Date(status.lastSuccessAt).toLocaleTimeString()}` : ''}
+              {live.refreshing ? 'refreshing…' : live.lastSuccessAt ? `last ok: ${new Date(live.lastSuccessAt).toLocaleTimeString()}` : ''}
             </div>
           </div>
         </div>
 
-        {status.error && (
+        {live.error && (
           <div className="callout warn">
-            <strong>Status adapter error:</strong> {status.error.message}
+            <strong>Status adapter error:</strong> {live.error.message}
             {cfg.kind === 'bridge' && (
               <div className="stack-h">
                 <CopyButton text={`cd ~/.openclaw/workspace/projects/tars-operator-hub && npm run bridge`} label="Copy bridge start" />
@@ -92,25 +110,25 @@ export function MissionControl({
           <div className="stat-card">
             <div className="stat-title">Gateway</div>
             <div className="stat-value">
-              <Badge kind={status.data?.gateway.health ?? 'unknown'} />
+              <Badge kind={status?.gateway.health ?? 'unknown'} />
             </div>
-            <div className="muted">{status.data?.gateway.summary ?? '—'}</div>
+            <div className="muted">{status?.gateway.summary ?? '—'}</div>
           </div>
           <div className="stat-card">
             <div className="stat-title">Nodes</div>
             <div className="stat-value">
-              <Badge kind={status.data?.nodes.health ?? 'unknown'} />
+              <Badge kind={status?.nodes.health ?? 'unknown'} />
             </div>
             <div className="muted">
-              paired: {status.data?.nodes.pairedCount ?? 0} · pending: {status.data?.nodes.pendingCount ?? 0}
+              paired: {status?.nodes.pairedCount ?? 0} · pending: {status?.nodes.pendingCount ?? 0}
             </div>
           </div>
           <div className="stat-card">
             <div className="stat-title">Browser Relay</div>
             <div className="stat-value">
-              <Badge kind={status.data?.browserRelay.health ?? 'unknown'} />
+              <Badge kind={status?.browserRelay.health ?? 'unknown'} />
             </div>
-            <div className="muted">attached tabs: {status.data?.browserRelay.attachedTabs ?? 0}</div>
+            <div className="muted">attached tabs: {status?.browserRelay.attachedTabs ?? 0}</div>
           </div>
         </div>
       </section>
@@ -164,10 +182,8 @@ export function MissionControl({
           <div className="right muted">heartbeat poll: 5s</div>
         </div>
 
-        {workers.error && <div className="callout warn">{workers.error.message}</div>}
-
         <div className="table-like">
-          {(workers.data ?? []).map((w) => (
+          {(workers ?? []).map((w) => (
             <div className="row" key={w.slot}>
               <div className="row-main">
                 <div className="row-title">
@@ -181,7 +197,7 @@ export function MissionControl({
               </div>
             </div>
           ))}
-          {!workers.loading && (workers.data?.length ?? 0) === 0 && <div className="muted">No workers reported.</div>}
+          {!live.loading && (workers?.length ?? 0) === 0 && <div className="muted">No workers reported.</div>}
         </div>
       </section>
 
@@ -192,10 +208,8 @@ export function MissionControl({
             <p className="muted">Detected issues + one-click copy commands.</p>
           </div>
         </div>
-        {blockers.error && <div className="callout warn">{blockers.error.message}</div>}
-
         <div className="stack">
-          {(blockers.data ?? []).map((b) => (
+          {(blockers ?? []).map((b) => (
             <div className="callout" key={b.id}>
               <div className="stack-h">
                 <strong>{b.title}</strong>
@@ -221,7 +235,7 @@ export function MissionControl({
               </div>
             </div>
           ))}
-          {!blockers.loading && (blockers.data?.length ?? 0) === 0 && <div className="muted">No blockers detected.</div>}
+          {!live.loading && (blockers?.length ?? 0) === 0 && <div className="muted">No blockers detected.</div>}
         </div>
       </section>
 

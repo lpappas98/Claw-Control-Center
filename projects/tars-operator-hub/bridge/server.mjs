@@ -11,6 +11,7 @@ import { listWorkersFromCandidates } from './workers.mjs'
 import { computeBlockersFrom } from './blockers.mjs'
 import { parseGatewayStatus } from './parseGatewayStatus.mjs'
 import { loadActivity, makeDebouncedSaver, saveActivity } from './activityStore.mjs'
+import { loadRules, loadRuleHistory, pushRuleHistory, saveRules, saveRuleHistory } from './rules.mjs'
 
 const execFileAsync = promisify(execFile)
 
@@ -21,11 +22,22 @@ app.use(express.json({ limit: '1mb' }))
 const PORT = Number(process.env.PORT ?? 8787)
 const WORKSPACE = process.env.OPENCLAW_WORKSPACE ?? path.join(os.homedir(), '.openclaw', 'workspace')
 const ACTIVITY_FILE = process.env.OPERATOR_HUB_ACTIVITY_FILE ?? path.join(WORKSPACE, '.clawhub', 'activity.json')
+const RULES_FILE = process.env.OPERATOR_HUB_RULES_FILE ?? path.join(WORKSPACE, '.clawhub', 'rules.json')
+const RULE_HISTORY_FILE = process.env.OPERATOR_HUB_RULE_HISTORY_FILE ?? path.join(WORKSPACE, '.clawhub', 'rule-history.json')
 
 /** @type {import('../src/types').ActivityEvent[]} */
 let activity = await loadActivity(ACTIVITY_FILE)
 const activitySaver = makeDebouncedSaver(() => saveActivity(ACTIVITY_FILE, activity))
 let activitySaveTimer = null
+
+/** @type {import('../src/types').Rule[]} */
+let rules = await loadRules(RULES_FILE)
+
+/** @type {import('../src/types').RuleChange[]} */
+let ruleHistory = await loadRuleHistory(RULE_HISTORY_FILE)
+
+const rulesSaver = makeDebouncedSaver(() => saveRules(RULES_FILE, rules))
+const ruleHistorySaver = makeDebouncedSaver(() => saveRuleHistory(RULE_HISTORY_FILE, ruleHistory))
 
 let lastGatewayHealth = null
 let lastGatewaySummary = null
@@ -43,6 +55,11 @@ function scheduleActivitySave() {
     activitySaveTimer = null
     await activitySaver.flush()
   }, 750)
+}
+
+function scheduleRulesSave() {
+  rulesSaver.trigger()
+  ruleHistorySaver.trigger()
 }
 
 function pushActivity(evt) {
@@ -285,6 +302,72 @@ app.get('/api/activity', async (req, res) => {
   res.json(activity.slice(0, limit))
 })
 
+app.get('/api/rules', async (_req, res) => {
+  const sorted = rules.slice().sort((a, b) => a.title.localeCompare(b.title))
+  res.json(sorted)
+})
+
+app.get('/api/rules/history', async (req, res) => {
+  const limit = Math.max(1, Math.min(500, Number(req.query.limit ?? 200)))
+  res.json(ruleHistory.slice(0, limit))
+})
+
+app.put('/api/rules/:id', async (req, res) => {
+  const id = req.params.id
+  const idx = rules.findIndex((r) => r.id === id)
+  if (idx < 0) return res.status(404).send('rule not found')
+
+  const before = rules[idx]
+  const update = req.body ?? {}
+  const next = {
+    ...before,
+    title: typeof update.title === 'string' ? update.title : before.title,
+    description: typeof update.description === 'string' ? update.description : before.description,
+    content: typeof update.content === 'string' ? update.content : before.content,
+    updatedAt: new Date().toISOString(),
+  }
+
+  rules = [...rules.slice(0, idx), next, ...rules.slice(idx + 1)]
+
+  pushRuleHistory(ruleHistory, {
+    at: next.updatedAt,
+    ruleId: next.id,
+    action: 'update',
+    summary: 'Updated rule',
+    before: { title: before.title, description: before.description, content: before.content },
+    after: { title: next.title, description: next.description, content: next.content },
+    source: 'bridge',
+  })
+
+  scheduleRulesSave()
+  res.json(next)
+})
+
+app.post('/api/rules/:id/toggle', async (req, res) => {
+  const id = req.params.id
+  const idx = rules.findIndex((r) => r.id === id)
+  if (idx < 0) return res.status(404).send('rule not found')
+
+  const before = rules[idx]
+  const enabled = !!(req.body?.enabled)
+  const next = { ...before, enabled, updatedAt: new Date().toISOString() }
+
+  rules = [...rules.slice(0, idx), next, ...rules.slice(idx + 1)]
+
+  pushRuleHistory(ruleHistory, {
+    at: next.updatedAt,
+    ruleId: next.id,
+    action: 'toggle',
+    summary: enabled ? 'Enabled rule' : 'Disabled rule',
+    before: { enabled: before.enabled },
+    after: { enabled: next.enabled },
+    source: 'bridge',
+  })
+
+  scheduleRulesSave()
+  res.json(next)
+})
+
 app.post('/api/control', async (req, res) => {
   const action = req.body
   const at = new Date().toISOString()
@@ -322,6 +405,12 @@ app.get('/healthz', (_req, res) => res.send('ok'))
 async function flushActivityOnExit() {
   try {
     await activitySaver.flush()
+  } catch {
+    // best-effort
+  }
+  try {
+    await rulesSaver.flush()
+    await ruleHistorySaver.flush()
   } catch {
     // best-effort
   }

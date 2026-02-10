@@ -3,11 +3,12 @@ import './App.css'
 import { MissionControl } from './pages/MissionControl'
 import { Projects } from './pages/Projects'
 import { Activity } from './pages/Activity'
+import { Rules } from './pages/Rules'
 import { loadAdapterConfig, saveAdapterConfig, toAdapter, type AdapterConfig } from './lib/adapterState'
 
-type NavTab = 'Mission Control' | 'Projects' | 'Activity' | 'Docs'
+type NavTab = 'Mission Control' | 'Projects' | 'Activity' | 'Rules' | 'Docs'
 
-const tabs: NavTab[] = ['Mission Control', 'Projects', 'Activity', 'Docs']
+const tabs: NavTab[] = ['Mission Control', 'Projects', 'Activity', 'Rules', 'Docs']
 
 const NAV_TAB_KEY = 'tars.operatorHub.navTab'
 
@@ -85,6 +86,7 @@ export default function App() {
       {tab === 'Mission Control' && <MissionControl adapter={adapter} cfg={cfg} onCfg={updateCfg} />}
       {tab === 'Projects' && <Projects adapter={adapter} />}
       {tab === 'Activity' && <Activity adapter={adapter} />}
+      {tab === 'Rules' && <Rules adapter={adapter} />}
       {tab === 'Docs' && (
         <main className="main-grid">
           <section className="panel span-4">

@@ -1,5 +1,17 @@
 import type { Adapter } from './adapter'
-import type { ActivityEvent, Blocker, ControlAction, ControlResult, ProjectInfo, SystemStatus, WorkerHeartbeat } from '../types'
+import type {
+  ActivityEvent,
+  Blocker,
+  ControlAction,
+  ControlResult,
+  LiveSnapshot,
+  ProjectInfo,
+  Rule,
+  RuleChange,
+  RuleUpdate,
+  SystemStatus,
+  WorkerHeartbeat,
+} from '../types'
 
 export type BridgeAdapterOptions = {
   baseUrl: string
@@ -19,6 +31,10 @@ export function bridgeAdapter(opts: BridgeAdapterOptions): Adapter {
 
   return {
     name: `Bridge (${base})`,
+
+    getLiveSnapshot() {
+      return fetchJson<LiveSnapshot>(`${base}/api/live`)
+    },
 
     getSystemStatus() {
       return fetchJson<SystemStatus>(`${base}/api/status`)
@@ -47,6 +63,31 @@ export function bridgeAdapter(opts: BridgeAdapterOptions): Adapter {
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify(action),
       })
+    },
+
+    listRules() {
+      return fetchJson<Rule[]>(`${base}/api/rules`)
+    },
+
+    updateRule(update: RuleUpdate) {
+      return fetchJson<Rule>(`${base}/api/rules/${encodeURIComponent(update.id)}`, {
+        method: 'PUT',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(update),
+      })
+    },
+
+    toggleRule(id: string, enabled: boolean) {
+      return fetchJson<Rule>(`${base}/api/rules/${encodeURIComponent(id)}/toggle`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ enabled }),
+      })
+    },
+
+    listRuleHistory(limit: number) {
+      const qs = new URLSearchParams({ limit: String(limit) }).toString()
+      return fetchJson<RuleChange[]>(`${base}/api/rules/history?${qs}`)
     },
   }
 }

@@ -7,6 +7,30 @@ export type SystemStatus = {
   browserRelay: { health: Health; attachedTabs: number; details?: string[] }
 }
 
+export type WatchdogDiagnostics = {
+  health: Health
+  summary: string
+  heartbeatFile?: {
+    exists: boolean
+    path?: string
+    mtime?: string
+    ageMs?: number
+    sizeBytes?: number
+    parseOk?: boolean
+    error?: string
+    workerCount?: number
+  }
+}
+
+/** Single bridge-computed snapshot to avoid UI false positives from mixed polling timestamps. */
+export type LiveSnapshot = {
+  updatedAt: string
+  status: SystemStatus
+  workers: WorkerHeartbeat[]
+  blockers: Blocker[]
+  watchdog: WatchdogDiagnostics
+}
+
 export type WorkerStatus = 'active' | 'waiting' | 'stale' | 'offline'
 
 export type WorkerHeartbeat = {
@@ -69,3 +93,33 @@ export type ControlAction =
   | { kind: 'nodes.refresh' }
 
 export type ControlResult = { ok: boolean; message: string; output?: string }
+
+export type Rule = {
+  id: string
+  title: string
+  description?: string
+  enabled: boolean
+  /** Freeform rule body (prompt, policy text, etc.). */
+  content: string
+  updatedAt: string
+}
+
+export type RuleUpdate = {
+  id: string
+  title?: string
+  description?: string
+  content?: string
+}
+
+export type RuleChangeAction = 'create' | 'update' | 'toggle'
+
+export type RuleChange = {
+  id: string
+  at: string
+  ruleId: string
+  action: RuleChangeAction
+  summary: string
+  before?: Partial<Rule>
+  after?: Partial<Rule>
+  source?: string
+}
