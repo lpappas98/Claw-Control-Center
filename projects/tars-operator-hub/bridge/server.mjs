@@ -25,6 +25,9 @@ let lastGatewaySummary = null
 /** @type {Set<string>} */
 let lastBlockerIds = new Set()
 
+/** @type {Map<string, string>} */
+let lastWorkerStatusBySlot = new Map()
+
 function pushActivity(evt) {
   activity.unshift(evt)
   while (activity.length > 500) activity.pop()
@@ -285,6 +288,23 @@ app.get('/api/projects', async (_req, res) => {
 
 app.get('/api/workers', async (_req, res) => {
   const workers = await listWorkers()
+
+  const next = new Map(workers.map((w) => [w.slot, w.status]))
+  for (const w of workers) {
+    const prev = lastWorkerStatusBySlot.get(w.slot)
+    if (prev && prev !== w.status) {
+      const level = w.status === 'active' || w.status === 'waiting' ? 'info' : w.status === 'stale' ? 'warn' : 'error'
+      pushActivity({
+        id: newId('worker'),
+        at: new Date().toISOString(),
+        level,
+        source: 'bridge',
+        message: `worker ${w.slot}: ${prev} → ${w.status}${w.task ? ` (${w.task})` : ''}`,
+      })
+    }
+  }
+  lastWorkerStatusBySlot = next
+
   res.json(workers)
 })
 
