@@ -54,16 +54,30 @@ async function runCli(bin, args, timeoutMs = 8000) {
   }
 }
 
+const GATEWAY_STATUS_TTL_MS = 1500
+let gatewayStatusCache = null
+let gatewayStatusCacheAt = 0
+
 async function getGatewayStatus() {
+  if (gatewayStatusCache && Date.now() - gatewayStatusCacheAt < GATEWAY_STATUS_TTL_MS) return gatewayStatusCache
+
   const res = await runCli('openclaw', ['gateway', 'status'])
-  if (!res.ok) return { health: 'unknown', summary: 'openclaw gateway status failed', details: [res.error, res.output].filter(Boolean) }
+  if (!res.ok) {
+    const next = { health: 'unknown', summary: 'openclaw gateway status failed', details: [res.error, res.output].filter(Boolean) }
+    gatewayStatusCache = next
+    gatewayStatusCacheAt = Date.now()
+    return next
+  }
 
   const parsed = parseGatewayStatus(res.output)
-  return {
+  const next = {
     health: parsed.health,
     summary: parsed.summary,
     details: res.output ? res.output.split('\n').slice(0, 10) : undefined,
   }
+  gatewayStatusCache = next
+  gatewayStatusCacheAt = Date.now()
+  return next
 }
 
 async function getGitInfo(projectPath) {
