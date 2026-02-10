@@ -8,7 +8,9 @@ import { execFile } from 'node:child_process'
 import { promisify } from 'node:util'
 
 import { listWorkersFromCandidates } from './workers.mjs'
+import { computeBlockersFrom } from './blockers.mjs'
 import { parseGatewayStatus } from './parseGatewayStatus.mjs'
+import { loadActivity, makeDebouncedSaver, saveActivity } from './activityStore.mjs'
 
 const execFileAsync = promisify(execFile)
 
@@ -18,9 +20,12 @@ app.use(express.json({ limit: '1mb' }))
 
 const PORT = Number(process.env.PORT ?? 8787)
 const WORKSPACE = process.env.OPENCLAW_WORKSPACE ?? path.join(os.homedir(), '.openclaw', 'workspace')
+const ACTIVITY_FILE = process.env.OPERATOR_HUB_ACTIVITY_FILE ?? path.join(WORKSPACE, '.clawhub', 'activity.json')
 
 /** @type {import('../src/types').ActivityEvent[]} */
-const activity = []
+let activity = await loadActivity(ACTIVITY_FILE)
+const activitySaver = makeDebouncedSaver(() => saveActivity(ACTIVITY_FILE, activity))
+let activitySaveTimer = null
 
 let lastGatewayHealth = null
 let lastGatewaySummary = null
@@ -31,9 +36,19 @@ let lastBlockerIds = new Set()
 /** @type {Map<string, string>} */
 let lastWorkerStatusBySlot = new Map()
 
+function scheduleActivitySave() {
+  activitySaver.trigger()
+  if (activitySaveTimer) return
+  activitySaveTimer = setTimeout(async () => {
+    activitySaveTimer = null
+    await activitySaver.flush()
+  }, 750)
+}
+
 function pushActivity(evt) {
   activity.unshift(evt)
   while (activity.length > 500) activity.pop()
+  scheduleActivitySave()
 }
 
 function newId(prefix = 'evt') {
@@ -209,48 +224,7 @@ async function getStatus() {
 async function computeBlockers() {
   const status = await getStatus()
   const workers = await listWorkers()
-
-  /** @type {import('../src/types').Blocker[]} */
-  const blockers = []
-
-  if (status.gateway.health === 'down' || status.gateway.health === 'unknown') {
-    blockers.push({
-      id: 'gateway-not-ok',
-      title: status.gateway.health === 'down' ? 'Gateway stopped' : 'Gateway status unknown',
-      severity: status.gateway.health === 'down' ? 'High' : 'Medium',
-      detectedAt: new Date().toISOString(),
-      details: 'Gateway must be running for nodes, browser relay, and automation to function.',
-      remediation: [
-        { label: 'Gateway status', command: 'openclaw gateway status' },
-        { label: 'Restart gateway', command: 'openclaw gateway restart', action: { kind: 'gateway.restart' } },
-        { label: 'Start gateway', command: 'openclaw gateway start', action: { kind: 'gateway.start' } },
-      ],
-    })
-  }
-
-  const stale = workers.filter((w) => w.status === 'stale')
-  const offline = workers.filter((w) => w.status === 'offline')
-  if (stale.length || offline.length) {
-    const worst = offline.length ? 'High' : 'Medium'
-    blockers.push({
-      id: 'workers-unhealthy',
-      title: offline.length ? 'Some workers are offline' : 'Some workers are stale',
-      severity: worst,
-      detectedAt: new Date().toISOString(),
-      details: [
-        stale.length ? `stale: ${stale.map((w) => w.slot).join(', ')}` : null,
-        offline.length ? `offline: ${offline.map((w) => w.slot).join(', ')}` : null,
-      ]
-        .filter(Boolean)
-        .join(' · '),
-      remediation: [
-        { label: 'Inspect heartbeat file', command: `ls -la "${WORKSPACE}" && ls -la "${path.join(WORKSPACE, '.clawhub')}"` },
-        { label: 'Restart gateway (may restart workers)', command: 'openclaw gateway restart', action: { kind: 'gateway.restart' } },
-      ],
-    })
-  }
-
-  return blockers
+  return computeBlockersFrom({ status, workers, workspace: WORKSPACE })
 }
 
 app.get('/api/status', async (_req, res) => {
