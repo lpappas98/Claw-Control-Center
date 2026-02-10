@@ -319,6 +319,23 @@ app.post('/api/control', async (req, res) => {
 
 app.get('/healthz', (_req, res) => res.send('ok'))
 
+async function flushActivityOnExit() {
+  try {
+    await activitySaver.flush()
+  } catch {
+    // best-effort
+  }
+}
+
+process.on('SIGINT', async () => {
+  await flushActivityOnExit()
+  process.exit(0)
+})
+process.on('SIGTERM', async () => {
+  await flushActivityOnExit()
+  process.exit(0)
+})
+
 app.listen(PORT, () => {
   pushActivity({
     id: newId('bridge'),
