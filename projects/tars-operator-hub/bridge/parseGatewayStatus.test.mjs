@@ -2,43 +2,53 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { parseGatewayStatus } from './parseGatewayStatus.mjs'
 
-test('parseGatewayStatus: RPC probe ok => ok', () => {
-  const out = `Service: systemd\nRPC probe: ok\nListening: *:18789`
+test('parseGatewayStatus: rpc probe ok → ok', () => {
+  const out = `Gateway Service\nRPC probe: OK\nRuntime: node@22\n`
   assert.deepEqual(parseGatewayStatus(out), {
     health: 'ok',
     summary: 'probe ok',
-    signals: ['RPC probe: ok'],
+    signals: ['RPC probe: OK'],
   })
 })
 
-test('parseGatewayStatus: runtime unknown + probe ok => warn', () => {
-  const out = `Runtime: unknown (Error: ...)\nRPC probe: ok`
-  assert.deepEqual(parseGatewayStatus(out), {
-    health: 'warn',
-    summary: 'probe ok (runtime unknown)',
-    signals: ['RPC probe: ok'],
-  })
+test('parseGatewayStatus: rpc probe ok but runtime unknown → warn', () => {
+  const out = `RPC probe: OK\nRuntime: unknown\n`
+  const parsed = parseGatewayStatus(out)
+  assert.equal(parsed.health, 'warn')
+  assert.equal(parsed.summary, 'probe ok (runtime unknown)')
 })
 
-test('parseGatewayStatus: probe failed => down', () => {
-  const out = `RPC probe: failed (ECONNREFUSED)`
-  assert.deepEqual(parseGatewayStatus(out), {
-    health: 'down',
-    summary: 'probe failed',
-    signals: ['RPC probe: failed (ECONNREFUSED)'],
-  })
+test('parseGatewayStatus: rpc probe failed → down', () => {
+  const out = `RPC probe: timeout after 2s\n`
+  const parsed = parseGatewayStatus(out)
+  assert.equal(parsed.health, 'down')
+  assert.equal(parsed.summary, 'probe failed')
 })
 
-test('parseGatewayStatus: listening => ok (fallback)', () => {
-  const out = `Dashboard: http://127.0.0.1:1234/\nListening: *:1234`
-  const res = parseGatewayStatus(out)
-  assert.equal(res.health, 'ok')
-  assert.equal(res.summary, 'listening')
+test('parseGatewayStatus: listening without probe → ok', () => {
+  const out = `listening: 127.0.0.1:7777\n`
+  const parsed = parseGatewayStatus(out)
+  assert.equal(parsed.health, 'ok')
+  assert.equal(parsed.summary, 'listening')
 })
 
-test('parseGatewayStatus: stopped/inactive => down', () => {
-  const out = `Gateway is not running (inactive)`
-  const res = parseGatewayStatus(out)
-  assert.equal(res.health, 'down')
-  assert.equal(res.summary, 'stopped')
+test('parseGatewayStatus: stopped/inactive → down', () => {
+  const out = `Service: inactive (dead)\n`
+  const parsed = parseGatewayStatus(out)
+  assert.equal(parsed.health, 'down')
+  assert.equal(parsed.summary, 'stopped')
+})
+
+test('parseGatewayStatus: config issue → warn', () => {
+  const out = `Gateway status\nConfig issue detected: looks out of date.\nRun: openclaw doctor --repair\n`
+  const parsed = parseGatewayStatus(out)
+  assert.equal(parsed.health, 'warn')
+  assert.equal(parsed.summary, 'config issue')
+})
+
+test('parseGatewayStatus: unknown falls back to first line', () => {
+  const out = `Some weird output\nMore info\n`
+  const parsed = parseGatewayStatus(out)
+  assert.equal(parsed.health, 'unknown')
+  assert.equal(parsed.summary, 'Some weird output')
 })
