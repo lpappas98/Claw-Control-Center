@@ -3,6 +3,7 @@ import type { Adapter } from '../adapters/adapter'
 import type { ActivityLevel } from '../types'
 import { usePoll } from '../lib/usePoll'
 import { Badge } from '../components/Badge'
+import { CopyButton } from '../components/CopyButton'
 
 const levels: ActivityLevel[] = ['info', 'warn', 'error']
 
@@ -55,16 +56,28 @@ export function Activity({ adapter }: { adapter: Adapter }) {
         {error && <div className="callout warn">{error.message}</div>}
 
         <div className="feed-grid">
-          {filtered.map((e) => (
-            <div className={`feed-item ${e.level}`} key={e.id}>
-              <div className="feed-head">
-                <Badge kind={e.level} />
-                <span className="feed-source">{e.source}</span>
-                <span className="muted">· {new Date(e.at).toLocaleString()}</span>
+          {filtered.map((e) => {
+            const metaText = e.meta ? JSON.stringify(e.meta, null, 2) : ''
+            return (
+              <div className={`feed-item ${e.level}`} key={e.id}>
+                <div className="feed-head">
+                  <Badge kind={e.level} />
+                  <span className="feed-source">{e.source}</span>
+                  <span className="muted">· {new Date(e.at).toLocaleString()}</span>
+                  <span className="right">
+                    <CopyButton text={`${e.at} ${e.source} ${e.level}\n${e.message}${metaText ? `\n\n${metaText}` : ''}`} label="Copy" />
+                  </span>
+                </div>
+                <div className="feed-msg">{e.message}</div>
+                {e.meta && (
+                  <details className="feed-meta">
+                    <summary className="muted">details</summary>
+                    <pre className="code">{metaText}</pre>
+                  </details>
+                )}
               </div>
-              <div className="feed-msg">{e.message}</div>
-            </div>
-          ))}
+            )
+          })}
           {!loading && filtered.length === 0 && <div className="muted">No events match filters.</div>}
         </div>
       </section>
