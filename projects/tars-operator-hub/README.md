@@ -31,6 +31,10 @@ npm run dev
 
 Open the URL printed by Vite.
 
+## Runbook
+
+See [`docs/RUNBOOK.md`](docs/RUNBOOK.md) for troubleshooting and operational notes.
+
 ## Notes
 
 - The bridge currently has **real gateway status + gateway controls**.
