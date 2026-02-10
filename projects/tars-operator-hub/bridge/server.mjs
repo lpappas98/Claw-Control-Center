@@ -6,6 +6,7 @@ import fs from 'node:fs/promises'
 import { existsSync } from 'node:fs'
 import { execFile } from 'node:child_process'
 import { promisify } from 'node:util'
+import { parseGatewayStatus } from './parseGatewayStatus.mjs'
 
 const execFileAsync = promisify(execFile)
 
@@ -51,18 +52,16 @@ async function runCli(bin, args, timeoutMs = 8000) {
   }
 }
 
-function healthFromGatewayText(text) {
-  const t = text.toLowerCase()
-  if (t.includes('running') || t.includes('active')) return { health: 'ok', summary: 'running' }
-  if (t.includes('stopped') || t.includes('inactive') || t.includes('not running')) return { health: 'down', summary: 'stopped' }
-  return { health: 'unknown', summary: text.split('\n')[0]?.slice(0, 120) || 'unknown' }
-}
-
 async function getGatewayStatus() {
   const res = await runCli('openclaw', ['gateway', 'status'])
   if (!res.ok) return { health: 'unknown', summary: 'openclaw gateway status failed', details: [res.error, res.output].filter(Boolean) }
-  const parsed = healthFromGatewayText(res.output)
-  return { ...parsed, details: res.output ? res.output.split('\n').slice(0, 6) : undefined }
+
+  const parsed = parseGatewayStatus(res.output)
+  return {
+    health: parsed.health,
+    summary: parsed.summary,
+    details: res.output ? res.output.split('\n').slice(0, 10) : undefined,
+  }
 }
 
 async function getGitInfo(projectPath) {
