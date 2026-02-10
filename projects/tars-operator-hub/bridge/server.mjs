@@ -19,6 +19,9 @@ const WORKSPACE = process.env.OPENCLAW_WORKSPACE ?? path.join(os.homedir(), '.op
 /** @type {import('../src/types').ActivityEvent[]} */
 const activity = []
 
+let lastGatewayHealth = null
+let lastGatewaySummary = null
+
 function pushActivity(evt) {
   activity.unshift(evt)
   while (activity.length > 500) activity.pop()
@@ -56,6 +59,57 @@ async function getGatewayStatus() {
   return { ...parsed, details: res.output ? res.output.split('\n').slice(0, 6) : undefined }
 }
 
+async function getGitInfo(projectPath) {
+  // Avoid running git in huge non-repos: quick check for .git first.
+  if (!existsSync(path.join(projectPath, '.git'))) return undefined
+
+  const rootRes = await runCli('git', ['-C', projectPath, 'rev-parse', '--show-toplevel'])
+  if (!rootRes.ok) return undefined
+  const root = rootRes.output.split('\n')[0]?.trim()
+
+  const branchRes = await runCli('git', ['-C', projectPath, 'rev-parse', '--abbrev-ref', 'HEAD'])
+  const branch = branchRes.ok ? branchRes.output.split('\n')[0]?.trim() : undefined
+
+  const dirtyRes = await runCli('git', ['-C', projectPath, 'status', '--porcelain'])
+  const dirty = dirtyRes.ok ? dirtyRes.output.trim().length > 0 : undefined
+
+  let ahead
+  let behind
+  const abRes = await runCli('git', ['-C', projectPath, 'rev-list', '--left-right', '--count', 'HEAD...@{upstream}'])
+  if (abRes.ok) {
+    const parts = abRes.output.trim().split(/\s+/)
+    if (parts.length >= 2) {
+      ahead = Number(parts[0])
+      behind = Number(parts[1])
+      if (!Number.isFinite(ahead)) ahead = undefined
+      if (!Number.isFinite(behind)) behind = undefined
+    }
+  }
+
+  const lastCommitRes = await runCli('git', ['-C', projectPath, 'log', '-1', '--format=%cI'])
+  const lastCommitAt = lastCommitRes.ok ? lastCommitRes.output.split('\n')[0]?.trim() : undefined
+
+  return { root, branch, dirty, ahead, behind, lastCommitAt }
+}
+
+async function getNodeInfo(projectPath) {
+  const pkgPath = path.join(projectPath, 'package.json')
+  if (!existsSync(pkgPath)) return { hasPackageJson: false }
+
+  try {
+    const raw = await fs.readFile(pkgPath, 'utf8')
+    const pkg = JSON.parse(raw)
+    const scripts = pkg?.scripts && typeof pkg.scripts === 'object' ? Object.keys(pkg.scripts) : []
+    return {
+      hasPackageJson: true,
+      packageName: typeof pkg?.name === 'string' ? pkg.name : undefined,
+      scripts: scripts.slice(0, 40),
+    }
+  } catch {
+    return { hasPackageJson: true }
+  }
+}
+
 async function listProjects() {
   const root = path.join(WORKSPACE, 'projects')
   let entries = []
@@ -75,12 +129,17 @@ async function listProjects() {
       } catch {
         stat = null
       }
+
+      const [git, node] = await Promise.all([getGitInfo(p), getNodeInfo(p)])
+
       return {
         id: name,
         name,
         path: p,
         status: 'Unknown',
         lastUpdatedAt: stat?.mtime ? new Date(stat.mtime).toISOString() : undefined,
+        git,
+        node,
       }
     })
   )
@@ -139,6 +198,19 @@ async function listWorkers() {
 async function getStatus() {
   const gateway = await getGatewayStatus()
 
+  if (lastGatewayHealth !== null && (gateway.health !== lastGatewayHealth || gateway.summary !== lastGatewaySummary)) {
+    const level = gateway.health === 'ok' ? 'info' : gateway.health === 'warn' ? 'warn' : 'error'
+    pushActivity({
+      id: newId('gateway'),
+      at: new Date().toISOString(),
+      level,
+      source: 'bridge',
+      message: `gateway: ${lastGatewayHealth} → ${gateway.health} (${gateway.summary})`,
+    })
+  }
+  lastGatewayHealth = gateway.health
+  lastGatewaySummary = gateway.summary
+
   // Node + browser relay are placeholders until a canonical local API exists.
   const nodes = { health: 'unknown', pairedCount: 0, pendingCount: 0, details: ['Wire to openclaw nodes APIs when available.'] }
   const browserRelay = { health: 'unknown', attachedTabs: 0, details: ['Wire to browser relay telemetry when available.'] }
@@ -165,7 +237,8 @@ async function computeBlockers() {
       details: 'Gateway must be running for nodes, browser relay, and automation to function.',
       remediation: [
         { label: 'Gateway status', command: 'openclaw gateway status' },
-        { label: 'Restart gateway', command: 'openclaw gateway restart' },
+        { label: 'Restart gateway', command: 'openclaw gateway restart', action: { kind: 'gateway.restart' } },
+        { label: 'Start gateway', command: 'openclaw gateway start', action: { kind: 'gateway.start' } },
       ],
     })
   }

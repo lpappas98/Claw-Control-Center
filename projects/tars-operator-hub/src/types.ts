@@ -24,6 +24,22 @@ export type ProjectInfo = {
   status: 'Active' | 'Paused' | 'Unknown'
   lastUpdatedAt?: string
   notes?: string
+
+  /** Optional enrichment when using the local bridge. */
+  git?: {
+    root?: string
+    branch?: string
+    dirty?: boolean
+    ahead?: number
+    behind?: number
+    lastCommitAt?: string
+  }
+
+  node?: {
+    hasPackageJson?: boolean
+    packageName?: string
+    scripts?: string[]
+  }
 }
 
 export type ActivityLevel = 'info' | 'warn' | 'error'
@@ -43,7 +59,7 @@ export type Blocker = {
   severity: 'High' | 'Medium' | 'Low'
   detectedAt: string
   details?: string
-  remediation: Array<{ label: string; command: string }>
+  remediation: Array<{ label: string; command: string; action?: ControlAction }>
 }
 
 export type ControlAction =

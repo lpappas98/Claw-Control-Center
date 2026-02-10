@@ -187,7 +187,14 @@ export function MissionControl({
                   <div className="cmd" key={r.label}>
                     <div className="cmd-label">{r.label}</div>
                     <pre className="code">{r.command}</pre>
-                    <CopyButton text={r.command} />
+                    <div className="stack-h">
+                      <CopyButton text={r.command} />
+                      {r.action && cfg.kind === 'bridge' && (
+                        <button className="btn" disabled={!!controlBusy} onClick={() => run(r.action as ControlAction)} type="button">
+                          {controlBusy === r.action.kind ? 'Running…' : 'Run'}
+                        </button>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
