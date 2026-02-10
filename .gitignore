@@ -1,0 +1,20 @@
+# Workspace-level ignore rules
+# This repo is focused on the Operator Hub app under projects/tars-operator-hub.
+# Ignore other local experiments, skills, and generated artifacts.
+
+# Local OpenClaw state
+/.clawhub/
+
+# Other projects (keep operator hub tracked)
+/projects/*
+!/projects/tars-operator-hub/
+!/projects/tars-operator-hub/**
+
+# Skills directories are copied in locally for development
+/skills/
+
+# Common build artifacts
+**/node_modules/
+**/dist/
+**/.DS_Store
+**/*.log
