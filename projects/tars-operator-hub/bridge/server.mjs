@@ -11,6 +11,7 @@ import { listWorkersFromCandidates } from './workers.mjs'
 import { computeBlockersFrom } from './blockers.mjs'
 import { parseGatewayStatus } from './parseGatewayStatus.mjs'
 import { loadActivity, makeDebouncedSaver, saveActivity } from './activityStore.mjs'
+import { getHeartbeatDiagnostics } from './watchdog.mjs'
 import { loadRules, loadRuleHistory, pushRuleHistory, saveRules, saveRuleHistory } from './rules.mjs'
 
 const execFileAsync = promisify(execFile)
@@ -210,6 +211,14 @@ async function listWorkers() {
   return listWorkersFromCandidates(candidates)
 }
 
+async function getWatchdog() {
+  const candidates = [
+    path.join(WORKSPACE, 'worker-heartbeats.json'),
+    path.join(WORKSPACE, '.clawhub', 'worker-heartbeats.json'),
+  ]
+  return getHeartbeatDiagnostics(candidates)
+}
+
 async function getStatus() {
   const gateway = await getGatewayStatus()
 
@@ -244,9 +253,36 @@ async function computeBlockers() {
   return computeBlockersFrom({ status, workers, workspace: WORKSPACE })
 }
 
+app.get('/api/live', async (_req, res) => {
+  const [status, workers, watchdog] = await Promise.all([getStatus(), listWorkers(), getWatchdog()])
+  const blockers = computeBlockersFrom({ status, workers, workspace: WORKSPACE })
+  res.json({
+    updatedAt: new Date().toISOString(),
+    status,
+    workers,
+    blockers,
+    watchdog,
+  })
+})
+
 app.get('/api/status', async (_req, res) => {
   const s = await getStatus()
   res.json(s)
+})
+
+app.get('/api/live', async (_req, res) => {
+  const nowMs = Date.now()
+  const nowIso = new Date(nowMs).toISOString()
+
+  const candidates = [
+    path.join(WORKSPACE, 'worker-heartbeats.json'),
+    path.join(WORKSPACE, '.clawhub', 'worker-heartbeats.json'),
+  ]
+
+  const [status, workers, watchdog] = await Promise.all([getStatus(), listWorkersFromCandidates(candidates, nowMs), getHeartbeatDiagnostics(candidates, nowMs)])
+  const blockers = computeBlockersFrom({ status, workers, workspace: WORKSPACE, now: new Date(nowMs) })
+
+  res.json({ updatedAt: nowIso, status, workers, blockers, watchdog })
 })
 
 app.get('/api/projects', async (_req, res) => {

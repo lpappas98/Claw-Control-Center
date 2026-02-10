@@ -49,7 +49,7 @@ export function MissionControl({
   const status = live.data?.status
   const workers = live.data?.workers
   const blockers = live.data?.blockers
-  // watchdog reserved for future integration
+  const watchdog = live.data?.watchdog
 
   const [controlBusy, setControlBusy] = useState<string | null>(null)
   const [controlResult, setControlResult] = useState<(ControlResult & { kind: string }) | null>(null)
@@ -198,6 +198,44 @@ export function MissionControl({
             </div>
           ))}
           {!live.loading && (workers?.length ?? 0) === 0 && <div className="muted">No workers reported.</div>}
+        </div>
+      </section>
+
+      <section className="panel">
+        <div className="panel-header">
+          <div>
+            <h3>Diagnostics</h3>
+            <p className="muted">Watchdog + heartbeat ingestion health.</p>
+          </div>
+        </div>
+
+        <div className="stack">
+          <div className="stat-card">
+            <div className="stat-title">Watchdog</div>
+            <div className="stat-value">
+              <Badge kind={watchdog?.health ?? 'unknown'} />
+            </div>
+            <div className="muted">{watchdog?.summary ?? '—'}</div>
+          </div>
+
+          <div className="callout">
+            <div className="stack">
+              <div className="stack-h">
+                <strong>Heartbeat file</strong>
+                <span className="muted">· age {fmtAgeMs(watchdog?.heartbeatFile?.ageMs)}</span>
+                <span className="muted">· parse {watchdog?.heartbeatFile?.parseOk ? 'ok' : 'fail'}</span>
+                {typeof watchdog?.heartbeatFile?.workerCount === 'number' && <span className="muted">· workers {watchdog.heartbeatFile.workerCount}</span>}
+              </div>
+              <div className="muted">{watchdog?.heartbeatFile?.path ?? '—'}</div>
+              {watchdog?.heartbeatFile?.mtime && <div className="muted">mtime: {new Date(watchdog.heartbeatFile.mtime).toLocaleString()}</div>}
+              {watchdog?.heartbeatFile?.error && (
+                <details>
+                  <summary className="muted">error</summary>
+                  <pre className="code">{watchdog.heartbeatFile.error}</pre>
+                </details>
+              )}
+            </div>
+          </div>
         </div>
       </section>
 
