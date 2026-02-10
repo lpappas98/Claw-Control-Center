@@ -179,7 +179,7 @@ export function MissionControl({
               active {workerSummary.active} · waiting {workerSummary.waiting} · stale {workerSummary.stale} · offline {workerSummary.offline}
             </div>
           </div>
-          <div className="right muted">heartbeat poll: 5s</div>
+          <div className="right muted">snapshot: {fmtAgo(live.data?.updatedAt)} · poll: 5s</div>
         </div>
 
         <div className="table-like">
