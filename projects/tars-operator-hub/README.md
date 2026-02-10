@@ -43,9 +43,10 @@ See [`docs/RUNBOOK.md`](docs/RUNBOOK.md) for troubleshooting and operational not
   - `~/.openclaw/workspace/worker-heartbeats.json`
   - `~/.openclaw/workspace/.clawhub/worker-heartbeats.json`
 
-## Build / lint
+## Build / lint / test
 
 ```bash
 npm run lint
+npm run test
 npm run build
 ```
