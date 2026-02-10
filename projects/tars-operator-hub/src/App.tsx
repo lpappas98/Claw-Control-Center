@@ -9,8 +9,28 @@ type NavTab = 'Mission Control' | 'Projects' | 'Activity' | 'Docs'
 
 const tabs: NavTab[] = ['Mission Control', 'Projects', 'Activity', 'Docs']
 
+const NAV_TAB_KEY = 'tars.operatorHub.navTab'
+
+function loadNavTab(): NavTab {
+  try {
+    const raw = localStorage.getItem(NAV_TAB_KEY)
+    if (raw && (tabs as readonly string[]).includes(raw)) return raw as NavTab
+  } catch {
+    // ignore storage errors (private mode, disabled, etc.)
+  }
+  return 'Mission Control'
+}
+
+function saveNavTab(tab: NavTab) {
+  try {
+    localStorage.setItem(NAV_TAB_KEY, tab)
+  } catch {
+    // ignore
+  }
+}
+
 export default function App() {
-  const [tab, setTab] = useState<NavTab>('Mission Control')
+  const [tab, setTab] = useState<NavTab>(() => loadNavTab())
   const [cfg, setCfg] = useState<AdapterConfig>(() => loadAdapterConfig())
 
   const adapter = useMemo(() => toAdapter(cfg), [cfg])
@@ -30,7 +50,15 @@ export default function App() {
 
         <nav className="nav-tabs" aria-label="Primary">
           {tabs.map((t) => (
-            <button className={`tab ${t === tab ? 'active' : ''}`} key={t} onClick={() => setTab(t)} type="button">
+            <button
+              className={`tab ${t === tab ? 'active' : ''}`}
+              key={t}
+              onClick={() => {
+                setTab(t)
+                saveNavTab(t)
+              }}
+              type="button"
+            >
               {t}
             </button>
           ))}
