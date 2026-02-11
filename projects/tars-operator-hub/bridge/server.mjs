@@ -77,6 +77,7 @@ const intakeProjectsSaver = makeDebouncedSaver(() => saveIntakeProjects(INTAKE_P
 /** @type {import('../src/types').Task[]} */
 let tasks = await loadTasks(TASKS_FILE)
 const tasksSaver = makeDebouncedSaver(() => saveTasks(TASKS_FILE, tasks))
+let tasksSaveTimer = null
 
 let lastGatewayHealth = null
 let lastGatewaySummary = null
@@ -112,6 +113,11 @@ function scheduleRulesSave() {
 
 function scheduleTasksSave() {
   tasksSaver.trigger()
+  if (tasksSaveTimer) return
+  tasksSaveTimer = setTimeout(async () => {
+    tasksSaveTimer = null
+    await tasksSaver.flush()
+  }, 750)
 }
 
 function pushActivity(evt) {
@@ -746,7 +752,7 @@ app.post('/api/tasks', async (req, res) => {
   }
 
   tasks = [next, ...tasks].slice(0, 500)
-  tasksSaver.trigger()
+  scheduleTasksSave()
   res.json(next)
 })
 
@@ -781,7 +787,7 @@ app.put('/api/tasks/:id', async (req, res) => {
   }
 
   tasks = [...tasks.slice(0, idx), next, ...tasks.slice(idx + 1)]
-  tasksSaver.trigger()
+  scheduleTasksSave()
   res.json(next)
 })
 
