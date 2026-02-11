@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import './App.css'
 import { MissionControl } from './pages/MissionControl'
 import { Projects } from './pages/Projects'
@@ -12,6 +12,27 @@ type NavTab = 'Mission Control' | 'Projects' | 'Activity' | 'Rules' | 'Config' |
 const tabs: NavTab[] = ['Mission Control', 'Projects', 'Activity', 'Rules', 'Config', 'Docs']
 
 const NAV_TAB_KEY = 'tars.operatorHub.navTab'
+const THEME_KEY = 'tars.operatorHub.theme'
+
+type Theme = 'dark' | 'light'
+
+function loadTheme(): Theme {
+  try {
+    const raw = localStorage.getItem(THEME_KEY)
+    if (raw === 'light' || raw === 'dark') return raw
+  } catch {
+    // ignore storage errors
+  }
+  return 'dark'
+}
+
+function saveTheme(theme: Theme) {
+  try {
+    localStorage.setItem(THEME_KEY, theme)
+  } catch {
+    // ignore
+  }
+}
 
 function loadNavTab(): NavTab {
   try {
@@ -34,6 +55,16 @@ function saveNavTab(tab: NavTab) {
 export default function App() {
   const [tab, setTab] = useState<NavTab>(() => loadNavTab())
   const [cfg, setCfg] = useState<AdapterConfig>(() => loadAdapterConfig())
+  const [theme, setTheme] = useState<Theme>(() => loadTheme())
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme)
+    saveTheme(theme)
+  }, [theme])
+
+  const toggleTheme = useCallback(() => {
+    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))
+  }, [])
 
   const adapter = useMemo(() => toAdapter(cfg), [cfg])
 
@@ -67,6 +98,15 @@ export default function App() {
         </nav>
 
         <div className="top-actions">
+          <button
+            className="btn ghost theme-toggle"
+            onClick={toggleTheme}
+            type="button"
+            title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+            aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+          >
+            {theme === 'dark' ? '☀️' : '🌙'}
+          </button>
           <div className="adapter-pill" title="Data source adapter">
             <span className="muted">Adapter:</span> <strong>{adapter.name}</strong>
           </div>

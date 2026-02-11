@@ -1,11 +1,38 @@
+/* Theme variables */
+:root {
+  --bg-primary: #090b14;
+  --bg-secondary: #15182a;
+  --bg-panel: #111426;
+  --bg-topbar: rgba(9, 11, 20, 0.82);
+  --text-primary: #f4f6fb;
+  --text-muted: #9fa7c8;
+  --border-color: #222739;
+  --border-light: #2a3046;
+  --accent: #5f6dff;
+  --accent-bg: #1d2350;
+}
+
+[data-theme="light"] {
+  --bg-primary: #f8f9fc;
+  --bg-secondary: #ffffff;
+  --bg-panel: #ffffff;
+  --bg-topbar: rgba(255, 255, 255, 0.92);
+  --text-primary: #1a1d2e;
+  --text-muted: #5f6680;
+  --border-color: #e2e4eb;
+  --border-light: #d0d4e0;
+  --accent: #4f5ccc;
+  --accent-bg: #e8eaff;
+}
+
 #root {
   width: 100%;
 }
 
 .app-shell {
   min-height: 100vh;
-  background: radial-gradient(circle at top left, #15182a, #090b14 45%);
-  color: #f4f6fb;
+  background: radial-gradient(circle at top left, var(--bg-secondary), var(--bg-primary) 45%);
+  color: var(--text-primary);
 }
 
 .topbar {
@@ -14,11 +41,11 @@
   gap: 1rem;
   align-items: center;
   padding: 1rem 1.5rem;
-  border-bottom: 1px solid #222739;
+  border-bottom: 1px solid var(--border-color);
   position: sticky;
   top: 0;
   backdrop-filter: blur(8px);
-  background: rgba(9, 11, 20, 0.82);
+  background: var(--bg-topbar);
   z-index: 10;
 }
 
@@ -35,7 +62,7 @@
 
 .brand-sub {
   font-size: 0.8rem;
-  color: #9fa7c8;
+  color: var(--text-muted);
 }
 
 .nav-tabs {
@@ -45,18 +72,18 @@
 }
 
 .tab {
-  border: 1px solid #2a3046;
-  background: #111426;
-  color: #9fa7c8;
+  border: 1px solid var(--border-light);
+  background: var(--bg-panel);
+  color: var(--text-muted);
   border-radius: 8px;
   padding: 0.45rem 0.75rem;
   cursor: pointer;
 }
 
 .tab.active {
-  color: #fff;
-  border-color: #5f6dff;
-  background: #1d2350;
+  color: var(--text-primary);
+  border-color: var(--accent);
+  background: var(--accent-bg);
 }
 
 .top-actions {
@@ -66,16 +93,21 @@
 }
 
 .adapter-pill {
-  border: 1px solid #2a3046;
-  background: #0b0f1f;
+  border: 1px solid var(--border-light);
+  background: var(--bg-primary);
   border-radius: 999px;
   padding: 0.35rem 0.6rem;
   font-size: 0.85rem;
-  color: #cfd5ec;
+  color: var(--text-muted);
+}
+
+.theme-toggle {
+  font-size: 1.2rem;
+  padding: 0.4rem 0.6rem;
 }
 
 .btn {
-  background: #5f6dff;
+  background: var(--accent);
   color: white;
   border: none;
   border-radius: 10px;
@@ -90,9 +122,9 @@
 }
 
 .btn.ghost {
-  background: #161b2f;
-  border: 1px solid #2a3046;
-  color: #cfd5ec;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-light);
+  color: var(--text-muted);
 }
 
 .btn.copied {
