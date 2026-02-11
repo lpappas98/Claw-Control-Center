@@ -469,29 +469,17 @@ function TreeView({ project, onOpen }: { project: Project; onOpen: (n: FeatureNo
     return !!n.children?.some(isVisible)
   }
 
-  const levels = useMemo(() => {
-    const out: FeatureNode[][] = []
-    const walk = (nodes: FeatureNode[], depth: number) => {
-      for (const n of nodes) {
-        if (!isVisible(n)) continue
-        if (!out[depth]) out[depth] = []
-        out[depth].push(n)
-        if (n.children?.length) walk(n.children, depth + 1)
-      }
-    }
-    walk(project.tree, 0)
-    return out
-  }, [project.tree, query])
+  const epics = useMemo(() => project.tree.filter(isVisible), [project.tree, query])
 
   return (
     <div className="stack" style={{ gap: 12 }}>
       <div className="tree-toolbar">
-        <input className="input" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search features…" />
+        <input className="input" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search nodes…" />
         <label className="field inline" style={{ margin: 0 }}>
           <input type="checkbox" checked={showDeps} onChange={(e) => setShowDeps(e.target.checked)} />
           <span className="muted">Show dependencies</span>
         </label>
-        <button className="btn" type="button" onClick={() => alert('(wireframe) Add new feature node')}>
+        <button className="btn" type="button" onClick={() => alert('(wireframe) Add new node')}>
           + Add node
         </button>
       </div>
@@ -499,47 +487,88 @@ function TreeView({ project, onOpen }: { project: Project; onOpen: (n: FeatureNo
       <div className="panel" style={{ padding: 14 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', alignItems: 'baseline' }}>
           <div>
-            <h3 style={{ margin: 0 }}>Feature tree</h3>
+            <h3 style={{ margin: 0 }}>Tree</h3>
           </div>
           <div className="muted">{all.length} node(s)</div>
         </div>
 
-        <div className="tree-map" style={{ marginTop: 14 }}>
-          <div className="tree-level">
+        {/* Initiative → Epics/Sections → Stories/Tasks */}
+        <div className="tree-org" style={{ marginTop: 14 }}>
+          <div className="tree-org-root">
             <button type="button" className="tree-box root" onClick={() => alert('(wireframe) Project settings')} title="Project">
               <div className="tree-box-title">{project.name}</div>
-              <div className="muted" style={{ fontSize: 12 }}>root</div>
+              <div className="muted" style={{ fontSize: 12 }}>initiative</div>
             </button>
           </div>
 
-          {levels.map((row, idx) => (
-            <div key={idx} className="tree-level">
-              {row.map((n) => {
-                const highlight = matches.has(n.id)
-                return (
+          <div className="tree-org-epics" style={{ ['--cols' as never]: String(Math.max(1, epics.length)) }}>
+            {epics.map((e, idx) => {
+              const highlight = matches.has(e.id)
+              const tone = idx % 3 === 0 ? 'tone-a' : idx % 3 === 1 ? 'tone-b' : 'tone-c'
+              return (
+                <div key={e.id} className="tree-org-col">
                   <button
-                    key={n.id}
                     type="button"
-                    className={`tree-box ${highlight ? 'highlight' : ''}`}
-                    onClick={() => onOpen(n)}
-                    title="Open feature spec"
+                    className={`tree-box epic ${tone} ${highlight ? 'highlight' : ''}`}
+                    onClick={() => onOpen(e)}
+                    title="Open section/epic"
                   >
                     <div className="tree-box-top">
-                      <span className={`dot ${nodeDotClass(n.status)}`} />
-                      <PriorityPill p={n.priority} />
+                      <span className={`dot ${nodeDotClass(e.status)}`} />
+                      <PriorityPill p={e.priority} />
                     </div>
-                    <div className="tree-box-title">{n.title}</div>
-                    {n.summary ? <div className="muted tree-box-summary">{n.summary}</div> : <div className="muted tree-box-summary">—</div>}
-                    {showDeps && n.dependsOn?.length ? (
-                      <div className="muted" style={{ fontSize: 12, marginTop: 8 }}>
-                        deps: {n.dependsOn.length}
-                      </div>
-                    ) : null}
+                    <div className="tree-box-title">{e.title}</div>
+                    {e.summary ? <div className="muted tree-box-summary">{e.summary}</div> : <div className="muted tree-box-summary">—</div>}
                   </button>
-                )
-              })}
-            </div>
-          ))}
+
+                  <div className="tree-org-children">
+                    {(e.children ?? []).filter(isVisible).map((c) => {
+                      const ch = matches.has(c.id)
+                      return (
+                        <div key={c.id} className="tree-org-child">
+                          <button
+                            type="button"
+                            className={`tree-mini ${ch ? 'highlight' : ''}`}
+                            onClick={() => onOpen(c)}
+                            title="Open task/feature"
+                          >
+                            <div className="tree-mini-head">
+                              <span className={`dot ${nodeDotClass(c.status)}`} />
+                              <PriorityPill p={c.priority} />
+                            </div>
+                            <div className="tree-mini-title">{c.title}</div>
+                            {showDeps && c.dependsOn?.length ? (
+                              <div className="muted" style={{ fontSize: 12, marginTop: 6 }}>deps: {c.dependsOn.length}</div>
+                            ) : null}
+                          </button>
+
+                          {(c.children ?? []).filter(isVisible).length ? (
+                            <div className="tree-org-subtasks">
+                              {(c.children ?? []).filter(isVisible).map((s) => {
+                                const sh = matches.has(s.id)
+                                return (
+                                  <button
+                                    key={s.id}
+                                    type="button"
+                                    className={`tree-sub ${sh ? 'highlight' : ''}`}
+                                    onClick={() => onOpen(s)}
+                                    title="Open subtask"
+                                  >
+                                    <span className={`dot ${nodeDotClass(s.status)}`} />
+                                    <span style={{ fontWeight: 800 }}>{s.title}</span>
+                                  </button>
+                                )
+                              })}
+                            </div>
+                          ) : null}
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
         </div>
       </div>
     </div>
@@ -738,16 +767,20 @@ export function Projects({ adapter: _adapter }: { adapter: Adapter }) {
   const [activeId, setActiveId] = useState(projects[0]?.id ?? null)
   const [tab, setTab] = useState<ProjectTab>('Overview')
   const [drawer, setDrawer] = useState<FeatureNode | null>(null)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
 
   const active = useMemo(() => projects.find((p) => p.id === activeId) ?? projects[0] ?? null, [projects, activeId])
 
   return (
-    <main className="projects-layout">
-      <aside className="projects-sidebar">
+    <main className={`projects-layout ${sidebarCollapsed ? 'collapsed' : ''}`}>
+      <aside className="projects-sidebar" aria-hidden={sidebarCollapsed} style={sidebarCollapsed ? { display: 'none' } : undefined}>
         <div className="panel" style={{ padding: 14 }}>
           <div className="panel-header" style={{ padding: 0, marginBottom: 10 }}>
-            <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'baseline' }}>
               <h2 style={{ margin: 0 }}>Projects</h2>
+              <button className="btn ghost" type="button" onClick={() => setSidebarCollapsed(true)} title="Collapse sidebar">
+                Hide
+              </button>
             </div>
           </div>
 
@@ -800,6 +833,11 @@ export function Projects({ adapter: _adapter }: { adapter: Adapter }) {
                 <div className="muted" style={{ marginTop: 6 }}>{active.summary}</div>
               </div>
               <div className="stack-h" style={{ justifyContent: 'flex-end' }}>
+                {sidebarCollapsed ? (
+                  <button className="btn ghost" type="button" onClick={() => setSidebarCollapsed(false)} title="Show sidebar">
+                    Show projects
+                  </button>
+                ) : null}
                 <button className="btn ghost" type="button" onClick={() => alert('(wireframe) Share/project settings')}>
                   Settings
                 </button>

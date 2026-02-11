@@ -843,6 +843,10 @@ button.home-task.clickable:focus {
   align-items: start;
 }
 
+.projects-layout.collapsed {
+  grid-template-columns: 1fr;
+}
+
 .projects-sidebar {
   position: sticky;
   top: 86px;
@@ -934,20 +938,6 @@ button.home-task.clickable:focus {
   align-items: center;
 }
 
-.tree-map {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  align-items: stretch;
-}
-
-.tree-level {
-  display: flex;
-  justify-content: center;
-  gap: 14px;
-  flex-wrap: wrap;
-}
-
 .tree-box {
   width: 220px;
   border: 1px solid #2a3046;
@@ -963,9 +953,30 @@ button.home-task.clickable:focus {
 }
 
 .tree-box.root {
-  width: 260px;
+  width: 340px;
   border-color: #5f6dff;
   background: rgba(95, 109, 255, 0.1);
+}
+
+.tree-box.epic {
+  width: 100%;
+  border-radius: 16px;
+  padding: 0.9rem;
+}
+
+.tree-box.epic.tone-a {
+  background: rgba(0, 180, 255, 0.14);
+  border-color: rgba(0, 180, 255, 0.35);
+}
+
+.tree-box.epic.tone-b {
+  background: rgba(255, 170, 0, 0.14);
+  border-color: rgba(255, 170, 0, 0.35);
+}
+
+.tree-box.epic.tone-c {
+  background: rgba(150, 120, 255, 0.14);
+  border-color: rgba(150, 120, 255, 0.35);
 }
 
 .tree-box.highlight {
@@ -991,6 +1002,93 @@ button.home-task.clickable:focus {
   font-size: 12px;
   line-height: 1.35;
   min-height: 2.7em;
+}
+
+.tree-org {
+  display: grid;
+  gap: 18px;
+}
+
+.tree-org-root {
+  display: flex;
+  justify-content: center;
+}
+
+.tree-org-epics {
+  display: grid;
+  grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+  gap: 14px;
+  align-items: start;
+}
+
+.tree-org-col {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.tree-org-children {
+  display: grid;
+  gap: 10px;
+}
+
+.tree-mini {
+  width: 100%;
+  border: 1px solid #2a3046;
+  border-radius: 14px;
+  background: rgba(11, 15, 31, 0.6);
+  color: inherit;
+  padding: 0.65rem;
+  text-align: left;
+}
+
+.tree-mini:hover {
+  border-color: #3a4160;
+}
+
+.tree-mini.highlight {
+  border-color: #5f6dff;
+}
+
+.tree-mini-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.tree-mini-title {
+  margin-top: 8px;
+  font-weight: 900;
+  line-height: 1.15;
+}
+
+.tree-org-subtasks {
+  display: grid;
+  gap: 8px;
+  padding-left: 10px;
+  border-left: 1px solid #242b45;
+  margin-top: 8px;
+}
+
+.tree-sub {
+  border: 1px solid #242b45;
+  border-radius: 12px;
+  background: rgba(11, 15, 31, 0.55);
+  padding: 0.5rem 0.6rem;
+  color: inherit;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
+}
+
+.tree-sub:hover {
+  border-color: #3a4160;
+}
+
+.tree-sub.highlight {
+  border-color: #5f6dff;
 }
 
 .kanban-grid {
