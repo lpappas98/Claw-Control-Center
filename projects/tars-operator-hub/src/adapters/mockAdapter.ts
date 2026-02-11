@@ -29,6 +29,7 @@ import type {
   PMCardUpdate,
   PMIntake,
   PMActivity,
+  FeatureIntake,
 } from '../types'
 
 const nowIso = () => new Date().toISOString()
@@ -82,6 +83,8 @@ let mockPMProjects: PMProject[] = []
 let mockPMTrees: Map<string, PMTreeNode[]> = new Map()
 let mockPMCards: Map<string, PMCard[]> = new Map()
 let mockPMIntakes: Map<string, PMIntake> = new Map()
+// Feature-level intakes keyed by "projectId:nodeId"
+let mockFeatureIntakes: Map<string, FeatureIntake> = new Map()
 let mockPMActivities: Map<string, PMActivity[]> = new Map()
 
 function pushRuleChange(change: Omit<RuleChange, 'id'>) {
@@ -620,7 +623,21 @@ export const mockAdapter: Adapter = {
     const idx = tree.findIndex((n) => n.id === nodeId)
     if (idx < 0) throw new Error(`Tree node not found: ${nodeId}`)
     mockPMTrees.set(projectId, [...tree.slice(0, idx), ...tree.slice(idx + 1)])
+    // Also clean up feature intake for this node
+    mockFeatureIntakes.delete(`${projectId}:${nodeId}`)
     return { ok: true }
+  },
+
+  // PM Projects - Feature-Level Intake
+  async getFeatureIntake(projectId: string, nodeId: string): Promise<FeatureIntake | null> {
+    await sleep(50)
+    return mockFeatureIntakes.get(`${projectId}:${nodeId}`) ?? null
+  },
+
+  async setFeatureIntake(projectId: string, nodeId: string, intake: FeatureIntake): Promise<FeatureIntake> {
+    await sleep(100)
+    mockFeatureIntakes.set(`${projectId}:${nodeId}`, intake)
+    return intake
   },
 
   // PM Projects - Kanban Cards

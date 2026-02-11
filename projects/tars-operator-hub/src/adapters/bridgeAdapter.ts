@@ -27,6 +27,7 @@ import type {
   PMCardUpdate,
   PMIntake,
   PMActivity,
+  FeatureIntake,
 } from '../types'
 
 export type BridgeAdapterOptions = {
@@ -255,6 +256,19 @@ export function bridgeAdapter(opts: BridgeAdapterOptions): Adapter {
 
     deletePMTreeNode(projectId: string, nodeId: string) {
       return fetchJson<{ ok: boolean }>(`${base}/api/pm/projects/${encodeURIComponent(projectId)}/tree/nodes/${encodeURIComponent(nodeId)}`, { method: 'DELETE' })
+    },
+
+    // PM Projects - Feature-Level Intake
+    getFeatureIntake(projectId: string, nodeId: string) {
+      return fetchJson<FeatureIntake | null>(`${base}/api/pm/projects/${encodeURIComponent(projectId)}/tree/nodes/${encodeURIComponent(nodeId)}/intake`)
+    },
+
+    setFeatureIntake(projectId: string, nodeId: string, intake: FeatureIntake) {
+      return fetchJson<FeatureIntake>(`${base}/api/pm/projects/${encodeURIComponent(projectId)}/tree/nodes/${encodeURIComponent(nodeId)}/intake`, {
+        method: 'PUT',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(intake),
+      })
     },
 
     // PM Projects - Kanban Cards

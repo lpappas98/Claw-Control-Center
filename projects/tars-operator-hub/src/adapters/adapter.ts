@@ -31,6 +31,7 @@ import type {
   PMCardUpdate,
   PMIntake,
   PMActivity,
+  FeatureIntake,
 } from '../types'
 
 export type Adapter = {
@@ -84,6 +85,10 @@ export type Adapter = {
   createPMTreeNode(projectId: string, create: PMTreeNodeCreate): Promise<PMTreeNode>
   updatePMTreeNode(projectId: string, update: PMTreeNodeUpdate): Promise<PMTreeNode>
   deletePMTreeNode(projectId: string, nodeId: string): Promise<{ ok: boolean }>
+
+  // PM Projects - Feature-Level Intake
+  getFeatureIntake(projectId: string, nodeId: string): Promise<FeatureIntake | null>
+  setFeatureIntake(projectId: string, nodeId: string, intake: FeatureIntake): Promise<FeatureIntake>
 
   // PM Projects - Kanban Cards
   listPMCards(projectId: string): Promise<PMCard[]>

@@ -556,17 +556,37 @@ function TreeView({
     }
   }
 
-  const handleSaveIntake = (nodeId: string, intake: FeatureIntake) => {
-    // Update the node in memory (we'd also persist via adapter in real implementation)
-    // For now, update local state - this would be replaced with adapter call
-    console.log('Saving intake for node', nodeId, intake)
-    // TODO: adapter.updatePMTreeNodeIntake(project.id, nodeId, intake)
+  const handleSaveIntake = async (nodeId: string, intake: FeatureIntake) => {
+    // Persist via adapter
+    if (adapter) {
+      try {
+        await adapter.setFeatureIntake(project.id, nodeId, intake)
+        console.log('Saved intake for node', nodeId)
+      } catch (err) {
+        console.error('Failed to save intake:', err)
+      }
+    }
+    // Update local tree state
     onTreeUpdated?.()
   }
 
-  const handleIntakeComplete = (nodeId: string, intake: FeatureIntake) => {
+  const handleIntakeComplete = async (nodeId: string, intake: FeatureIntake) => {
     console.log('Intake completed for node', nodeId, intake)
-    // Here we could trigger AC generation, etc.
+    // Persist the completed intake
+    if (adapter) {
+      try {
+        await adapter.setFeatureIntake(project.id, nodeId, intake)
+        // Add activity event
+        await adapter.addPMActivity(project.id, {
+          actor: 'User',
+          action: 'Completed feature definition',
+          target: nodeId,
+          details: { questionsAnswered: intake.questions.filter(q => q.answer?.trim()).length },
+        })
+      } catch (err) {
+        console.error('Failed to save completed intake:', err)
+      }
+    }
     onTreeUpdated?.()
   }
 
@@ -1588,7 +1608,8 @@ function pmToProject(
   pm: PMProject,
   tree: PMTreeNode[],
   cards: PMCard[],
-  intake: PMIntake
+  intake: PMIntake,
+  featureIntakes?: Map<string, FeatureIntake>
 ): Project {
   // Convert PM tree nodes to internal FeatureNode format
   const convertNode = (n: PMTreeNode): FeatureNode => ({
@@ -1602,6 +1623,7 @@ function pmToProject(
     children: n.children?.map(convertNode) ?? [],
     dependsOn: n.dependsOn,
     sources: n.sources?.map(s => ({ kind: 'question' as const, id: s.questionId })),
+    featureIntake: featureIntakes?.get(n.id),
   })
 
   // Build tree hierarchy from flat nodes
@@ -1701,7 +1723,21 @@ export function Projects({ adapter }: { adapter: Adapter }) {
             adapter.listPMCards(pm.id),
             adapter.getPMIntake(pm.id),
           ])
-          return pmToProject(pm, tree, cards, intake)
+          
+          // Load feature intakes for all tree nodes
+          const featureIntakes = new Map<string, FeatureIntake>()
+          await Promise.all(
+            tree.map(async (node) => {
+              try {
+                const fi = await adapter.getFeatureIntake(pm.id, node.id)
+                if (fi) featureIntakes.set(node.id, fi)
+              } catch {
+                // Ignore errors for individual node intakes
+              }
+            })
+          )
+          
+          return pmToProject(pm, tree, cards, intake, featureIntakes)
         })
       )
       
