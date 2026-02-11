@@ -74,7 +74,10 @@ function activityActor(e: ActivityEvent): string | null {
   const meta = e.meta ?? {}
   const slot = typeof meta.slot === 'string' ? meta.slot : typeof meta.workerSlot === 'string' ? meta.workerSlot : null
   const human = typeof meta.user === 'string' ? meta.user : typeof meta.human === 'string' ? meta.human : null
-  if (slot) return slot
+  if (slot) {
+    const profile = agentProfile(slot)
+    return `${profile.emoji} ${profile.name}`
+  }
   if (human) return human
   return null
 }
@@ -299,11 +302,9 @@ export function MissionControl({
             const actor = activityActor(item)
             const corr = item.meta && typeof item.meta.correlationId === 'string' ? String(item.meta.correlationId) : null
             return (
-              <article className={`feed-item ${item.level}`} key={item.id}>
-                <div className="feed-head" style={{ gap: 8 }}>
-                  <Badge kind={item.level} />
-                  <span className="feed-source">{item.source}</span>
-                  {actor && <span className="pill sev-low">{actor}</span>}
+              <article className={`feed-item clean ${item.level}`} key={item.id}>
+                <div className="feed-head clean" style={{ gap: 8 }}>
+                  {actor && <span className="feed-actor">{actor}</span>}
                   {corr && <span className="pill">{corr}</span>}
                   <span className="muted right">{fmtAgo(item.at)}</span>
                 </div>

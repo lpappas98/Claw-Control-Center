@@ -388,6 +388,11 @@ textarea {
   padding: 0.7rem;
 }
 
+.feed-item.clean {
+  border-color: #2a3046;
+  background: rgba(11, 15, 31, 0.85);
+}
+
 .feed-item.warn {
   border-color: #7b6430;
 }
@@ -401,6 +406,15 @@ textarea {
   gap: 0.5rem;
   align-items: center;
   margin-bottom: 0.35rem;
+}
+
+.feed-head.clean {
+  margin-bottom: 0.4rem;
+}
+
+.feed-actor {
+  font-weight: 700;
+  color: #dbe2ff;
 }
 
 .feed-source {
