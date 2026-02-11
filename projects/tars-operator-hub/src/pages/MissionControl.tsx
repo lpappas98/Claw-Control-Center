@@ -59,18 +59,39 @@ export function MissionControl({
   const activity = usePoll<ActivityEvent[]>(() => adapter.listActivity(40), 7000)
 
   const agents = useMemo(() => {
-    return (live.data?.workers ?? []).map((w) => {
-      const profile = agentProfile(w.slot, w.label)
+    const workers = live.data?.workers ?? []
+    const bySlot = new Map(workers.map((w) => [w.slot, w]))
+
+    const base = ['dev-1', 'dev-2'].map((slot) => {
+      const w = bySlot.get(slot)
+      const profile = agentProfile(slot)
       return {
-        id: w.slot,
+        id: slot,
         name: profile.name,
         role: profile.role,
-        status: homeStatus(w.status),
-        rawStatus: w.status,
-        task: w.task ?? 'No active task',
-        lastBeatAt: w.lastBeatAt,
+        status: w ? homeStatus(w.status) : 'sleeping',
+        rawStatus: w?.status ?? 'offline',
+        task: w?.task ?? 'Waiting for next task',
+        lastBeatAt: w?.lastBeatAt,
       }
     })
+
+    const extras = workers
+      .filter((w) => w.slot !== 'dev-1' && w.slot !== 'dev-2')
+      .map((w) => {
+        const profile = agentProfile(w.slot, w.label)
+        return {
+          id: w.slot,
+          name: profile.name,
+          role: profile.role,
+          status: homeStatus(w.status),
+          rawStatus: w.status,
+          task: w.task ?? 'No active task',
+          lastBeatAt: w.lastBeatAt,
+        }
+      })
+
+    return [...base, ...extras]
   }, [live.data?.workers])
 
   const tasks = useMemo<HomeTask[]>(() => {
@@ -111,7 +132,6 @@ export function MissionControl({
         <div className="panel-header">
           <div>
             <h2>Home</h2>
-            <p className="muted">Active agents, current tasks, and unified activity feed.</p>
           </div>
           <div className="right" style={{ textAlign: 'right' }}>
             <div className="muted">updated: {live.data?.updatedAt ? new Date(live.data.updatedAt).toLocaleTimeString() : '—'}</div>
@@ -151,13 +171,11 @@ export function MissionControl({
         </div>
       </section>
 
-      <section className="panel span-4 home-main">
-        <div className="home-left">
+      <section className="panel span-3">
           <div className="panel-header">
             <div>
               <h3>Task Board</h3>
-              <p className="muted">Same workflow behavior: Proposed → Queued → Development → Review → Blocked → Done.</p>
-            </div>
+                          </div>
           </div>
 
           <div className="home-board">
@@ -179,14 +197,13 @@ export function MissionControl({
               )
             })}
           </div>
-        </div>
+      </section>
 
-        <aside className="home-right">
+      <section className="panel span-1">
           <div className="panel-header">
             <div>
               <h3>Activity Feed</h3>
-              <p className="muted">All agents + operator activity.</p>
-            </div>
+                          </div>
           </div>
 
           <div className="stack">
@@ -201,7 +218,6 @@ export function MissionControl({
             ))}
             {!activity.loading && (activity.data?.length ?? 0) === 0 && <div className="muted">No activity yet.</div>}
           </div>
-        </aside>
       </section>
     </main>
   )
