@@ -2,34 +2,10 @@
  * OpenClaw Client Library for TARS Operator Hub
  * 
  * This module provides connection utilities for OpenClaw instances
- * to connect to the TARS Operator Hub Control Center.
+ * to connect to the TARS Operator Hub Control Center via Cloud Functions API.
  */
 
-import { initializeApp } from 'firebase/app'
-import {
-  getFirestore,
-  doc,
-  getDoc,
-  setDoc,
-  updateDoc,
-  collection,
-  query,
-  where,
-  getDocs,
-} from 'firebase/firestore'
-
-const firebaseConfig = {
-  apiKey: "AIzaSyCcJYKMTGUKVn0vcH_I6qBqIU0xPtXLj4Q",
-  authDomain: "claw-control-center.firebaseapp.com",
-  projectId: "claw-control-center",
-  storageBucket: "claw-control-center.firebasestorage.app",
-  messagingSenderId: "1033311674576",
-  appId: "1:1033311674576:web:9ccb2b95db32f2119c64fa"
-}
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig, 'openclaw-client')
-const db = getFirestore(app)
+const API_BASE = 'https://us-central1-claw-control-center.cloudfunctions.net'
 
 export type ConnectionMetadata = {
   version?: string
@@ -44,6 +20,16 @@ export type ConnectionResult = {
   error?: string
 }
 
+export type Task = {
+  id: string
+  title: string
+  description?: string
+  status: string
+  priority?: string
+  createdAt: string
+  updatedAt: string
+}
+
 /**
  * Connect this OpenClaw instance to the Control Center using a connection code
  */
@@ -53,57 +39,26 @@ export async function connectToControlCenter(
   metadata?: ConnectionMetadata
 ): Promise<ConnectionResult> {
   try {
-    // 1. Find and validate the token
-    const tokenRef = doc(db, 'connectionTokens', code)
-    const tokenSnap = await getDoc(tokenRef)
-    
-    if (!tokenSnap.exists()) {
-      return { success: false, error: 'Invalid connection code' }
-    }
-    
-    const tokenData = tokenSnap.data()
-    
-    // Check if already used
-    if (tokenData.used) {
-      return { success: false, error: 'Connection code already used' }
-    }
-    
-    // Check expiration
-    const expiresAt = tokenData.expiresAt.toDate()
-    if (expiresAt < new Date()) {
-      return { success: false, error: 'Connection code expired' }
-    }
-    
-    // 2. Generate instance ID
-    const instanceId = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`
-    
-    // 3. Create connected instance record
-    const instance = {
-      id: instanceId,
-      userId: tokenData.userId,
-      name: instanceName,
-      connectedAt: new Date().toISOString(),
-      lastSeenAt: new Date().toISOString(),
-      status: 'active',
-      metadata: metadata || {},
-    }
-    
-    await setDoc(
-      doc(db, 'users', tokenData.userId, 'connectedInstances', instanceId),
-      instance
-    )
-    
-    // 4. Mark token as used
-    await updateDoc(tokenRef, {
-      used: true,
-      usedAt: new Date().toISOString(),
-      instanceId,
+    const response = await fetch(`${API_BASE}/connect`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        token: code,
+        instanceName,
+        metadata,
+      }),
     })
-    
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      return { success: false, error: data.error || 'Connection failed' }
+    }
+
     return {
       success: true,
-      userId: tokenData.userId,
-      instanceId,
+      userId: data.userId,
+      instanceId: data.instanceId,
     }
   } catch (error) {
     console.error('Connection error:', error)
@@ -119,12 +74,13 @@ export async function connectToControlCenter(
  */
 export async function sendHeartbeat(userId: string, instanceId: string): Promise<boolean> {
   try {
-    const instanceRef = doc(db, 'users', userId, 'connectedInstances', instanceId)
-    await updateDoc(instanceRef, {
-      lastSeenAt: new Date().toISOString(),
-      status: 'active',
+    const response = await fetch(`${API_BASE}/heartbeat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, instanceId }),
     })
-    return true
+
+    return response.ok
   } catch (error) {
     console.error('Heartbeat error:', error)
     return false
@@ -136,14 +92,114 @@ export async function sendHeartbeat(userId: string, instanceId: string): Promise
  */
 export async function disconnect(userId: string, instanceId: string): Promise<boolean> {
   try {
-    const instanceRef = doc(db, 'users', userId, 'connectedInstances', instanceId)
-    await updateDoc(instanceRef, {
-      status: 'inactive',
-      disconnectedAt: new Date().toISOString(),
+    const response = await fetch(`${API_BASE}/disconnect`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, instanceId }),
     })
-    return true
+
+    return response.ok
   } catch (error) {
     console.error('Disconnect error:', error)
+    return false
+  }
+}
+
+/**
+ * Get tasks for a user (requires authenticated instance)
+ */
+export async function getTasks(userId: string, instanceId: string): Promise<Task[]> {
+  try {
+    const response = await fetch(
+      `${API_BASE}/getTasks?userId=${userId}&instanceId=${instanceId}`
+    )
+
+    if (!response.ok) {
+      console.error('Failed to get tasks:', await response.text())
+      return []
+    }
+
+    const data = await response.json()
+    return data.tasks || []
+  } catch (error) {
+    console.error('Get tasks error:', error)
+    return []
+  }
+}
+
+/**
+ * Create a new task
+ */
+export async function createTask(
+  userId: string,
+  instanceId: string,
+  task: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>
+): Promise<Task | null> {
+  try {
+    const response = await fetch(`${API_BASE}/createTask`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, instanceId, task }),
+    })
+
+    if (!response.ok) {
+      console.error('Failed to create task:', await response.text())
+      return null
+    }
+
+    const data = await response.json()
+    return data.task
+  } catch (error) {
+    console.error('Create task error:', error)
+    return null
+  }
+}
+
+/**
+ * Update an existing task
+ */
+export async function updateTask(
+  userId: string,
+  instanceId: string,
+  taskId: string,
+  updates: Partial<Task>
+): Promise<boolean> {
+  try {
+    const response = await fetch(`${API_BASE}/updateTask`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, instanceId, taskId, updates }),
+    })
+
+    return response.ok
+  } catch (error) {
+    console.error('Update task error:', error)
+    return false
+  }
+}
+
+/**
+ * Log an activity event
+ */
+export async function logActivity(
+  userId: string,
+  instanceId: string,
+  event: {
+    type: string
+    message: string
+    metadata?: Record<string, unknown>
+  }
+): Promise<boolean> {
+  try {
+    const response = await fetch(`${API_BASE}/logActivity`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, instanceId, event }),
+    })
+
+    return response.ok
+  } catch (error) {
+    console.error('Log activity error:', error)
     return false
   }
 }
@@ -152,9 +208,14 @@ export async function disconnect(userId: string, instanceId: string): Promise<bo
  * Example usage in OpenClaw agent:
  * 
  * ```typescript
- * import { connectToControlCenter, sendHeartbeat } from './openclaw-client/connection'
+ * import { 
+ *   connectToControlCenter, 
+ *   sendHeartbeat,
+ *   getTasks,
+ *   createTask 
+ * } from './openclaw-client/connection'
  * 
- * // When user says "Connect to Claw Control Center with code: ABCD12"
+ * // When user says "Connect to Control Center with code: ABCD12"
  * const result = await connectToControlCenter(
  *   'ABCD12',
  *   'OpenClaw Bozeman',
@@ -172,10 +233,14 @@ export async function disconnect(userId: string, instanceId: string): Promise<bo
  *     instanceId: result.instanceId,
  *   })
  *   
- *   // Start heartbeat interval
+ *   // Start heartbeat interval (every minute)
  *   setInterval(() => {
  *     sendHeartbeat(result.userId!, result.instanceId!)
- *   }, 60000) // Every minute
+ *   }, 60000)
+ *   
+ *   // Get tasks
+ *   const tasks = await getTasks(result.userId!, result.instanceId!)
+ *   console.log('Tasks:', tasks)
  * }
  * ```
  */
