@@ -287,6 +287,9 @@ function activityPath(rootDir, projectId) {
 function intakePath(rootDir, projectId) {
   return path.join(projectDir(rootDir, projectId), 'intake.json')
 }
+function featureIntakesPath(rootDir, projectId) {
+  return path.join(projectDir(rootDir, projectId), 'feature-intakes.json')
+}
 
 export async function listPmProjects(rootDir) {
   let entries = []
@@ -625,6 +628,31 @@ export async function replaceIntake(rootDir, projectId, intake) {
     updatedAt: at,
   })
   return next
+}
+
+// Feature-level intake per tree node
+export async function getFeatureIntake(rootDir, projectId, nodeId) {
+  const p = await loadPmProject(rootDir, projectId)
+  if (!p) return null
+
+  const intakes = await readJson(featureIntakesPath(rootDir, projectId), {})
+  return intakes[nodeId] ?? null
+}
+
+export async function setFeatureIntake(rootDir, projectId, nodeId, intake) {
+  const p = await loadPmProject(rootDir, projectId)
+  if (!p) return null
+
+  const intakes = await readJson(featureIntakesPath(rootDir, projectId), {})
+  intakes[nodeId] = intake
+  
+  const at = nowIso()
+  await writeJsonAtomic(featureIntakesPath(rootDir, projectId), intakes)
+  await writeJsonAtomic(overviewPath(rootDir, projectId), {
+    ...(await readJson(overviewPath(rootDir, projectId), {})),
+    updatedAt: at,
+  })
+  return intake
 }
 
 export async function appendActivity(rootDir, projectId, entry) {

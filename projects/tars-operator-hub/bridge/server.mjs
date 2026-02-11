@@ -31,9 +31,11 @@ import {
   createTreeNode,
   deleteKanbanCard,
   deleteTreeNode,
+  getFeatureIntake,
   listPmProjects,
   loadPmProject,
   replaceIntake,
+  setFeatureIntake,
   softDeletePmProject,
   toMarkdownProject,
   updateKanbanCard,
@@ -1009,10 +1011,13 @@ app.delete('/api/pm/projects/:id/tree/nodes/:nodeId', async (req, res) => {
 // Feature-level intake per tree node
 app.get('/api/pm/projects/:id/tree/nodes/:nodeId/intake', async (req, res) => {
   try {
-    const p = await loadPmProject(PM_PROJECTS_DIR, req.params.id)
-    if (!p) return res.status(404).send('project not found')
-    const intakes = p.featureIntakes ?? {}
-    res.json(intakes[req.params.nodeId] ?? null)
+    const intake = await getFeatureIntake(PM_PROJECTS_DIR, req.params.id, req.params.nodeId)
+    if (intake === null) {
+      // Project not found is null, but empty intake is also null - check project exists
+      const p = await loadPmProject(PM_PROJECTS_DIR, req.params.id)
+      if (!p) return res.status(404).send('project not found')
+    }
+    res.json(intake)
   } catch (err) {
     res.status(400).send(err?.message ?? 'invalid request')
   }
@@ -1020,16 +1025,9 @@ app.get('/api/pm/projects/:id/tree/nodes/:nodeId/intake', async (req, res) => {
 
 app.put('/api/pm/projects/:id/tree/nodes/:nodeId/intake', async (req, res) => {
   try {
-    const p = await loadPmProject(PM_PROJECTS_DIR, req.params.id)
-    if (!p) return res.status(404).send('project not found')
-    
-    // Ensure featureIntakes object exists
-    if (!p.featureIntakes) p.featureIntakes = {}
-    p.featureIntakes[req.params.nodeId] = req.body
-    p.updatedAt = new Date().toISOString()
-    
-    await savePmProject(PM_PROJECTS_DIR, req.params.id, p)
-    res.json(req.body)
+    const saved = await setFeatureIntake(PM_PROJECTS_DIR, req.params.id, req.params.nodeId, req.body)
+    if (saved === null) return res.status(404).send('project not found')
+    res.json(saved)
   } catch (err) {
     res.status(400).send(err?.message ?? 'invalid request')
   }
