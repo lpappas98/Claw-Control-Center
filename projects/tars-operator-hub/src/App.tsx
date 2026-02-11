@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import './App.css'
 import { MissionControl } from './pages/MissionControl'
 import { Projects } from './pages/Projects'
@@ -40,6 +40,38 @@ export default function App() {
   const updateCfg = useCallback((next: AdapterConfig) => {
     setCfg(next)
     saveAdapterConfig(next)
+  }, [])
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignore if user is typing in an input
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return
+      
+      // Cmd/Ctrl + number to switch tabs
+      if ((e.metaKey || e.ctrlKey) && e.key >= '1' && e.key <= '6') {
+        e.preventDefault()
+        const idx = parseInt(e.key) - 1
+        if (tabs[idx]) {
+          setTab(tabs[idx])
+          saveNavTab(tabs[idx])
+        }
+        return
+      }
+
+      // ? to show keyboard shortcuts help
+      if (e.key === '?' && !e.metaKey && !e.ctrlKey) {
+        alert(
+          'Keyboard Shortcuts:\n\n' +
+          '⌘/Ctrl + 1-6  Switch tabs\n' +
+          '?             Show this help'
+        )
+        return
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
   }, [])
 
   return (
