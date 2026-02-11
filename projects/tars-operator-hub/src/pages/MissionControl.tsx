@@ -286,7 +286,7 @@ export function MissionControl({
         </div>
       </section>
 
-      <section className="panel span-1">
+      <section className="panel span-1 activity-panel">
         <div className="panel-header">
           <h3>Activity Feed</h3>
         </div>
@@ -297,8 +297,8 @@ export function MissionControl({
           </div>
         )}
 
-        <div className="stack">
-          {(activity.data ?? []).slice(0, 20).map((item) => {
+        <div className="stack activity-scroll">
+          {(activity.data ?? []).slice(0, 80).map((item) => {
             const actor = activityActor(item)
             const corr = item.meta && typeof item.meta.correlationId === 'string' ? String(item.meta.correlationId) : null
             return (
