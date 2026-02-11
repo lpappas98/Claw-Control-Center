@@ -4,7 +4,7 @@ import type { AdapterConfig } from '../lib/adapterState'
 import { usePoll } from '../lib/usePoll'
 import { Badge } from '../components/Badge'
 import { TaskModal } from '../components/TaskModal'
-import type { ActivityEvent, BoardLane, LiveSnapshot, Priority, SystemStatus, Task, WorkerHeartbeat } from '../types'
+import type { ActivityEvent, BoardLane, LiveSnapshot, Priority, SystemStatus, Task, WorkerHeartbeat, ConnectedInstance } from '../types'
 
 type HomeTask = {
   id: string
@@ -120,6 +120,17 @@ export function MissionControl({
   const live = usePoll(liveFn, 5000)
   const activity = usePoll<ActivityEvent[]>(() => adapter.listActivity(40), 7000)
   const persisted = usePoll<Task[]>(() => adapter.listTasks(), 8000)
+  
+  // Load connected instances when using Firestore adapter
+  const connectedInstances = usePoll<ConnectedInstance[]>(
+    async () => {
+      if (adapter.name === 'firestore') {
+        return adapter.listConnectedInstances()
+      }
+      return []
+    },
+    10000 // Refresh every 10s
+  )
 
   const [openTask, setOpenTask] = useState<Task | null>(null)
   const [creating, setCreating] = useState(false)
@@ -133,6 +144,33 @@ export function MissionControl({
 
   const agents = useMemo(() => {
     const workers = live.data?.workers ?? []
+    const instances = connectedInstances.data ?? []
+    
+    // If using Firestore adapter with connected instances, show those
+    if (adapter.name === 'firestore' && instances.length > 0) {
+      return instances.map((instance) => {
+        const now = Date.now()
+        const lastSeen = new Date(instance.lastSeenAt).getTime()
+        const ageMinutes = (now - lastSeen) / 60000
+        
+        // Consider online if seen within last 2 minutes
+        const online = ageMinutes < 2 && instance.status === 'active'
+        
+        return {
+          id: instance.id,
+          name: instance.name,
+          emoji: '🤖', // Could be customizable per instance later
+          role: 'OpenClaw Instance',
+          status: online ? 'working' : 'sleeping',
+          rawStatus: online ? 'active' : 'offline',
+          online,
+          task: online ? 'Connected' : 'Waiting for next task',
+          lastBeatAt: instance.lastSeenAt,
+        }
+      })
+    }
+    
+    // Otherwise, fall back to hardcoded slots + workers (legacy behavior)
     const bySlot = new Map(workers.map((w) => [w.slot, w]))
 
     const pinned = PINNED_SLOTS.map((def) => {
@@ -169,7 +207,7 @@ export function MissionControl({
       })
 
     return [...pinned, ...extras]
-  }, [live.data?.workers])
+  }, [live.data?.workers, connectedInstances.data, adapter.name])
 
   const tasks = useMemo<HomeTask[]>(() => {
     const persistedTasks = persisted.data ?? []
