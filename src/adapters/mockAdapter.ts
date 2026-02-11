@@ -123,9 +123,9 @@ export const mockAdapter: Adapter = {
     await sleep(150)
     return [
       {
-        id: 'tars-operator-hub',
-        name: 'TARS Operator Hub',
-        path: '~/.openclaw/workspace/projects/tars-operator-hub',
+        id: 'claw-control-center',
+        name: 'Claw Control Center',
+        path: '~/.openclaw/workspace/claw-control-center',
         status: 'Active',
         lastUpdatedAt: nowIso(),
         notes: 'Local-only UI. Start the bridge for live status and controls.',
@@ -199,8 +199,8 @@ export const mockAdapter: Adapter = {
         detectedAt: nowIso(),
         details: 'Run the optional local bridge to enable real system status, projects, and controls.',
         remediation: [
-          { label: 'Start bridge', command: 'cd ~/.openclaw/workspace/projects/tars-operator-hub && npm run bridge' },
-          { label: 'Start UI', command: 'cd ~/.openclaw/workspace/projects/tars-operator-hub && npm run dev' },
+          { label: 'Start bridge', command: 'cd ~/.openclaw/workspace/claw-control-center && npm run bridge' },
+          { label: 'Start UI', command: 'cd ~/.openclaw/workspace/claw-control-center && npm run dev' },
         ],
       },
     ]

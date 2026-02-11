@@ -1,5 +1,5 @@
 {
-  "name": "tars-operator-hub-functions",
+  "name": "claw-control-center-functions",
   "version": "1.0.0",
   "description": "Cloud Functions for TARS Operator Hub",
   "main": "lib/index.js",
