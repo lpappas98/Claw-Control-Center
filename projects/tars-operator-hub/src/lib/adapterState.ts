@@ -8,15 +8,15 @@ const KEY = 'tars.operatorHub.adapter'
 export type AdapterConfig =
   | { kind: 'mock' }
   | { kind: 'bridge'; baseUrl: string }
-  | { kind: 'firestore'; userId: string }
+  | { kind: 'firestore' }
 
 export function loadAdapterConfig(): AdapterConfig {
   try {
     const raw = localStorage.getItem(KEY)
-    if (!raw) return { kind: 'mock' } // Default to mock until user logs in
+    if (!raw) return { kind: 'firestore' } // Default to Firestore
     const parsed = JSON.parse(raw) as AdapterConfig
-    if (parsed.kind === 'firestore' && typeof parsed.userId === 'string') {
-      return parsed
+    if (parsed.kind === 'firestore') {
+      return { kind: 'firestore' }
     }
     if (parsed.kind === 'bridge' && typeof parsed.baseUrl === 'string') {
       const host = typeof window !== 'undefined' ? window.location.hostname : 'localhost'
@@ -25,9 +25,9 @@ export function loadAdapterConfig(): AdapterConfig {
       }
       return parsed
     }
-    return { kind: 'mock' }
+    return { kind: 'firestore' }
   } catch {
-    return { kind: 'mock' }
+    return { kind: 'firestore' }
   }
 }
 
@@ -36,7 +36,7 @@ export function saveAdapterConfig(cfg: AdapterConfig) {
 }
 
 export function toAdapter(cfg: AdapterConfig): Adapter {
-  if (cfg.kind === 'firestore') return firestoreAdapter({ userId: cfg.userId })
+  if (cfg.kind === 'firestore') return firestoreAdapter
   if (cfg.kind === 'bridge') return bridgeAdapter({ baseUrl: cfg.baseUrl })
   return mockAdapter
 }

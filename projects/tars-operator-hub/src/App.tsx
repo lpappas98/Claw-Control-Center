@@ -42,7 +42,7 @@ function AppContent() {
   // Auto-switch to Firestore adapter when user logs in
   useEffect(() => {
     if (user && cfg.kind !== 'firestore') {
-      const newCfg: AdapterConfig = { kind: 'firestore', userId: user.uid }
+      const newCfg: AdapterConfig = { kind: 'firestore' }
       setCfg(newCfg)
       saveAdapterConfig(newCfg)
     }
