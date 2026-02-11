@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import './App.css'
 import { MissionControl } from './pages/MissionControl'
 import { Projects } from './pages/Projects'
@@ -37,6 +37,15 @@ function AppContent() {
   const { user, profile, loading, signOut } = useAuth()
   const [tab, setTab] = useState<NavTab>(() => loadNavTab())
   const [cfg, setCfg] = useState<AdapterConfig>(() => loadAdapterConfig())
+
+  // Auto-switch to Firestore adapter when user logs in
+  useEffect(() => {
+    if (user && cfg.kind !== 'firestore') {
+      const newCfg: AdapterConfig = { kind: 'firestore', userId: user.uid }
+      setCfg(newCfg)
+      saveAdapterConfig(newCfg)
+    }
+  }, [user, cfg.kind])
 
   const adapter = useMemo(() => toAdapter(cfg), [cfg])
 
