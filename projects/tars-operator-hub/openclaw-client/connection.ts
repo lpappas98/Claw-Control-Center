@@ -72,12 +72,15 @@ export async function connectToControlCenter(
 /**
  * Send a heartbeat to keep the instance connection active
  */
-export async function sendHeartbeat(userId: string, instanceId: string): Promise<boolean> {
+export async function sendHeartbeat(instanceId: string, status?: string): Promise<boolean> {
   try {
     const response = await fetch(`${API_BASE}/heartbeat`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId, instanceId }),
+      headers: { 
+        'Content-Type': 'application/json',
+        'X-Instance-Id': instanceId,
+      },
+      body: JSON.stringify({ status: status || 'active' }),
     })
 
     return response.ok
@@ -90,12 +93,15 @@ export async function sendHeartbeat(userId: string, instanceId: string): Promise
 /**
  * Disconnect this instance from the Control Center
  */
-export async function disconnect(userId: string, instanceId: string): Promise<boolean> {
+export async function disconnect(instanceId: string): Promise<boolean> {
   try {
     const response = await fetch(`${API_BASE}/disconnect`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId, instanceId }),
+      headers: { 
+        'Content-Type': 'application/json',
+        'X-Instance-Id': instanceId,
+      },
+      body: JSON.stringify({}),
     })
 
     return response.ok
@@ -108,11 +114,11 @@ export async function disconnect(userId: string, instanceId: string): Promise<bo
 /**
  * Get tasks for a user (requires authenticated instance)
  */
-export async function getTasks(userId: string, instanceId: string): Promise<Task[]> {
+export async function getTasks(instanceId: string): Promise<Task[]> {
   try {
-    const response = await fetch(
-      `${API_BASE}/getTasks?userId=${userId}&instanceId=${instanceId}`
-    )
+    const response = await fetch(`${API_BASE}/getTasks`, {
+      headers: { 'X-Instance-Id': instanceId },
+    })
 
     if (!response.ok) {
       console.error('Failed to get tasks:', await response.text())
@@ -131,15 +137,17 @@ export async function getTasks(userId: string, instanceId: string): Promise<Task
  * Create a new task
  */
 export async function createTask(
-  userId: string,
   instanceId: string,
   task: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>
 ): Promise<Task | null> {
   try {
     const response = await fetch(`${API_BASE}/createTask`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId, instanceId, task }),
+      headers: { 
+        'Content-Type': 'application/json',
+        'X-Instance-Id': instanceId,
+      },
+      body: JSON.stringify(task),
     })
 
     if (!response.ok) {
@@ -159,7 +167,6 @@ export async function createTask(
  * Update an existing task
  */
 export async function updateTask(
-  userId: string,
   instanceId: string,
   taskId: string,
   updates: Partial<Task>
@@ -167,8 +174,11 @@ export async function updateTask(
   try {
     const response = await fetch(`${API_BASE}/updateTask`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId, instanceId, taskId, updates }),
+      headers: { 
+        'Content-Type': 'application/json',
+        'X-Instance-Id': instanceId,
+      },
+      body: JSON.stringify({ taskId, ...updates }),
     })
 
     return response.ok
@@ -182,19 +192,22 @@ export async function updateTask(
  * Log an activity event
  */
 export async function logActivity(
-  userId: string,
   instanceId: string,
   event: {
-    type: string
+    level?: 'info' | 'warn' | 'error'
+    source?: string
     message: string
-    metadata?: Record<string, unknown>
+    meta?: Record<string, unknown>
   }
 ): Promise<boolean> {
   try {
     const response = await fetch(`${API_BASE}/logActivity`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId, instanceId, event }),
+      headers: { 
+        'Content-Type': 'application/json',
+        'X-Instance-Id': instanceId,
+      },
+      body: JSON.stringify(event),
     })
 
     return response.ok
@@ -227,20 +240,24 @@ export async function logActivity(
  * )
  * 
  * if (result.success) {
- *   // Save credentials locally
- *   await saveConfig({
- *     userId: result.userId,
- *     instanceId: result.instanceId,
- *   })
+ *   // Save instanceId locally (this is your auth token for all API calls)
+ *   await saveConfig({ instanceId: result.instanceId })
  *   
  *   // Start heartbeat interval (every minute)
  *   setInterval(() => {
- *     sendHeartbeat(result.userId!, result.instanceId!)
+ *     sendHeartbeat(result.instanceId!)
  *   }, 60000)
  *   
  *   // Get tasks
- *   const tasks = await getTasks(result.userId!, result.instanceId!)
+ *   const tasks = await getTasks(result.instanceId!)
  *   console.log('Tasks:', tasks)
+ *   
+ *   // Create a task
+ *   const task = await createTask(result.instanceId!, {
+ *     title: 'Review PRs',
+ *     status: 'proposed',
+ *     priority: 'P1'
+ *   })
  * }
  * ```
  */
