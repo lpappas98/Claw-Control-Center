@@ -198,12 +198,7 @@ export function MissionControl({
 
   return (
     <main className="main-grid">
-      <section className="panel span-4">
-        <div className="panel-header">
-          <h2>Home</h2>
-          <div className="muted">updated: {live.data?.updatedAt ? new Date(live.data.updatedAt).toLocaleTimeString() : '—'}</div>
-        </div>
-
+      <section className="panel span-4 agent-top-panel">
         {live.error && (
           <div className="callout warn">
             <strong>Live snapshot error:</strong> {live.error.message}

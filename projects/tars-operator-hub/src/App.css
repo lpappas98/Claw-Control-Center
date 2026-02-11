@@ -114,6 +114,11 @@
   padding: 1rem;
 }
 
+.agent-top-panel {
+  padding-top: 0.7rem;
+  padding-bottom: 0.75rem;
+}
+
 .panel-header {
   display: flex;
   gap: 1rem;
@@ -512,7 +517,7 @@ textarea {
   border: none;
   border-radius: 8px;
   padding: 0.2rem;
-  background: rgba(42, 36, 45, 0.26);
+  background: rgba(17, 25, 48, 0.52);
 }
 
 .home-lane.narrow {
@@ -527,9 +532,9 @@ textarea {
 }
 
 .home-task {
-  border: 1px solid #4b4350;
+  border: 1px solid #33406a;
   border-radius: 8px;
-  background: #2a242d;
+  background: #101a34;
   padding: 0.62rem;
   display: flex;
   flex-direction: column;
@@ -624,12 +629,12 @@ textarea {
   margin-bottom: 0.55rem;
   border: none;
   border-radius: 8px;
-  background: rgba(60, 34, 24, 0.2);
+  background: rgba(25, 33, 62, 0.45);
   padding: 0.38rem;
 }
 
 .blocked-row-title {
-  color: #d9a06e;
+  color: #9cb5ff;
   font-weight: 700;
   margin-bottom: 0.35rem;
   text-transform: uppercase;
