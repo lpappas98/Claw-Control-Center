@@ -841,9 +841,7 @@ export function Projects({ adapter: _adapter }: { adapter: Adapter }) {
                 <button className="btn ghost" type="button" onClick={() => alert('(wireframe) Share/project settings')}>
                   Settings
                 </button>
-                <button className="btn" type="button" onClick={() => alert('(wireframe) Quick add work item')}>
-                  + Quick add
-                </button>
+                {/* Quick add removed */}
               </div>
             </div>
 
