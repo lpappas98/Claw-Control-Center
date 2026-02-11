@@ -146,8 +146,8 @@ export function MissionControl({
     const workers = live.data?.workers ?? []
     const instances = connectedInstances.data ?? []
     
-    // If using Firestore adapter with connected instances, show those
-    if (adapter.name === 'firestore' && instances.length > 0) {
+    // If using Firestore adapter, ONLY show connected instances (no hardcoded fallback)
+    if (adapter.name === 'firestore') {
       return instances.map((instance) => {
         const now = Date.now()
         const lastSeen = new Date(instance.lastSeenAt).getTime()
@@ -170,7 +170,7 @@ export function MissionControl({
       })
     }
     
-    // Otherwise, fall back to hardcoded slots + workers (legacy behavior)
+    // For bridge/mock adapters: fall back to hardcoded slots + workers (legacy behavior)
     const bySlot = new Map(workers.map((w) => [w.slot, w]))
 
     const pinned = PINNED_SLOTS.map((def) => {
@@ -287,6 +287,14 @@ export function MissionControl({
         )}
 
         <div className="agent-strip compact">
+          {agents.length === 0 && adapter.name === 'firestore' && (
+            <div className="callout info" style={{ margin: '1rem' }}>
+              <strong>No connected instances</strong>
+              <div style={{ marginTop: '0.5rem' }}>
+                Go to the <strong>Connect</strong> tab to generate a connection code and link your OpenClaw instance.
+              </div>
+            </div>
+          )}
           {agents.map((agent) => (
             <article className="agent-card" key={agent.id}>
               <div className="agent-head">
