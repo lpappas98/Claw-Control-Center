@@ -1399,10 +1399,53 @@ export function Projects({ adapter: _adapter }: { adapter: Adapter }) {
                     Show projects
                   </button>
                 ) : null}
+                <button 
+                  className="btn ghost" 
+                  type="button" 
+                  onClick={async () => {
+                    try {
+                      const json = await _adapter.exportPMProjectJSON(active.id)
+                      const blob = new Blob([JSON.stringify(json, null, 2)], { type: 'application/json' })
+                      const url = URL.createObjectURL(blob)
+                      const a = document.createElement('a')
+                      a.href = url
+                      a.download = `${active.name.toLowerCase().replace(/\s+/g, '-')}.json`
+                      a.click()
+                      URL.revokeObjectURL(url)
+                    } catch (err) {
+                      console.error('Export failed:', err)
+                      alert('Export failed. Make sure you are using Bridge mode.')
+                    }
+                  }}
+                  title="Export project as JSON"
+                >
+                  Export JSON
+                </button>
+                <button 
+                  className="btn ghost" 
+                  type="button" 
+                  onClick={async () => {
+                    try {
+                      const md = await _adapter.exportPMProjectMarkdown(active.id)
+                      const blob = new Blob([md], { type: 'text/markdown' })
+                      const url = URL.createObjectURL(blob)
+                      const a = document.createElement('a')
+                      a.href = url
+                      a.download = `${active.name.toLowerCase().replace(/\s+/g, '-')}.md`
+                      a.click()
+                      URL.revokeObjectURL(url)
+                    } catch (err) {
+                      console.error('Export failed:', err)
+                      alert('Export failed. Make sure you are using Bridge mode.')
+                    }
+                  }}
+                  title="Export project as Markdown"
+                >
+                  Export MD
+                </button>
                 <button className="btn ghost" type="button" onClick={() => alert('(wireframe) Share/project settings')}>
                   Settings
                 </button>
-                {/* Quick add removed */}
               </div>
             </div>
 
