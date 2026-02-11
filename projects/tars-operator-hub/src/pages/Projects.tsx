@@ -2,6 +2,29 @@ import React, { useMemo, useState } from 'react'
 import type { Adapter } from '../adapters/adapter'
 import { Badge } from '../components/Badge'
 
+function FeedItem({
+  actor,
+  text,
+  meta,
+  tone,
+}: {
+  actor: string
+  text: string
+  meta?: string
+  tone?: 'clean' | 'warn' | 'error'
+}) {
+  return (
+    <div className={`feed-item ${tone ?? 'clean'}`}>
+      <div className={`feed-head ${tone ?? 'clean'}`}>
+        <div className="feed-actor">{actor}</div>
+        <div className="muted">·</div>
+        <div className="feed-msg">{text}</div>
+      </div>
+      {meta ? <div className="muted" style={{ fontSize: 12 }}>{meta}</div> : null}
+    </div>
+  )
+}
+
 type ProjectTab = 'Overview' | 'Tree' | 'Kanban'
 
 type ProjectLink = { label: string; url: string }
@@ -41,7 +64,7 @@ type Project = {
   links: ProjectLink[]
   tree: FeatureNode[]
   cards: KanbanCard[]
-  activity: { id: string; at: string; text: string }[]
+  activity: { id: string; at: string; actor: string; text: string }[]
 }
 
 function fmtAgo(iso: string) {
@@ -82,10 +105,11 @@ function nodeDotClass(status: FeatureNode['status']): string {
   return 'offline'
 }
 
-function PriorityBadge({ p }: { p: KanbanCard['priority'] | FeatureNode['priority'] }) {
-  // reuse the existing Badge component styles by mapping into its "kind".
-  const kind = p === 'p0' ? ('down' as const) : p === 'p1' ? ('warn' as const) : ('ok' as const)
-  return <Badge kind={kind} />
+function PriorityPill({ p }: { p: KanbanCard['priority'] | FeatureNode['priority'] }) {
+  // Keep the existing color coding by mapping into Badge classes,
+  // but show explicit priority labels (P0/P1/P2) instead of "ok/warn/down".
+  const cls = p === 'p0' ? 'down' : p === 'p1' ? 'warn' : 'ok'
+  return <span className={`badge ${cls}`}>{p.toUpperCase()}</span>
 }
 
 function fakeProjects(): Project[] {
@@ -200,9 +224,9 @@ function fakeProjects(): Project[] {
       tree,
       cards,
       activity: [
-        { id: 'a-1', at: iso(14), text: 'Moved “Design Settings nav + sections” → In progress' },
-        { id: 'a-2', at: iso(54), text: 'Created feature: “Feature tree map”' },
-        { id: 'a-3', at: iso(160), text: 'Updated project summary and links' },
+        { id: 'a-1', at: iso(14), actor: 'Logan', text: 'Moved “Design Settings nav + sections” → In progress' },
+        { id: 'a-2', at: iso(54), actor: 'TARS', text: 'Created feature: “Feature tree map”' },
+        { id: 'a-3', at: iso(160), actor: 'Logan', text: 'Updated project summary and links' },
       ],
     },
     {
@@ -234,7 +258,7 @@ function fakeProjects(): Project[] {
         { id: 'tc-1', title: 'Polish column headers', priority: 'p2', column: 'todo', owner: 'Logan' },
         { id: 'tc-2', title: 'Add keyboard shortcuts', priority: 'p1', column: 'in_progress', owner: 'Logan' },
       ],
-      activity: [{ id: 'ta-1', at: iso(200), text: 'Paused project' }],
+      activity: [{ id: 'ta-1', at: iso(200), actor: 'Logan', text: 'Paused project' }],
     },
   ]
 }
@@ -290,7 +314,7 @@ function FeatureDrawer({
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
               <h3 style={{ margin: '6px 0 0', lineHeight: 1.15 }}>{feature.title}</h3>
               <span className={`dot ${nodeDotClass(feature.status)}`} title={feature.status} />
-              <PriorityBadge p={feature.priority} />
+              <PriorityPill p={feature.priority} />
             </div>
             {feature.summary ? <div className="muted" style={{ marginTop: 6 }}>{feature.summary}</div> : null}
           </div>
@@ -356,7 +380,7 @@ function FeatureDrawer({
                           <div className="row-title">
                             <span className={`dot ${nodeDotClass(d.status)}`} />
                             <strong>{d.title}</strong>
-                            <PriorityBadge p={d.priority} />
+                            <PriorityPill p={d.priority} />
                           </div>
                           {d.summary ? <div className="muted">{d.summary}</div> : null}
                         </div>
@@ -384,7 +408,7 @@ function FeatureDrawer({
                         <div className="row-main">
                           <div className="row-title">
                             <strong>{c.title}</strong>
-                            <PriorityBadge p={c.priority} />
+                            <PriorityPill p={c.priority} />
                           </div>
                           <div className="muted">Owner: {c.owner ?? '—'} · Due: {c.due ?? '—'}</div>
                         </div>
@@ -410,14 +434,9 @@ function FeatureDrawer({
             <div className="stack">
               <div className="panel" style={{ padding: 14 }}>
                 <h4 style={{ marginTop: 0 }}>Recent activity</h4>
-                <div className="table-like">
+                <div className="feed-grid" style={{ gridTemplateColumns: '1fr' }}>
                   {project.activity.slice(0, 8).map((a) => (
-                    <div key={a.id} className="row" style={{ margin: 0 }}>
-                      <div className="row-main">
-                        <strong>{a.text}</strong>
-                        <div className="muted">{fmtAgo(a.at)}</div>
-                      </div>
-                    </div>
+                    <FeedItem key={a.id} actor={a.actor} text={a.text} meta={fmtAgo(a.at)} />
                   ))}
                 </div>
               </div>
@@ -450,37 +469,19 @@ function TreeView({ project, onOpen }: { project: Project; onOpen: (n: FeatureNo
     return !!n.children?.some(isVisible)
   }
 
-  const walk = (n: FeatureNode, depth: number) => {
-    if (!isVisible(n)) return null
-    const highlight = matches.has(n.id)
-
-    return (
-      <div key={n.id} style={{ marginLeft: depth ? depth * 14 : 0, paddingLeft: depth ? 12 : 0, borderLeft: depth ? '1px solid var(--border)' : undefined }}>
-        <div className={`tree-row ${highlight ? 'highlight' : ''}`}>
-          <button className="btn ghost tree-node" type="button" onClick={() => onOpen(n)} title="Open feature spec">
-            <span className={`dot ${nodeDotClass(n.status)}`} />
-            <span style={{ fontWeight: 800 }}>{n.title}</span>
-          </button>
-          <div className="tree-row-meta">
-            <PriorityBadge p={n.priority} />
-            {n.tags?.slice(0, 2).map((t) => (
-              <span key={t} className="pill">{t}</span>
-            ))}
-          </div>
-        </div>
-
-        {n.summary ? <div className="muted" style={{ marginTop: 6 }}>{n.summary}</div> : null}
-
-        {showDeps && n.dependsOn?.length ? (
-          <div className="muted" style={{ marginTop: 6 }}>
-            depends on: {n.dependsOn.map((d) => <code key={d} style={{ marginRight: 8 }}>{d}</code>)}
-          </div>
-        ) : null}
-
-        {n.children?.length ? <div style={{ marginTop: 8 }}>{n.children.map((c) => walk(c, depth + 1))}</div> : null}
-      </div>
-    )
-  }
+  const levels = useMemo(() => {
+    const out: FeatureNode[][] = []
+    const walk = (nodes: FeatureNode[], depth: number) => {
+      for (const n of nodes) {
+        if (!isVisible(n)) continue
+        if (!out[depth]) out[depth] = []
+        out[depth].push(n)
+        if (n.children?.length) walk(n.children, depth + 1)
+      }
+    }
+    walk(project.tree, 0)
+    return out
+  }, [project.tree, query])
 
   return (
     <div className="stack" style={{ gap: 12 }}>
@@ -499,13 +500,46 @@ function TreeView({ project, onOpen }: { project: Project; onOpen: (n: FeatureNo
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', alignItems: 'baseline' }}>
           <div>
             <h3 style={{ margin: 0 }}>Feature tree</h3>
-            <div className="muted">Hierarchy first. Optional dependency hints (toggle above).</div>
           </div>
           <div className="muted">{all.length} node(s)</div>
         </div>
 
-        <div style={{ marginTop: 12, display: 'grid', gap: 12 }}>
-          {project.tree.map((n) => walk(n, 0))}
+        <div className="tree-map" style={{ marginTop: 14 }}>
+          <div className="tree-level">
+            <button type="button" className="tree-box root" onClick={() => alert('(wireframe) Project settings')} title="Project">
+              <div className="tree-box-title">{project.name}</div>
+              <div className="muted" style={{ fontSize: 12 }}>root</div>
+            </button>
+          </div>
+
+          {levels.map((row, idx) => (
+            <div key={idx} className="tree-level">
+              {row.map((n) => {
+                const highlight = matches.has(n.id)
+                return (
+                  <button
+                    key={n.id}
+                    type="button"
+                    className={`tree-box ${highlight ? 'highlight' : ''}`}
+                    onClick={() => onOpen(n)}
+                    title="Open feature spec"
+                  >
+                    <div className="tree-box-top">
+                      <span className={`dot ${nodeDotClass(n.status)}`} />
+                      <PriorityPill p={n.priority} />
+                    </div>
+                    <div className="tree-box-title">{n.title}</div>
+                    {n.summary ? <div className="muted tree-box-summary">{n.summary}</div> : <div className="muted tree-box-summary">—</div>}
+                    {showDeps && n.dependsOn?.length ? (
+                      <div className="muted" style={{ fontSize: 12, marginTop: 8 }}>
+                        deps: {n.dependsOn.length}
+                      </div>
+                    ) : null}
+                  </button>
+                )
+              })}
+            </div>
+          ))}
         </div>
       </div>
     </div>
@@ -587,7 +621,7 @@ function KanbanBoard({ project, onOpenFeature }: { project: Project; onOpenFeatu
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'baseline' }}>
                       <strong style={{ lineHeight: 1.2 }}>{c.title}</strong>
-                      <PriorityBadge p={c.priority} />
+                      <PriorityPill p={c.priority} />
                     </div>
                     <div className="muted" style={{ marginTop: 6, fontSize: 12 }}>
                       {c.owner ? `@${c.owner}` : '—'} {c.due ? `· due ${c.due}` : ''}
@@ -621,7 +655,6 @@ function Overview({ project }: { project: Project }) {
         <div className="panel-header" style={{ padding: 0, marginBottom: 10 }}>
           <div>
             <h3 style={{ margin: 0 }}>Product details</h3>
-            <div className="muted">Project brief + high-signal at-a-glance info.</div>
           </div>
           <div className="stack-h">
             <span className={`pill ${project.status === 'active' ? 'sev-low' : project.status === 'paused' ? 'sev-medium' : 'sev-high'}`}>{project.status}</span>
@@ -657,7 +690,6 @@ function Overview({ project }: { project: Project }) {
         <div className="panel-header" style={{ padding: 0, marginBottom: 10 }}>
           <div>
             <h3 style={{ margin: 0 }}>Key features + links</h3>
-            <div className="muted">Quick entry points (wireframe).</div>
           </div>
           <div className="stack-h">
             {project.links.map((l) => (
@@ -673,7 +705,7 @@ function Overview({ project }: { project: Project }) {
             <div key={f.id} className="feed-item clean">
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'baseline' }}>
                 <strong>{f.title}</strong>
-                <PriorityBadge p={f.priority} />
+                <PriorityPill p={f.priority} />
               </div>
               <div className="muted" style={{ marginTop: 6 }}>{f.summary ?? '—'}</div>
               <div className="muted" style={{ marginTop: 8, fontSize: 12 }}>
@@ -688,18 +720,12 @@ function Overview({ project }: { project: Project }) {
         <div className="panel-header" style={{ padding: 0, marginBottom: 10 }}>
           <div>
             <h3 style={{ margin: 0 }}>Activity</h3>
-            <div className="muted">What changed recently.</div>
           </div>
         </div>
 
-        <div className="table-like">
+        <div className="feed-grid" style={{ gridTemplateColumns: '1fr' }}>
           {project.activity.map((a) => (
-            <div key={a.id} className="row" style={{ margin: 0 }}>
-              <div className="row-main">
-                <strong>{a.text}</strong>
-                <div className="muted">{fmtAgo(a.at)}</div>
-              </div>
-            </div>
+            <FeedItem key={a.id} actor={a.actor} text={a.text} meta={fmtAgo(a.at)} />
           ))}
         </div>
       </section>
@@ -708,7 +734,7 @@ function Overview({ project }: { project: Project }) {
 }
 
 export function Projects({ adapter: _adapter }: { adapter: Adapter }) {
-  const [projects, setProjects] = useState<Project[]>(() => fakeProjects())
+  const [projects] = useState<Project[]>(() => fakeProjects())
   const [activeId, setActiveId] = useState(projects[0]?.id ?? null)
   const [tab, setTab] = useState<ProjectTab>('Overview')
   const [drawer, setDrawer] = useState<FeatureNode | null>(null)
@@ -722,22 +748,8 @@ export function Projects({ adapter: _adapter }: { adapter: Adapter }) {
           <div className="panel-header" style={{ padding: 0, marginBottom: 10 }}>
             <div>
               <h2 style={{ margin: 0 }}>Projects</h2>
-              <div className="muted">Select a project to view Overview / Tree / Kanban.</div>
             </div>
           </div>
-
-          <input
-            className="input"
-            placeholder="Search projects…"
-            onChange={(e) => {
-              const q = e.target.value.trim().toLowerCase()
-              if (!q) {
-                setProjects(fakeProjects())
-                return
-              }
-              setProjects(fakeProjects().filter((p) => `${p.name} ${p.summary} ${p.tags.join(' ')}`.toLowerCase().includes(q)))
-            }}
-          />
 
           <div className="projects-list" style={{ marginTop: 12 }}>
             {projects.map((p) => (

@@ -934,50 +934,79 @@ button.home-task.clickable:focus {
   align-items: center;
 }
 
-.tree-row {
+.tree-map {
   display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  align-items: center;
-  padding: 0.35rem 0;
+  flex-direction: column;
+  gap: 16px;
+  align-items: stretch;
 }
 
-.tree-row.highlight {
-  background: rgba(95, 109, 255, 0.08);
-  border-radius: 10px;
-  padding: 0.35rem 0.55rem;
-}
-
-.tree-node {
-  display: inline-flex;
-  gap: 10px;
-  align-items: center;
-  font-weight: 800;
-  border: none;
-  padding: 0;
-  background: transparent;
-}
-
-.tree-row-meta {
+.tree-level {
   display: flex;
-  gap: 8px;
-  align-items: center;
-  justify-content: flex-end;
+  justify-content: center;
+  gap: 14px;
   flex-wrap: wrap;
 }
 
+.tree-box {
+  width: 220px;
+  border: 1px solid #2a3046;
+  border-radius: 14px;
+  background: #0b0f1f;
+  color: inherit;
+  padding: 0.7rem;
+  text-align: left;
+}
+
+.tree-box:hover {
+  border-color: #3a4160;
+}
+
+.tree-box.root {
+  width: 260px;
+  border-color: #5f6dff;
+  background: rgba(95, 109, 255, 0.1);
+}
+
+.tree-box.highlight {
+  border-color: #5f6dff;
+  box-shadow: 0 0 0 1px rgba(95, 109, 255, 0.35) inset;
+}
+
+.tree-box-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.tree-box-title {
+  margin-top: 10px;
+  font-weight: 900;
+  line-height: 1.15;
+}
+
+.tree-box-summary {
+  margin-top: 8px;
+  font-size: 12px;
+  line-height: 1.35;
+  min-height: 2.7em;
+}
+
 .kanban-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0.75rem;
-  align-items: start;
+  display: flex;
+  gap: 0.85rem;
+  align-items: flex-start;
+  overflow-x: auto;
+  padding-bottom: 6px;
 }
 
 .kanban-col {
+  flex: 0 0 270px;
   border: 1px solid #242b45;
-  border-radius: 12px;
+  border-radius: 14px;
   background: rgba(11, 15, 31, 0.6);
-  min-height: 240px;
+  min-height: 320px;
   display: flex;
   flex-direction: column;
 }
@@ -1070,7 +1099,7 @@ button.home-task.clickable:focus {
     top: auto;
     height: auto;
   }
-  .kanban-grid {
-    grid-template-columns: 1fr;
+  .kanban-col {
+    flex-basis: 85vw;
   }
 }
