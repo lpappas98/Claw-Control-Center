@@ -430,3 +430,46 @@ export type PMCardUpdate = {
   owner?: string
   description?: string
 }
+
+// ---- Feature-Level Intake ----
+
+export type FeatureIntakeStatus = 'not_started' | 'in_progress' | 'complete'
+
+/** Single question in feature-level intake */
+export type FeatureIntakeQuestion = {
+  id: string
+  category: 'goal' | 'trigger' | 'flow' | 'edge_cases' | 'success' | 'dependencies' | 'priority' | 'constraints'
+  prompt: string
+  hint?: string
+  answer?: string
+  answeredAt?: string
+}
+
+/** Feature-level intake data stored per tree node */
+export type FeatureIntake = {
+  status: FeatureIntakeStatus
+  startedAt?: string
+  completedAt?: string
+  currentQuestionIndex: number
+  questions: FeatureIntakeQuestion[]
+  /** AI-generated acceptance criteria with citations */
+  generatedAC?: Array<{
+    id: string
+    text: string
+    sourceQuestionIds: string[]
+    createdAt: string
+  }>
+  /** AI-generated spec summary with citations */
+  generatedSpec?: {
+    problem?: string
+    solution?: string
+    nonGoals?: string
+    sourceQuestionIds: string[]
+    createdAt: string
+  }
+}
+
+/** Extended tree node with feature-level intake */
+export type PMTreeNodeWithIntake = PMTreeNode & {
+  featureIntake?: FeatureIntake
+}

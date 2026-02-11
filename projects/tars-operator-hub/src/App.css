@@ -1275,3 +1275,277 @@ button.home-task.clickable:focus {
     flex-basis: 85vw;
   }
 }
+
+/* ---- Feature Intake Modal ---- */
+
+.feature-intake-modal {
+  width: min(640px, 95vw);
+  max-height: 90vh;
+  display: grid;
+  grid-template-rows: auto auto auto 1fr auto;
+}
+
+.intake-progress {
+  padding: 0 1.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.intake-progress-bar {
+  height: 4px;
+  background: #1d2350;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.intake-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #5f6dff, #7b8aff);
+  transition: width 0.3s ease;
+}
+
+.intake-progress-text {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  margin-top: 0.35rem;
+  color: #9fa7c8;
+}
+
+.intake-dots {
+  display: flex;
+  gap: 0.35rem;
+  padding: 0.5rem 1.25rem 0.75rem;
+  flex-wrap: wrap;
+  border-bottom: 1px solid #242b45;
+}
+
+.intake-dot {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid #2a3046;
+  background: transparent;
+  color: #6b7494;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.intake-dot:hover {
+  border-color: #5f6dff;
+  color: #cfd5ec;
+}
+
+.intake-dot.current {
+  border-color: #5f6dff;
+  background: #1d2350;
+  color: #fff;
+}
+
+.intake-dot.answered {
+  background: #1a3a2a;
+  border-color: #2a7049;
+  color: #8dffc2;
+}
+
+.intake-dot.answered.current {
+  background: #1d2350;
+  border-color: #5f6dff;
+  color: #fff;
+}
+
+.intake-body {
+  padding: 1.25rem;
+  overflow: auto;
+}
+
+.intake-question {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.intake-question-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.intake-category {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #7b8aff;
+}
+
+.intake-prompt {
+  font-size: 1.15rem;
+  font-weight: 600;
+  line-height: 1.4;
+  margin: 0;
+  color: #f4f6fb;
+}
+
+.intake-hint {
+  font-size: 0.85rem;
+  color: #6b7494;
+  background: #111426;
+  padding: 0.65rem 0.85rem;
+  border-radius: 8px;
+  border-left: 3px solid #2a3046;
+}
+
+.intake-answer {
+  min-height: 140px;
+  resize: vertical;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.intake-answer:focus {
+  border-color: #5f6dff;
+  outline: none;
+}
+
+.intake-tip {
+  font-size: 0.75rem;
+  color: #6b7494;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.intake-tip kbd {
+  background: #1d2350;
+  border: 1px solid #2a3046;
+  border-radius: 4px;
+  padding: 0.15rem 0.35rem;
+  font-family: inherit;
+  font-size: 0.7rem;
+}
+
+.intake-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.85rem 1.25rem;
+  border-top: 1px solid #242b45;
+  background: #0b0f1f;
+}
+
+/* Feature intake status indicator on tree nodes */
+.intake-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.7rem;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.intake-status.not-started {
+  background: #1d2350;
+  color: #6b7494;
+}
+
+.intake-status.in-progress {
+  background: #2a3a1a;
+  color: #c4e052;
+}
+
+.intake-status.complete {
+  background: #1a3a2a;
+  color: #8dffc2;
+}
+
+/* Define button in tree */
+.tree-define-btn {
+  font-size: 0.7rem;
+  padding: 0.2rem 0.5rem;
+  background: #1d2350;
+  border: 1px solid #3a4160;
+  color: #7b8aff;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.tree-define-btn:hover {
+  background: #2d3570;
+  border-color: #5f6dff;
+  color: #fff;
+}
+
+/* Tree box layout updates for Define button */
+.tree-box-clickable,
+.tree-mini-clickable,
+.tree-sub-clickable {
+  background: transparent;
+  border: none;
+  text-align: left;
+  width: 100%;
+  cursor: pointer;
+  color: inherit;
+  padding: 0;
+}
+
+.tree-box-actions,
+.tree-mini-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.tree-sub {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.tree-sub-clickable {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex: 1;
+}
+
+/* Source cards in feature drawer */
+.source-card {
+  background: #111426;
+  border: 1px solid #2a3046;
+  border-radius: 10px;
+  padding: 0.75rem;
+}
+
+.source-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.source-category {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: capitalize;
+  color: #7b8aff;
+}
+
+.source-question {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #cfd5ec;
+  margin-bottom: 0.5rem;
+}
+
+.source-answer {
+  font-size: 0.9rem;
+  color: #9fa7c8;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}

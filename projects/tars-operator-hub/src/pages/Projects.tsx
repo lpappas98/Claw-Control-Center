@@ -1,7 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import type { Adapter } from '../adapters/adapter'
-import type { PMProject, PMTreeNode, PMCard, PMIntake } from '../types'
+import type { PMProject, PMTreeNode, PMCard, PMIntake, FeatureIntake } from '../types'
 import { Badge } from '../components/Badge'
+import { FeatureIntakeModal } from '../components/FeatureIntakeModal'
 
 function FeedItem({
   actor,
@@ -41,6 +42,8 @@ type FeatureNode = {
   children?: FeatureNode[]
   dependsOn?: string[]
   sources?: { kind: 'idea' | 'question' | 'requirement'; id: string }[]
+  /** Feature-level intake data */
+  featureIntake?: FeatureIntake
 }
 
 type KanbanColumnId = 'todo' | 'in_progress' | 'blocked' | 'done'
@@ -399,7 +402,25 @@ function FeatureDrawer({
 
               <div className="panel" style={{ padding: 14 }}>
                 <h4 style={{ marginTop: 0 }}>Sources</h4>
-                {feature.sources?.length ? (
+                {feature.featureIntake?.questions?.some(q => q.answer?.trim()) ? (
+                  <div className="stack" style={{ gap: 12 }}>
+                    {feature.featureIntake.questions.filter(q => q.answer?.trim()).map((q) => (
+                      <div key={q.id} className="source-card">
+                        <div className="source-card-header">
+                          <span className="source-category">{q.category.replace('_', ' ')}</span>
+                          <code className="muted">{q.id}</code>
+                        </div>
+                        <div className="source-question">{q.prompt}</div>
+                        <div className="source-answer">{q.answer}</div>
+                        {q.answeredAt && (
+                          <div className="muted" style={{ fontSize: 11, marginTop: 6 }}>
+                            Answered {fmtAgo(q.answeredAt)}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : feature.sources?.length ? (
                   <div className="muted">
                     {feature.sources.map((s) => (
                       <code key={`${s.kind}:${s.id}`} style={{ marginRight: 10 }}>
@@ -408,7 +429,7 @@ function FeatureDrawer({
                     ))}
                   </div>
                 ) : (
-                  <div className="muted">No sources linked yet. (Intake answers will show up here.)</div>
+                  <div className="muted">No sources linked yet. Click "Define" in the tree to add intake answers.</div>
                 )}
               </div>
 
@@ -490,6 +511,18 @@ function FeatureDrawer({
   )
 }
 
+function IntakeStatusBadge({ intake }: { intake?: FeatureIntake }) {
+  if (!intake || intake.status === 'not_started') {
+    return <span className="intake-status not-started">Not defined</span>
+  }
+  if (intake.status === 'in_progress') {
+    const answered = intake.questions.filter(q => q.answer?.trim()).length
+    const total = intake.questions.length
+    return <span className="intake-status in-progress">{answered}/{total} answered</span>
+  }
+  return <span className="intake-status complete">✓ Defined</span>
+}
+
 function TreeView({ 
   project, 
   onOpen,
@@ -505,6 +538,7 @@ function TreeView({
   const [showDeps, setShowDeps] = useState(false)
   const [addingNode, setAddingNode] = useState(false)
   const [newNodeTitle, setNewNodeTitle] = useState('')
+  const [definingFeature, setDefiningFeature] = useState<FeatureNode | null>(null)
 
   const handleAddNode = async () => {
     if (!newNodeTitle.trim() || !adapter) return
@@ -520,6 +554,20 @@ function TreeView({
     } catch (err) {
       console.error('Failed to add node:', err)
     }
+  }
+
+  const handleSaveIntake = (nodeId: string, intake: FeatureIntake) => {
+    // Update the node in memory (we'd also persist via adapter in real implementation)
+    // For now, update local state - this would be replaced with adapter call
+    console.log('Saving intake for node', nodeId, intake)
+    // TODO: adapter.updatePMTreeNodeIntake(project.id, nodeId, intake)
+    onTreeUpdated?.()
+  }
+
+  const handleIntakeComplete = (nodeId: string, intake: FeatureIntake) => {
+    console.log('Intake completed for node', nodeId, intake)
+    // Here we could trigger AC generation, etc.
+    onTreeUpdated?.()
   }
 
   const all = useMemo(() => flattenTree(project.tree), [project.tree])
@@ -596,56 +644,92 @@ function TreeView({
               const tone = idx % 3 === 0 ? 'tone-a' : idx % 3 === 1 ? 'tone-b' : 'tone-c'
               return (
                 <div key={e.id} className="tree-org-col">
-                  <button
-                    type="button"
-                    className={`tree-box epic ${tone} ${highlight ? 'highlight' : ''}`}
-                    onClick={() => onOpen(e)}
-                    title="Open section/epic"
-                  >
-                    <div className="tree-box-top">
-                      <span className={`dot ${nodeDotClass(e.status)}`} />
-                      <PriorityPill p={e.priority} />
+                  <div className={`tree-box epic ${tone} ${highlight ? 'highlight' : ''}`}>
+                    <button
+                      type="button"
+                      className="tree-box-clickable"
+                      onClick={() => onOpen(e)}
+                      title="Open section/epic"
+                    >
+                      <div className="tree-box-top">
+                        <span className={`dot ${nodeDotClass(e.status)}`} />
+                        <PriorityPill p={e.priority} />
+                      </div>
+                      <div className="tree-box-title">{e.title}</div>
+                      {e.summary ? <div className="muted tree-box-summary">{e.summary}</div> : <div className="muted tree-box-summary">—</div>}
+                    </button>
+                    <div className="tree-box-actions">
+                      <IntakeStatusBadge intake={e.featureIntake} />
+                      <button
+                        type="button"
+                        className="tree-define-btn"
+                        onClick={(ev) => { ev.stopPropagation(); setDefiningFeature(e) }}
+                        title="Define this feature"
+                      >
+                        {e.featureIntake?.status === 'complete' ? 'Edit' : 'Define'}
+                      </button>
                     </div>
-                    <div className="tree-box-title">{e.title}</div>
-                    {e.summary ? <div className="muted tree-box-summary">{e.summary}</div> : <div className="muted tree-box-summary">—</div>}
-                  </button>
+                  </div>
 
                   <div className="tree-org-children">
                     {(e.children ?? []).filter(isVisible).map((c) => {
                       const ch = matches.has(c.id)
                       return (
                         <div key={c.id} className="tree-org-child">
-                          <button
-                            type="button"
-                            className={`tree-mini ${ch ? 'highlight' : ''}`}
-                            onClick={() => onOpen(c)}
-                            title="Open task/feature"
-                          >
-                            <div className="tree-mini-head">
-                              <span className={`dot ${nodeDotClass(c.status)}`} />
-                              <PriorityPill p={c.priority} />
+                          <div className={`tree-mini ${ch ? 'highlight' : ''}`}>
+                            <button
+                              type="button"
+                              className="tree-mini-clickable"
+                              onClick={() => onOpen(c)}
+                              title="Open task/feature"
+                            >
+                              <div className="tree-mini-head">
+                                <span className={`dot ${nodeDotClass(c.status)}`} />
+                                <PriorityPill p={c.priority} />
+                              </div>
+                              <div className="tree-mini-title">{c.title}</div>
+                              {showDeps && c.dependsOn?.length ? (
+                                <div className="muted" style={{ fontSize: 12, marginTop: 6 }}>deps: {c.dependsOn.length}</div>
+                              ) : null}
+                            </button>
+                            <div className="tree-mini-actions">
+                              <IntakeStatusBadge intake={c.featureIntake} />
+                              <button
+                                type="button"
+                                className="tree-define-btn"
+                                onClick={(ev) => { ev.stopPropagation(); setDefiningFeature(c) }}
+                                title="Define this feature"
+                              >
+                                {c.featureIntake?.status === 'complete' ? 'Edit' : 'Define'}
+                              </button>
                             </div>
-                            <div className="tree-mini-title">{c.title}</div>
-                            {showDeps && c.dependsOn?.length ? (
-                              <div className="muted" style={{ fontSize: 12, marginTop: 6 }}>deps: {c.dependsOn.length}</div>
-                            ) : null}
-                          </button>
+                          </div>
 
                           {(c.children ?? []).filter(isVisible).length ? (
                             <div className="tree-org-subtasks">
                               {(c.children ?? []).filter(isVisible).map((s) => {
                                 const sh = matches.has(s.id)
                                 return (
-                                  <button
-                                    key={s.id}
-                                    type="button"
-                                    className={`tree-sub ${sh ? 'highlight' : ''}`}
-                                    onClick={() => onOpen(s)}
-                                    title="Open subtask"
-                                  >
-                                    <span className={`dot ${nodeDotClass(s.status)}`} />
-                                    <span style={{ fontWeight: 800 }}>{s.title}</span>
-                                  </button>
+                                  <div key={s.id} className={`tree-sub ${sh ? 'highlight' : ''}`}>
+                                    <button
+                                      type="button"
+                                      className="tree-sub-clickable"
+                                      onClick={() => onOpen(s)}
+                                      title="Open subtask"
+                                    >
+                                      <span className={`dot ${nodeDotClass(s.status)}`} />
+                                      <span style={{ fontWeight: 800 }}>{s.title}</span>
+                                    </button>
+                                    <button
+                                      type="button"
+                                      className="tree-define-btn"
+                                      onClick={(ev) => { ev.stopPropagation(); setDefiningFeature(s) }}
+                                      title="Define this feature"
+                                      style={{ marginLeft: 'auto' }}
+                                    >
+                                      {s.featureIntake?.status === 'complete' ? '✓' : '…'}
+                                    </button>
+                                  </div>
                                 )
                               })}
                             </div>
@@ -660,6 +744,24 @@ function TreeView({
           </div>
         </div>
       </div>
+
+      {/* Feature Intake Modal */}
+      {definingFeature && (
+        <FeatureIntakeModal
+          feature={{
+            id: definingFeature.id,
+            title: definingFeature.title,
+            description: definingFeature.summary,
+            priority: definingFeature.priority?.toUpperCase() as 'P0' | 'P1' | 'P2',
+            projectName: project.name,
+            projectSummary: project.summary,
+          }}
+          intake={definingFeature.featureIntake ?? null}
+          onSave={(intake) => handleSaveIntake(definingFeature.id, intake)}
+          onClose={() => setDefiningFeature(null)}
+          onComplete={(intake) => handleIntakeComplete(definingFeature.id, intake)}
+        />
+      )}
     </div>
   )
 }
