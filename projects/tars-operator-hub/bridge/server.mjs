@@ -49,6 +49,15 @@ let lastBlockerIds = new Set()
 /** @type {Map<string, string>} */
 let lastWorkerStatusBySlot = new Map()
 
+/** @type {Map<string, string>} */
+let lastWorkerTaskBySlot = new Map()
+
+/** @type {Map<string, { title: string, startedAtMs: number, workerLabel?: string }>} */
+let activeTaskRunBySlot = new Map()
+
+/** @type {Set<string>} */
+let seenTaskTitles = new Set()
+
 function scheduleActivitySave() {
   activitySaver.trigger()
   if (activitySaveTimer) return
@@ -71,6 +80,135 @@ function pushActivity(evt) {
 
 function newId(prefix = 'evt') {
   return `${prefix}-${Math.random().toString(16).slice(2)}-${Date.now()}`
+}
+
+function fmtDuration(ms) {
+  if (!Number.isFinite(ms) || ms <= 0) return '0s'
+  if (ms < 60_000) return `${Math.round(ms / 1000)}s`
+  if (ms < 3_600_000) return `${Math.floor(ms / 60_000)}m ${Math.round((ms % 60_000) / 1000)}s`
+  return `${Math.floor(ms / 3_600_000)}h ${Math.round((ms % 3_600_000) / 60_000)}m`
+}
+
+function getTaskTitle(task) {
+  if (typeof task === 'string') return task.trim()
+  if (task === undefined || task === null) return ''
+  return String(task).trim()
+}
+
+function recordTaskLifecycle(workers, nowMs = Date.now()) {
+  const nowIso = new Date(nowMs).toISOString()
+  const nextTaskBySlot = new Map()
+  const activeSlots = new Set(workers.map((w) => w.slot))
+
+  for (const w of workers) {
+    const slot = w.slot
+    const workerLabel = w.label ?? w.slot
+    const taskTitle = getTaskTitle(w.task)
+    const prevTask = lastWorkerTaskBySlot.get(slot) ?? ''
+
+    if (taskTitle) nextTaskBySlot.set(slot, taskTitle)
+
+    if (taskTitle && taskTitle !== prevTask) {
+      if (!seenTaskTitles.has(taskTitle)) {
+        seenTaskTitles.add(taskTitle)
+        pushActivity({
+          id: newId('task-created'),
+          at: nowIso,
+          level: 'info',
+          source: 'tasks',
+          message: `task created: ${taskTitle}`,
+          meta: { eventType: 'task.created', task: taskTitle, workerSlot: slot, worker: workerLabel },
+        })
+      }
+
+      const prevRun = activeTaskRunBySlot.get(slot)
+      if (prevRun && prevRun.title !== taskTitle) {
+        const durationMs = Math.max(0, nowMs - prevRun.startedAtMs)
+        pushActivity({
+          id: newId('task-completed'),
+          at: nowIso,
+          level: 'info',
+          source: 'tasks',
+          message: `task completed: ${prevRun.title} · ${prevRun.workerLabel ?? slot} · took ${fmtDuration(durationMs)}`,
+          meta: {
+            eventType: 'task.completed',
+            task: prevRun.title,
+            workerSlot: slot,
+            worker: prevRun.workerLabel ?? slot,
+            durationMs,
+            startedAt: new Date(prevRun.startedAtMs).toISOString(),
+            completedAt: nowIso,
+          },
+        })
+      }
+
+      activeTaskRunBySlot.set(slot, { title: taskTitle, startedAtMs: nowMs, workerLabel })
+      pushActivity({
+        id: newId('task-started'),
+        at: nowIso,
+        level: 'info',
+        source: 'tasks',
+        message: `task assigned: ${taskTitle} → ${workerLabel}`,
+        meta: { eventType: 'task.assigned', task: taskTitle, workerSlot: slot, worker: workerLabel, startedAt: nowIso },
+      })
+    }
+
+    if (!taskTitle && prevTask) {
+      const prevRun = activeTaskRunBySlot.get(slot)
+      if (prevRun) {
+        const durationMs = Math.max(0, nowMs - prevRun.startedAtMs)
+        pushActivity({
+          id: newId('task-completed'),
+          at: nowIso,
+          level: 'info',
+          source: 'tasks',
+          message: `task completed: ${prevRun.title} · ${prevRun.workerLabel ?? slot} · took ${fmtDuration(durationMs)}`,
+          meta: {
+            eventType: 'task.completed',
+            task: prevRun.title,
+            workerSlot: slot,
+            worker: prevRun.workerLabel ?? slot,
+            durationMs,
+            startedAt: new Date(prevRun.startedAtMs).toISOString(),
+            completedAt: nowIso,
+          },
+        })
+      }
+      activeTaskRunBySlot.delete(slot)
+    }
+
+    if (taskTitle && !activeTaskRunBySlot.has(slot)) {
+      activeTaskRunBySlot.set(slot, { title: taskTitle, startedAtMs: nowMs, workerLabel })
+    }
+  }
+
+  for (const [slot, prevTask] of lastWorkerTaskBySlot.entries()) {
+    if (activeSlots.has(slot)) continue
+    if (!prevTask) continue
+    const prevRun = activeTaskRunBySlot.get(slot)
+    if (prevRun) {
+      const durationMs = Math.max(0, nowMs - prevRun.startedAtMs)
+      pushActivity({
+        id: newId('task-completed'),
+        at: nowIso,
+        level: 'info',
+        source: 'tasks',
+        message: `task completed: ${prevRun.title} · ${prevRun.workerLabel ?? slot} · took ${fmtDuration(durationMs)}`,
+        meta: {
+          eventType: 'task.completed',
+          task: prevRun.title,
+          workerSlot: slot,
+          worker: prevRun.workerLabel ?? slot,
+          durationMs,
+          startedAt: new Date(prevRun.startedAtMs).toISOString(),
+          completedAt: nowIso,
+        },
+      })
+    }
+    activeTaskRunBySlot.delete(slot)
+  }
+
+  lastWorkerTaskBySlot = nextTaskBySlot
 }
 
 async function runCli(bin, args, timeoutMs = 8000) {
@@ -269,6 +407,7 @@ app.get('/api/live', async (_req, res) => {
 
   const [status, workers, watchdog] = await Promise.all([getStatus(), listWorkersFromCandidates(candidates, nowMs), getHeartbeatDiagnostics(candidates, nowMs)])
   const blockers = computeBlockersFrom({ status, workers, workspace: WORKSPACE, now: new Date(nowMs) })
+  recordTaskLifecycle(workers, nowMs)
 
   res.json({ updatedAt: nowIso, status, workers, blockers, watchdog })
 })
@@ -279,7 +418,12 @@ app.get('/api/projects', async (_req, res) => {
 })
 
 app.get('/api/workers', async (_req, res) => {
-  const workers = await listWorkers()
+  const nowMs = Date.now()
+  const workers = await listWorkersFromCandidates(
+    [path.join(WORKSPACE, 'worker-heartbeats.json'), path.join(WORKSPACE, '.clawhub', 'worker-heartbeats.json')],
+    nowMs,
+  )
+  recordTaskLifecycle(workers, nowMs)
 
   const next = new Map(workers.map((w) => [w.slot, w.status]))
   for (const w of workers) {
