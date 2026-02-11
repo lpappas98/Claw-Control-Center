@@ -235,3 +235,26 @@ export type RuleChange = {
   after?: Partial<Rule>
   source?: string
 }
+
+// ---- Models/config ----
+export type ModelInfo = {
+  key: string
+  name?: string
+  input?: string
+  contextWindow?: number
+  local?: boolean
+  available?: boolean
+  tags?: string[]
+  missing?: boolean
+}
+
+export type ModelList = {
+  defaultModel?: string
+  models: ModelInfo[]
+}
+
+export type ModelSetResult = {
+  ok: boolean
+  message: string
+  defaultModel?: string
+}

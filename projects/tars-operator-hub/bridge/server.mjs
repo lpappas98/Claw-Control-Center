@@ -494,6 +494,71 @@ app.get('/api/activity', async (req, res) => {
   res.json(activity.slice(0, limit))
 })
 
+// ---- Models / config ----
+app.get('/api/models', async (_req, res) => {
+  const [listRes, statusRes] = await Promise.all([
+    runCli('openclaw', ['models', 'list', '--json'], 12_000),
+    runCli('openclaw', ['models', 'status', '--json'], 12_000),
+  ])
+
+  /** @type {{ defaultModel?: string, models: any[] }} */
+  const out = { defaultModel: undefined, models: [] }
+
+  if (statusRes.ok) {
+    try {
+      const parsed = JSON.parse(statusRes.output || '{}')
+      if (typeof parsed?.resolvedDefault === 'string') out.defaultModel = parsed.resolvedDefault
+      else if (typeof parsed?.defaultModel === 'string') out.defaultModel = parsed.defaultModel
+    } catch {
+      // ignore
+    }
+  }
+
+  if (listRes.ok) {
+    try {
+      const parsed = JSON.parse(listRes.output || '{}')
+      const models = Array.isArray(parsed?.models) ? parsed.models : []
+      out.models = models
+    } catch {
+      out.models = []
+    }
+  }
+
+  res.json(out)
+})
+
+app.post('/api/models/set', async (req, res) => {
+  const modelKey = typeof req.body?.modelKey === 'string' ? req.body.modelKey.trim() : ''
+  if (!modelKey) return res.status(400).send('missing modelKey')
+
+  const at = new Date().toISOString()
+  const r = await runCli('openclaw', ['models', 'set', modelKey], 20_000)
+  const ok = !!r.ok
+
+  // Try to read resolved default back for confirmation.
+  let resolved
+  const s = await runCli('openclaw', ['models', 'status', '--json'], 12_000)
+  if (s.ok) {
+    try {
+      const parsed = JSON.parse(s.output || '{}')
+      resolved = typeof parsed?.resolvedDefault === 'string' ? parsed.resolvedDefault : undefined
+    } catch {
+      resolved = undefined
+    }
+  }
+
+  pushActivity({
+    id: newId('models'),
+    at,
+    level: ok ? 'info' : 'error',
+    source: 'operator-hub',
+    message: ok ? `model set: ${modelKey}` : `model set failed: ${modelKey}`,
+    meta: { eventType: 'model.set', modelKey, resolvedDefault: resolved, output: r.output },
+  })
+
+  res.json({ ok, message: ok ? `Default model set to ${resolved ?? modelKey}` : 'Failed to set default model', defaultModel: resolved ?? modelKey })
+})
+
 function slugifyId(input) {
   return String(input ?? '')
     .trim()

@@ -206,6 +206,22 @@ export const mockAdapter: Adapter = {
     return { ok: false, message: `Mock adapter: control disabled (${action.kind})` }
   },
 
+  async listModels(): Promise<import('../types').ModelList> {
+    await sleep(120)
+    return {
+      defaultModel: 'openai-codex/gpt-5.2',
+      models: [
+        { key: 'openai-codex/gpt-5.2', name: 'GPT-5.2', available: true, tags: ['default'] },
+        { key: 'openai-codex/gpt-5.3-codex', name: 'GPT-5.3 Codex', available: true, tags: ['fallback#1'] },
+      ],
+    }
+  },
+
+  async setDefaultModel(modelKey: string): Promise<import('../types').ModelSetResult> {
+    await sleep(200)
+    return { ok: true, message: `Mock: default model set to ${modelKey}`, defaultModel: modelKey }
+  },
+
   async listRules(): Promise<Rule[]> {
     await sleep(100)
     return mockRules.slice().sort((a, b) => a.title.localeCompare(b.title))

@@ -70,7 +70,19 @@ export function bridgeAdapter(opts: BridgeAdapterOptions): Adapter {
       })
     },
 
-    listRules() {
+    listModels() {
+      return fetchJson<import('../types').ModelList>(`${base}/api/models`)
+    },
+
+    setDefaultModel(modelKey: string) {
+      return fetchJson<import('../types').ModelSetResult>(`${base}/api/models/set`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ modelKey }),
+      })
+    },
+
+    listRules() { 
       return fetchJson<Rule[]>(`${base}/api/rules`)
     },
 

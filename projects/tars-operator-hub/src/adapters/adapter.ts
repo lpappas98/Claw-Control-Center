@@ -18,6 +18,8 @@ import type {
   IntakeProject,
   IntakeProjectCreate,
   IntakeProjectUpdate,
+  ModelList,
+  ModelSetResult,
 } from '../types'
 
 export type Adapter = {
@@ -32,6 +34,10 @@ export type Adapter = {
   listWorkers(): Promise<WorkerHeartbeat[]>
   listBlockers(): Promise<Blocker[]>
   runControl(action: ControlAction): Promise<ControlResult>
+
+  // models/config
+  listModels(): Promise<ModelList>
+  setDefaultModel(modelKey: string): Promise<ModelSetResult>
 
   listRules(): Promise<Rule[]>
   createRule(create: RuleCreate): Promise<Rule>
