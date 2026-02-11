@@ -6,12 +6,15 @@ import { Badge } from '../components/Badge'
 import type { ActivityEvent, LiveSnapshot, SystemStatus, WorkerHeartbeat } from '../types'
 
 type BoardLane = 'proposed' | 'queued' | 'development' | 'review' | 'blocked' | 'done'
+type Priority = 'P0' | 'P1' | 'P2' | 'P3'
 
 type HomeTask = {
   id: string
   title: string
   lane: BoardLane
+  priority: Priority
   agent?: string
+  agentEmoji?: string
 }
 
 function fmtAgo(iso?: string) {
@@ -23,13 +26,20 @@ function fmtAgo(iso?: string) {
   return `${Math.round(ms / 3_600_000)}h ago`
 }
 
+function inferPriority(title?: string): Priority {
+  const m = (title ?? '').match(/\b(P[0-3])\b/i)
+  const v = m?.[1]?.toUpperCase()
+  if (v === 'P0' || v === 'P1' || v === 'P2' || v === 'P3') return v
+  return 'P2'
+}
+
 function agentProfile(slot: string, fallback?: string) {
-  if (slot === 'pm') return { name: 'TARS', role: 'Project Manager' }
-  if (slot === 'dev-1') return { name: 'Forge', role: 'Developer' }
-  if (slot === 'dev-2') return { name: 'Patch', role: 'Developer' }
-  if (slot === 'architect') return { name: 'Blueprint', role: 'Architect' }
-  if (slot === 'qa') return { name: 'Sentinel', role: 'QA' }
-  return { name: fallback ?? slot, role: 'Agent' }
+  if (slot === 'pm') return { name: 'TARS', role: 'Project Manager', emoji: '🧠' }
+  if (slot === 'dev-1') return { name: 'Forge', role: 'Developer', emoji: '🛠️' }
+  if (slot === 'dev-2') return { name: 'Patch', role: 'Developer', emoji: '🧩' }
+  if (slot === 'architect') return { name: 'Blueprint', role: 'Architect', emoji: '🏗️' }
+  if (slot === 'qa') return { name: 'Sentinel', role: 'QA', emoji: '🛡️' }
+  return { name: fallback ?? slot, role: 'Agent', emoji: '🤖' }
 }
 
 function homeStatus(status: string) {
@@ -134,7 +144,7 @@ export function MissionControl({
         return {
           id: w.slot,
           name: profile.name,
-          emoji: '🤖',
+          emoji: profile.emoji,
           role: profile.role,
           status: homeStatus(w.status),
           rawStatus: w.status,
@@ -151,19 +161,22 @@ export function MissionControl({
     const workerTasks: HomeTask[] = (live.data?.workers ?? [])
       .filter((w) => !!w.task)
       .map((w, idx) => {
-        const pinned = PINNED_SLOTS.find((s) => s.slot === w.slot)
-        const profile = pinned ?? agentProfile(w.slot, w.label)
+        const profile = agentProfile(w.slot, w.label)
+        const title = w.task ?? 'Untitled task'
         return {
           id: `${w.slot}-${idx}`,
-          title: w.task ?? 'Untitled task',
+          title,
+          priority: inferPriority(title),
           lane: taskLaneFromWorker(w),
           agent: profile.name,
+          agentEmoji: profile.emoji,
         }
       })
 
     const blockerTasks: HomeTask[] = (live.data?.blockers ?? []).map((b) => ({
       id: `blocker-${b.id}`,
       title: b.title,
+      priority: inferPriority(b.title),
       lane: 'blocked',
     }))
 
@@ -204,7 +217,9 @@ export function MissionControl({
             <article className="agent-card" key={agent.id}>
               <div className="agent-head">
                 <div>
-                  <div className="agent-name">{agent.emoji} {agent.name}</div>
+                  <div className="agent-name">
+                    {agent.emoji} {agent.name}
+                  </div>
                   <div className="agent-role muted">{agent.role}</div>
                 </div>
                 <Badge kind={agent.rawStatus} />
@@ -232,8 +247,11 @@ export function MissionControl({
             {blockedTasks.length === 0 && <div className="muted">No blocked tasks</div>}
             {blockedTasks.map((task) => (
               <div className="home-task blocked" key={task.id}>
+                <div className={`priority-tag ${task.priority.toLowerCase()}`}>{task.priority}</div>
                 <div className="home-task-title">{task.title}</div>
-                <div className={`home-task-tag ${task.agent ? 'assigned' : 'unassigned'}`}>{task.agent ?? 'Unassigned'}</div>
+                <div className={`worker-chip ${task.agent ? 'assigned' : 'unassigned'}`}>
+                  {task.agent ? `${task.agentEmoji ?? '🤖'} ${task.agent}` : 'Unassigned'}
+                </div>
               </div>
             ))}
           </div>
@@ -243,16 +261,21 @@ export function MissionControl({
           {boardColumns.map((lane) => {
             const laneTasks = tasks.filter((t) => t.lane === lane.key)
             return (
-              <div className="home-lane narrow" key={lane.key}>
-                <div className="home-lane-title">{lane.title}</div>
-                <div className="stack">
-                  {laneTasks.length === 0 && <div className="muted">No tasks</div>}
-                  {laneTasks.map((task) => (
-                    <div className="home-task" key={task.id}>
-                      <div className="home-task-title">{task.title}</div>
-                      <div className={`home-task-tag ${task.agent ? 'assigned' : 'unassigned'}`}>{task.agent ?? 'Unassigned'}</div>
-                    </div>
-                  ))}
+              <div className="lane-group" key={lane.key}>
+                <div className="home-lane-heading">{lane.title}</div>
+                <div className="home-lane narrow">
+                  <div className="stack">
+                    {laneTasks.length === 0 && <div className="muted">No tasks</div>}
+                    {laneTasks.map((task) => (
+                      <div className="home-task" key={task.id}>
+                        <div className={`priority-tag ${task.priority.toLowerCase()}`}>{task.priority}</div>
+                        <div className="home-task-title">{task.title}</div>
+                        <div className={`worker-chip ${task.agent ? 'assigned' : 'unassigned'}`}>
+                          {task.agent ? `${task.agentEmoji ?? '🤖'} ${task.agent}` : 'Unassigned'}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             )
