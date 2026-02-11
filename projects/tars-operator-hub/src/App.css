@@ -807,12 +807,11 @@ button.home-task.clickable:focus {
 }
 
 .modal.newproj-modal .modal-body {
-  display: grid;
-  justify-content: center;
+  display: block;
 }
 
 .modal.newproj-modal .modal-body > * {
-  width: min(560px, 100%);
+  width: 100%;
 }
 
 .import-form {
