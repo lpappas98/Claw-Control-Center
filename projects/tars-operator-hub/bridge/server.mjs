@@ -1006,6 +1006,35 @@ app.delete('/api/pm/projects/:id/tree/nodes/:nodeId', async (req, res) => {
   }
 })
 
+// Feature-level intake per tree node
+app.get('/api/pm/projects/:id/tree/nodes/:nodeId/intake', async (req, res) => {
+  try {
+    const p = await loadPmProject(PM_PROJECTS_DIR, req.params.id)
+    if (!p) return res.status(404).send('project not found')
+    const intakes = p.featureIntakes ?? {}
+    res.json(intakes[req.params.nodeId] ?? null)
+  } catch (err) {
+    res.status(400).send(err?.message ?? 'invalid request')
+  }
+})
+
+app.put('/api/pm/projects/:id/tree/nodes/:nodeId/intake', async (req, res) => {
+  try {
+    const p = await loadPmProject(PM_PROJECTS_DIR, req.params.id)
+    if (!p) return res.status(404).send('project not found')
+    
+    // Ensure featureIntakes object exists
+    if (!p.featureIntakes) p.featureIntakes = {}
+    p.featureIntakes[req.params.nodeId] = req.body
+    p.updatedAt = new Date().toISOString()
+    
+    await savePmProject(PM_PROJECTS_DIR, req.params.id, p)
+    res.json(req.body)
+  } catch (err) {
+    res.status(400).send(err?.message ?? 'invalid request')
+  }
+})
+
 // Cards
 app.get('/api/pm/projects/:id/cards', async (req, res) => {
   try {
