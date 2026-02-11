@@ -1102,7 +1102,7 @@ function NewProjectWizard({
 
                 <div className="import-form" style={{ marginTop: 10 }}>
                   <div className="import-row">
-                    <div className="import-label">Project<br/>Name</div>
+                    <div className="import-label">Project name</div>
                     <input className="input" value={projectName} onChange={(e) => setProjectName(e.target.value)} placeholder="e.g. Trips App" />
                   </div>
 
@@ -1112,7 +1112,7 @@ function NewProjectWizard({
                   </div>
 
                   <div className="import-row" style={{ marginTop: 12 }}>
-                    <div className="import-label">Import<br/>From Git</div>
+                    <div className="import-label">Import from git</div>
                     <input className="input" value={gitUrl} onChange={(e) => setGitUrl(e.target.value)} placeholder="e.g. HTTPS://Github.com/Project" />
                   </div>
 
