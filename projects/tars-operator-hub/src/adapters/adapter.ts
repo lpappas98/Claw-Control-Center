@@ -32,6 +32,11 @@ import type {
   PMIntake,
   PMActivity,
   FeatureIntake,
+  ConnectionToken,
+  ConnectedInstance,
+  ConnectionTokenCreate,
+  ConnectionValidateRequest,
+  ConnectionValidateResponse,
 } from '../types'
 
 export type Adapter = {
@@ -110,4 +115,12 @@ export type Adapter = {
 
   // Migration helper
   migrateIntakeToPM(intakeProjectId: string): Promise<PMProject>
+
+  // OpenClaw Connections
+  generateConnectionToken(opts?: ConnectionTokenCreate): Promise<ConnectionToken>
+  listConnectionTokens(): Promise<ConnectionToken[]>
+  validateConnectionToken(req: ConnectionValidateRequest): Promise<ConnectionValidateResponse>
+  listConnectedInstances(): Promise<ConnectedInstance[]>
+  updateInstanceHeartbeat(instanceId: string): Promise<void>
+  disconnectInstance(instanceId: string): Promise<{ ok: boolean }>
 }

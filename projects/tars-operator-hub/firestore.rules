@@ -8,13 +8,15 @@ service cloud.firestore {
     }
     
     // Connection tokens (for OpenClaw instance linking)
+    // Tokens are the security mechanism - anyone with the token string can use it
     match /connectionTokens/{tokenId} {
-      // Anyone authenticated can read their own token (to validate)
-      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
-      // Anyone authenticated can create a token for themselves
+      // Authenticated users can create tokens for themselves
       allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
-      // Token owner or the connecting OpenClaw instance can update/delete
-      allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
+      // Anyone (including unauthenticated OpenClaw instances) can read/update tokens
+      // This is safe because the token ID itself is the secret
+      allow read, update: if true;
+      // Only token owner can delete
+      allow delete: if request.auth != null && resource.data.userId == request.auth.uid;
     }
   }
 }

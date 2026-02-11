@@ -473,3 +473,50 @@ export type FeatureIntake = {
 export type PMTreeNodeWithIntake = PMTreeNode & {
   featureIntake?: FeatureIntake
 }
+
+// ---- OpenClaw Connection ----
+
+/** Connection token for linking OpenClaw instances */
+export type ConnectionToken = {
+  id: string
+  token: string
+  userId: string
+  createdAt: string
+  expiresAt: string
+  used: boolean
+  usedAt?: string
+  instanceId?: string
+}
+
+/** Connected OpenClaw instance */
+export type ConnectedInstance = {
+  id: string
+  userId: string
+  name: string
+  host?: string
+  connectedAt: string
+  lastSeenAt: string
+  status: 'active' | 'inactive'
+  metadata?: {
+    version?: string
+    os?: string
+    node?: string
+  }
+}
+
+export type ConnectionTokenCreate = {
+  expiresInMinutes?: number
+}
+
+export type ConnectionValidateRequest = {
+  token: string
+  instanceName: string
+  metadata?: ConnectedInstance['metadata']
+}
+
+export type ConnectionValidateResponse = {
+  success: boolean
+  userId?: string
+  instanceId?: string
+  error?: string
+}

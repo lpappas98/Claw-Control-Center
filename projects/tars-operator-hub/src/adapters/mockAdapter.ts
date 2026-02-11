@@ -796,4 +796,24 @@ export const mockAdapter: Adapter = {
     mockPMIntakes.set(pmProject.id, pmIntake)
     return pmProject
   },
+
+  // OpenClaw Connections (not implemented in mock adapter)
+  async generateConnectionToken() {
+    throw new Error('Connection tokens only available with Firestore adapter')
+  },
+  async listConnectionTokens() {
+    throw new Error('Connection tokens only available with Firestore adapter')
+  },
+  async validateConnectionToken() {
+    throw new Error('Connection tokens only available with Firestore adapter')
+  },
+  async listConnectedInstances() {
+    return []
+  },
+  async updateInstanceHeartbeat() {
+    // no-op in mock
+  },
+  async disconnectInstance() {
+    return { ok: true }
+  },
 }

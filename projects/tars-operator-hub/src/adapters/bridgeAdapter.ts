@@ -361,5 +361,25 @@ export function bridgeAdapter(opts: BridgeAdapterOptions): Adapter {
         body: JSON.stringify({ intakeProjectId }),
       })
     },
+
+    // OpenClaw Connections (not implemented in bridge adapter)
+    async generateConnectionToken() {
+      throw new Error('Connection tokens only available with Firestore adapter')
+    },
+    async listConnectionTokens() {
+      throw new Error('Connection tokens only available with Firestore adapter')
+    },
+    async validateConnectionToken() {
+      throw new Error('Connection tokens only available with Firestore adapter')
+    },
+    async listConnectedInstances() {
+      return []
+    },
+    async updateInstanceHeartbeat() {
+      throw new Error('Connection management only available with Firestore adapter')
+    },
+    async disconnectInstance() {
+      throw new Error('Connection management only available with Firestore adapter')
+    },
   }
 }

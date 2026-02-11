@@ -121,7 +121,7 @@ function AppContent() {
       {tab === 'Activity' && <Activity adapter={adapter} />}
       {tab === 'Rules' && <Rules adapter={adapter} />}
       {tab === 'Config' && <Config adapter={adapter} />}
-      {tab === 'Connect' && <Connect />}
+      {tab === 'Connect' && <Connect adapter={adapter} />}
       {tab === 'Docs' && (
         <main className="main-grid">
           <section className="panel span-4">
