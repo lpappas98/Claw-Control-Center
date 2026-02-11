@@ -1,12 +1,10 @@
-import { useCallback, useMemo } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { Adapter } from '../adapters/adapter'
 import type { AdapterConfig } from '../lib/adapterState'
 import { usePoll } from '../lib/usePoll'
 import { Badge } from '../components/Badge'
-import type { ActivityEvent, LiveSnapshot, SystemStatus, WorkerHeartbeat } from '../types'
-
-type BoardLane = 'proposed' | 'queued' | 'development' | 'review' | 'blocked' | 'done'
-type Priority = 'P0' | 'P1' | 'P2' | 'P3'
+import { TaskModal } from '../components/TaskModal'
+import type { ActivityEvent, BoardLane, LiveSnapshot, Priority, SystemStatus, Task, WorkerHeartbeat } from '../types'
 
 type HomeTask = {
   id: string
@@ -15,6 +13,8 @@ type HomeTask = {
   priority: Priority
   agent?: string
   agentEmoji?: string
+  details?: Task
+  detailsMatch?: 'id' | 'title'
 }
 
 function fmtAgo(iso?: string) {
@@ -119,6 +119,17 @@ export function MissionControl({
 
   const live = usePoll(liveFn, 5000)
   const activity = usePoll<ActivityEvent[]>(() => adapter.listActivity(40), 7000)
+  const persisted = usePoll<Task[]>(() => adapter.listTasks(), 8000)
+
+  const [openTask, setOpenTask] = useState<Task | null>(null)
+  const [creating, setCreating] = useState(false)
+
+  useEffect(() => {
+    if (!openTask) return
+    // Keep the open task in sync with the latest persisted copy when it refreshes.
+    const latest = (persisted.data ?? []).find((t) => t.id === openTask.id)
+    if (latest && latest.updatedAt !== openTask.updatedAt) setOpenTask(latest)
+  }, [persisted.data, openTask])
 
   const agents = useMemo(() => {
     const workers = live.data?.workers ?? []
@@ -161,18 +172,41 @@ export function MissionControl({
   }, [live.data?.workers])
 
   const tasks = useMemo<HomeTask[]>(() => {
+    const persistedTasks = persisted.data ?? []
+    const byTitle = new Map(persistedTasks.map((t) => [t.title.trim(), t]))
+
+    const usedPersistedIds = new Set<string>()
+
     const workerTasks: HomeTask[] = (live.data?.workers ?? [])
       .filter((w) => !!w.task)
       .map((w, idx) => {
         const profile = agentProfile(w.slot, w.label)
         const title = w.task ?? 'Untitled task'
+        const matched = byTitle.get(title.trim())
+        if (matched) usedPersistedIds.add(matched.id)
         return {
-          id: `${w.slot}-${idx}`,
-          title,
-          priority: inferPriority(title),
+          id: matched?.id ?? `${w.slot}-${idx}`,
+          title: matched?.title ?? title,
+          priority: matched?.priority ?? inferPriority(title),
           lane: taskLaneFromWorker(w),
           agent: profile.name,
           agentEmoji: profile.emoji,
+          details: matched,
+          detailsMatch: matched ? 'title' : undefined,
+        }
+      })
+
+    const seededTasks: HomeTask[] = persistedTasks
+      .filter((t) => !usedPersistedIds.has(t.id))
+      .map((t) => {
+        const lane: BoardLane = t.lane
+        return {
+          id: t.id,
+          title: t.title,
+          priority: t.priority,
+          lane,
+          details: t,
+          detailsMatch: 'id',
         }
       })
 
@@ -183,8 +217,12 @@ export function MissionControl({
       lane: 'blocked',
     }))
 
-    return [...workerTasks, ...blockerTasks]
-  }, [live.data?.workers, live.data?.blockers])
+    // Prefer showing live worker cards first, then seeded queued/proposed cards, then blockers.
+    // (Blockers are also shown in their own row.)
+    const merged = [...workerTasks, ...seededTasks, ...blockerTasks]
+
+    return merged
+  }, [live.data?.workers, live.data?.blockers, persisted.data])
 
   const boardColumns: Array<{ key: BoardLane; title: string }> = [
     { key: 'proposed', title: 'Proposed' },
@@ -236,22 +274,74 @@ export function MissionControl({
 
       <section className="panel span-3 taskboard-panel">
         <div className="panel-header">
-          <h3>Task Board</h3>
+          <div>
+            <h3>Task Board</h3>
+            <p className="muted" style={{ marginTop: 4 }}>
+              Click a card to open details (owner/problem/scope/acceptance/history). Persisted tasks poll: 8s.
+            </p>
+          </div>
+          <div className="right stack-h">
+            <div className="muted" style={{ fontSize: 12, textAlign: 'right' }}>
+              {persisted.refreshing
+                ? 'refreshing…'
+                : persisted.lastSuccessAt
+                  ? `last ok: ${new Date(persisted.lastSuccessAt).toLocaleTimeString()}`
+                  : ''}
+            </div>
+            <button
+              className="btn"
+              type="button"
+              disabled={creating}
+              onClick={async () => {
+                const title = prompt('New task title')
+                if (!title || !title.trim()) return
+                setCreating(true)
+                try {
+                  const next = await adapter.createTask({ title: title.trim() })
+                  setOpenTask(next)
+                } finally {
+                  setCreating(false)
+                }
+              }}
+              title="Create a persisted task and open details"
+            >
+              {creating ? 'Creating…' : 'New task'}
+            </button>
+          </div>
         </div>
 
         <div className="blocked-row">
           <div className="blocked-row-title">Blocked</div>
           <div className="blocked-row-cards">
             {blockedTasks.length === 0 && <div className="muted">No blocked tasks</div>}
-            {blockedTasks.map((task) => (
-              <div className="home-task blocked" key={task.id}>
-                <div className={`priority-tag ${task.priority.toLowerCase()}`}>{task.priority}</div>
-                <div className="home-task-title">{task.title}</div>
-                <div className={`worker-chip ${task.agent ? 'assigned' : 'unassigned'}`}>
-                  {task.agent ? `${task.agentEmoji ?? '🤖'} ${task.agent}` : 'Unassigned'}
+            {blockedTasks.map((task) => {
+              const canOpen = !!task.details
+              const inner = (
+                <>
+                  <div className={`priority-tag ${task.priority.toLowerCase()}`}>{task.priority}</div>
+                  <div className="home-task-title">{task.title}</div>
+                  <div className={`worker-chip ${task.agent ? 'assigned' : 'unassigned'}`}>
+                    {task.agent ? `${task.agentEmoji ?? '🤖'} ${task.agent}` : 'Unassigned'}
+                  </div>
+                </>
+              )
+
+              return canOpen ? (
+                <button
+                  key={task.id}
+                  type="button"
+                  className="home-task blocked clickable"
+                  onClick={() => setOpenTask(task.details ?? null)}
+                  title="Open task details"
+                >
+                  {inner}
+                </button>
+              ) : (
+                <div key={task.id} className="home-task blocked">
+                  {inner}
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </div>
 
@@ -264,15 +354,34 @@ export function MissionControl({
                 <div className="home-lane narrow">
                   <div className="stack">
                     {laneTasks.length === 0 && <div className="home-task empty">No tasks</div>}
-                    {laneTasks.map((task) => (
-                      <div className="home-task" key={task.id}>
-                        <div className={`priority-tag ${task.priority.toLowerCase()}`}>{task.priority}</div>
-                        <div className="home-task-title">{task.title}</div>
-                        <div className={`worker-chip ${task.agent ? 'assigned' : 'unassigned'}`}>
-                          {task.agent ? `${task.agentEmoji ?? '🤖'} ${task.agent}` : 'Unassigned'}
+                    {laneTasks.map((task) => {
+                      const canOpen = !!task.details
+                      const inner = (
+                        <>
+                          <div className={`priority-tag ${task.priority.toLowerCase()}`}>{task.priority}</div>
+                          <div className="home-task-title">{task.title}</div>
+                          <div className={`worker-chip ${task.agent ? 'assigned' : 'unassigned'}`}>
+                            {task.agent ? `${task.agentEmoji ?? '🤖'} ${task.agent}` : 'Unassigned'}
+                          </div>
+                        </>
+                      )
+
+                      return canOpen ? (
+                        <button
+                          key={task.id}
+                          type="button"
+                          className="home-task clickable"
+                          onClick={() => setOpenTask(task.details ?? null)}
+                          title="Open task details"
+                        >
+                          {inner}
+                        </button>
+                      ) : (
+                        <div className="home-task" key={task.id}>
+                          {inner}
                         </div>
-                      </div>
-                    ))}
+                      )
+                    })}
                   </div>
                 </div>
               </div>
@@ -310,6 +419,15 @@ export function MissionControl({
           {!activity.loading && (activity.data?.length ?? 0) === 0 && <div className="muted">No activity yet.</div>}
         </div>
       </section>
+
+      {openTask && (
+        <TaskModal
+          adapter={adapter}
+          task={openTask}
+          onClose={() => setOpenTask(null)}
+          onSaved={(t) => setOpenTask(t)}
+        />
+      )}
     </main>
   )
 }

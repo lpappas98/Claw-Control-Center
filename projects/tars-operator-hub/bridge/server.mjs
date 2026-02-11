@@ -13,6 +13,16 @@ import { parseGatewayStatus } from './parseGatewayStatus.mjs'
 import { loadActivity, makeDebouncedSaver, saveActivity } from './activityStore.mjs'
 import { getHeartbeatDiagnostics } from './watchdog.mjs'
 import { loadRules, loadRuleHistory, pushRuleHistory, saveRules, saveRuleHistory } from './rules.mjs'
+import { loadTasks, makeId as makeTaskId, normalizeLane, normalizePriority, saveTasks } from './tasks.mjs'
+import {
+  draftScopeAndTree,
+  ensureUniqueProjectId,
+  generateClarifyingQuestions,
+  loadIntakeProjects,
+  makeId as makeIntakeId,
+  saveIntakeProjects,
+  toMarkdownBrief,
+} from './intakeProjects.mjs'
 
 const execFileAsync = promisify(execFile)
 
@@ -25,6 +35,8 @@ const WORKSPACE = process.env.OPENCLAW_WORKSPACE ?? path.join(os.homedir(), '.op
 const ACTIVITY_FILE = process.env.OPERATOR_HUB_ACTIVITY_FILE ?? path.join(WORKSPACE, '.clawhub', 'activity.json')
 const RULES_FILE = process.env.OPERATOR_HUB_RULES_FILE ?? path.join(WORKSPACE, '.clawhub', 'rules.json')
 const RULE_HISTORY_FILE = process.env.OPERATOR_HUB_RULE_HISTORY_FILE ?? path.join(WORKSPACE, '.clawhub', 'rule-history.json')
+const TASKS_FILE = process.env.OPERATOR_HUB_TASKS_FILE ?? path.join(WORKSPACE, '.clawhub', 'tasks.json')
+const INTAKE_PROJECTS_FILE = process.env.OPERATOR_HUB_INTAKE_PROJECTS_FILE ?? path.join(WORKSPACE, '.clawhub', 'intake-projects.json')
 
 /** @type {import('../src/types').ActivityEvent[]} */
 let activity = await loadActivity(ACTIVITY_FILE)
@@ -37,8 +49,16 @@ let rules = await loadRules(RULES_FILE)
 /** @type {import('../src/types').RuleChange[]} */
 let ruleHistory = await loadRuleHistory(RULE_HISTORY_FILE)
 
+/** @type {import('../src/types').IntakeProject[]} */
+let intakeProjects = await loadIntakeProjects(INTAKE_PROJECTS_FILE)
+
 const rulesSaver = makeDebouncedSaver(() => saveRules(RULES_FILE, rules))
 const ruleHistorySaver = makeDebouncedSaver(() => saveRuleHistory(RULE_HISTORY_FILE, ruleHistory))
+const intakeProjectsSaver = makeDebouncedSaver(() => saveIntakeProjects(INTAKE_PROJECTS_FILE, intakeProjects))
+
+/** @type {import('../src/types').Task[]} */
+let tasks = await loadTasks(TASKS_FILE)
+const tasksSaver = makeDebouncedSaver(() => saveTasks(TASKS_FILE, tasks))
 
 let lastGatewayHealth = null
 let lastGatewaySummary = null
@@ -70,6 +90,10 @@ function scheduleActivitySave() {
 function scheduleRulesSave() {
   rulesSaver.trigger()
   ruleHistorySaver.trigger()
+}
+
+function scheduleTasksSave() {
+  tasksSaver.trigger()
 }
 
 function pushActivity(evt) {
@@ -470,14 +494,143 @@ app.get('/api/activity', async (req, res) => {
   res.json(activity.slice(0, limit))
 })
 
+function slugifyId(input) {
+  return String(input ?? '')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '')
+}
+
+function ensureUniqueRuleId(desired) {
+  const base = slugifyId(desired) || `rule-${Date.now()}`
+  let id = base
+  let n = 2
+  while (rules.some((r) => r.id === id)) {
+    id = `${base}-${n++}`
+  }
+  return id
+}
+
 app.get('/api/rules', async (_req, res) => {
   const sorted = rules.slice().sort((a, b) => a.title.localeCompare(b.title))
   res.json(sorted)
 })
 
+app.post('/api/rules', async (req, res) => {
+  const body = req.body ?? {}
+  const title = typeof body.title === 'string' ? body.title.trim() : ''
+  const content = typeof body.content === 'string' ? body.content : ''
+  if (!title) return res.status(400).send('title required')
+
+  const id = ensureUniqueRuleId(typeof body.id === 'string' ? body.id : title)
+  const next = {
+    id,
+    title,
+    description: typeof body.description === 'string' ? body.description : undefined,
+    enabled: body.enabled === undefined ? true : !!body.enabled,
+    content,
+    updatedAt: new Date().toISOString(),
+  }
+
+  rules = [...rules, next]
+
+  pushRuleHistory(ruleHistory, {
+    at: next.updatedAt,
+    ruleId: next.id,
+    action: 'create',
+    summary: 'Created rule',
+    after: { title: next.title, description: next.description, content: next.content, enabled: next.enabled },
+    source: 'bridge',
+  })
+
+  scheduleRulesSave()
+  res.json(next)
+})
+
 app.get('/api/rules/history', async (req, res) => {
   const limit = Math.max(1, Math.min(500, Number(req.query.limit ?? 200)))
   res.json(ruleHistory.slice(0, limit))
+})
+
+app.get('/api/tasks', async (_req, res) => {
+  const sorted = tasks.slice().sort((a, b) => (b.updatedAt ?? '').localeCompare(a.updatedAt ?? ''))
+  res.json(sorted)
+})
+
+app.post('/api/tasks', async (req, res) => {
+  const create = req.body ?? {}
+  if (typeof create.title !== 'string' || !create.title.trim()) return res.status(400).send('title required')
+
+  const next = makeTask(create)
+  if (tasks.some((t) => t.id === next.id)) return res.status(409).send('task id already exists')
+
+  tasks = [next, ...tasks]
+  scheduleTasksSave()
+
+  pushActivity({
+    id: newId('task'),
+    at: next.createdAt,
+    level: 'info',
+    source: 'operator-hub',
+    message: `task created: ${next.title}`,
+    meta: { eventType: 'task.created', taskId: next.id, lane: next.lane },
+  })
+
+  res.json(next)
+})
+
+app.put('/api/tasks/:id', async (req, res) => {
+  const id = req.params.id
+  const idx = tasks.findIndex((t) => t.id === id)
+  if (idx < 0) return res.status(404).send('task not found')
+
+  const before = tasks[idx]
+  const update = req.body ?? {}
+  const next = applyTaskUpdate(before, update)
+
+  tasks = [next, ...tasks.slice(0, idx), ...tasks.slice(idx + 1)]
+  // de-dupe, keep newest first
+  const seen = new Set()
+  tasks = tasks.filter((t) => {
+    if (seen.has(t.id)) return false
+    seen.add(t.id)
+    return true
+  })
+
+  scheduleTasksSave()
+
+  pushActivity({
+    id: newId('task'),
+    at: next.updatedAt,
+    level: 'info',
+    source: 'operator-hub',
+    message: `task updated: ${next.title}${before.lane !== next.lane ? ` (${before.lane} → ${next.lane})` : ''}`,
+    meta: { eventType: 'task.updated', taskId: next.id, from: before.lane, to: next.lane },
+  })
+
+  res.json(next)
+})
+
+app.delete('/api/rules/:id', async (req, res) => {
+  const id = req.params.id
+  const idx = rules.findIndex((r) => r.id === id)
+  if (idx < 0) return res.status(404).send('rule not found')
+
+  const before = rules[idx]
+  rules = [...rules.slice(0, idx), ...rules.slice(idx + 1)]
+
+  pushRuleHistory(ruleHistory, {
+    at: new Date().toISOString(),
+    ruleId: id,
+    action: 'delete',
+    summary: 'Deleted rule',
+    before: { title: before.title, description: before.description, content: before.content, enabled: before.enabled },
+    source: 'bridge',
+  })
+
+  scheduleRulesSave()
+  res.json({ ok: true })
 })
 
 app.put('/api/rules/:id', async (req, res) => {
@@ -536,6 +689,180 @@ app.post('/api/rules/:id/toggle', async (req, res) => {
   res.json(next)
 })
 
+// ---- Tasks (operator board seed) ----
+app.get('/api/tasks', async (_req, res) => {
+  const sorted = tasks.slice().sort((a, b) => (b.updatedAt ?? '').localeCompare(a.updatedAt ?? ''))
+  res.json(sorted)
+})
+
+app.post('/api/tasks', async (req, res) => {
+  const body = req.body ?? {}
+  const title = typeof body.title === 'string' ? body.title.trim() : ''
+  if (!title) return res.status(400).send('title required')
+
+  const now = new Date().toISOString()
+  const lane = normalizeLane(body.lane)
+  const priority = normalizePriority(body.priority)
+
+  /** @type {import('../src/types').Task} */
+  const next = {
+    id: typeof body.id === 'string' && body.id.trim() ? body.id.trim() : makeTaskId('task'),
+    title,
+    lane,
+    priority,
+    owner: typeof body.owner === 'string' ? body.owner : undefined,
+    problem: typeof body.problem === 'string' ? body.problem : undefined,
+    scope: typeof body.scope === 'string' ? body.scope : undefined,
+    acceptanceCriteria: Array.isArray(body.acceptanceCriteria) ? body.acceptanceCriteria.filter((s) => typeof s === 'string') : undefined,
+    createdAt: now,
+    updatedAt: now,
+    statusHistory: [{ at: now, to: lane, note: 'created' }],
+  }
+
+  tasks = [next, ...tasks].slice(0, 500)
+  tasksSaver.trigger()
+  res.json(next)
+})
+
+app.put('/api/tasks/:id', async (req, res) => {
+  const id = req.params.id
+  const idx = tasks.findIndex((t) => t.id === id)
+  if (idx < 0) return res.status(404).send('task not found')
+
+  const update = req.body ?? {}
+  const before = tasks[idx]
+  const now = new Date().toISOString()
+
+  const nextLane = update.lane !== undefined ? normalizeLane(update.lane) : before.lane
+  const nextPriority = update.priority !== undefined ? normalizePriority(update.priority) : before.priority
+
+  const next = {
+    ...before,
+    title: typeof update.title === 'string' ? update.title : before.title,
+    lane: nextLane,
+    priority: nextPriority,
+    owner: typeof update.owner === 'string' ? update.owner : before.owner,
+    problem: typeof update.problem === 'string' ? update.problem : before.problem,
+    scope: typeof update.scope === 'string' ? update.scope : before.scope,
+    acceptanceCriteria: Array.isArray(update.acceptanceCriteria)
+      ? update.acceptanceCriteria.filter((s) => typeof s === 'string')
+      : before.acceptanceCriteria,
+    updatedAt: now,
+    statusHistory:
+      nextLane !== before.lane
+        ? [{ at: now, from: before.lane, to: nextLane, note: 'updated' }, ...(before.statusHistory ?? [])]
+        : before.statusHistory ?? [],
+  }
+
+  tasks = [...tasks.slice(0, idx), next, ...tasks.slice(idx + 1)]
+  tasksSaver.trigger()
+  res.json(next)
+})
+
+// ---- PM/PO Intake Projects ----
+app.get('/api/intake/projects', async (_req, res) => {
+  const sorted = intakeProjects.slice().sort((a, b) => (b.updatedAt ?? '').localeCompare(a.updatedAt ?? ''))
+  res.json(sorted)
+})
+
+app.get('/api/intake/projects/:id', async (req, res) => {
+  const p = intakeProjects.find((x) => x.id === req.params.id)
+  if (!p) return res.status(404).send('intake project not found')
+  res.json(p)
+})
+
+app.post('/api/intake/projects', async (req, res) => {
+  const body = req.body ?? {}
+  const title = typeof body.title === 'string' ? body.title.trim() : ''
+  const idea = typeof body.idea === 'string' ? body.idea.trim() : ''
+  if (!title) return res.status(400).send('title required')
+  if (!idea) return res.status(400).send('idea required')
+
+  const now = new Date().toISOString()
+  const id = ensureUniqueProjectId(intakeProjects, typeof body.id === 'string' ? body.id : title)
+
+  /** @type {import('../src/types').IntakeProject} */
+  const next = {
+    id,
+    title,
+    idea,
+    status: 'idea',
+    tags: [],
+    questions: [],
+    scope: null,
+    featureTree: [],
+    createdAt: now,
+    updatedAt: now,
+  }
+
+  intakeProjects = [next, ...intakeProjects].slice(0, 500)
+  intakeProjectsSaver.trigger()
+  res.json(next)
+})
+
+app.put('/api/intake/projects/:id', async (req, res) => {
+  const id = req.params.id
+  const idx = intakeProjects.findIndex((p) => p.id === id)
+  if (idx < 0) return res.status(404).send('intake project not found')
+
+  const update = req.body ?? {}
+  const before = intakeProjects[idx]
+  const now = new Date().toISOString()
+
+  const next = {
+    ...before,
+    title: typeof update.title === 'string' ? update.title : before.title,
+    idea: typeof update.idea === 'string' ? update.idea : before.idea,
+    status: typeof update.status === 'string' ? update.status : before.status,
+    tags: Array.isArray(update.tags) ? update.tags.filter((t) => typeof t === 'string') : before.tags,
+    questions: Array.isArray(update.questions) ? update.questions : before.questions,
+    scope: update.scope === undefined ? before.scope : update.scope,
+    featureTree: Array.isArray(update.featureTree) ? update.featureTree : before.featureTree,
+    updatedAt: now,
+  }
+
+  intakeProjects = [...intakeProjects.slice(0, idx), next, ...intakeProjects.slice(idx + 1)]
+  intakeProjectsSaver.trigger()
+  res.json(next)
+})
+
+app.post('/api/intake/projects/:id/generate-questions', async (req, res) => {
+  const id = req.params.id
+  const idx = intakeProjects.findIndex((p) => p.id === id)
+  if (idx < 0) return res.status(404).send('intake project not found')
+
+  const p = intakeProjects[idx]
+  const questions = generateClarifyingQuestions({ idea: p.idea })
+  const now = new Date().toISOString()
+  const next = { ...p, questions, status: 'questions', updatedAt: now }
+
+  intakeProjects = [...intakeProjects.slice(0, idx), next, ...intakeProjects.slice(idx + 1)]
+  intakeProjectsSaver.trigger()
+  res.json(next)
+})
+
+app.post('/api/intake/projects/:id/generate-scope', async (req, res) => {
+  const id = req.params.id
+  const idx = intakeProjects.findIndex((p) => p.id === id)
+  if (idx < 0) return res.status(404).send('intake project not found')
+
+  const p = intakeProjects[idx]
+  const drafted = draftScopeAndTree({ title: p.title, idea: p.idea, questions: p.questions })
+  const now = new Date().toISOString()
+  const next = { ...p, scope: drafted.scope, featureTree: drafted.featureTree, status: 'scoped', updatedAt: now }
+
+  intakeProjects = [...intakeProjects.slice(0, idx), next, ...intakeProjects.slice(idx + 1)]
+  intakeProjectsSaver.trigger()
+  res.json(next)
+})
+
+app.get('/api/intake/projects/:id/export.md', async (req, res) => {
+  const p = intakeProjects.find((x) => x.id === req.params.id)
+  if (!p) return res.status(404).send('intake project not found')
+  res.setHeader('content-type', 'text/markdown; charset=utf-8')
+  res.send(toMarkdownBrief(p))
+})
+
 app.post('/api/control', async (req, res) => {
   const action = req.body
   const at = new Date().toISOString()
@@ -579,6 +906,8 @@ async function flushActivityOnExit() {
   try {
     await rulesSaver.flush()
     await ruleHistorySaver.flush()
+    await tasksSaver.flush()
+    await intakeProjectsSaver.flush()
   } catch {
     // best-effort
   }

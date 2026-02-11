@@ -18,6 +18,13 @@ export function Rules({ adapter }: { adapter: Adapter }) {
   const [error, setError] = useState<string | null>(null)
   const [busyId, setBusyId] = useState<string | null>(null)
 
+  const [createOpen, setCreateOpen] = useState(false)
+  const [createId, setCreateId] = useState('')
+  const [createTitle, setCreateTitle] = useState('')
+  const [createDesc, setCreateDesc] = useState('')
+  const [createContent, setCreateContent] = useState('')
+  const [createEnabled, setCreateEnabled] = useState(true)
+
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const selected = useMemo(() => (rules ?? []).find((r) => r.id === selectedId) ?? null, [rules, selectedId])
 
@@ -87,6 +94,59 @@ export function Rules({ adapter }: { adapter: Adapter }) {
     }
   }
 
+  async function createRule() {
+    if (!createTitle.trim()) return
+    setBusyId('__create__')
+    setError(null)
+    try {
+      const next = await adapter.createRule({
+        id: createId.trim() || undefined,
+        title: createTitle.trim(),
+        description: createDesc.trim() || undefined,
+        content: createContent,
+        enabled: createEnabled,
+      })
+      setRules((prev) => (prev ? [...prev, next] : [next]))
+      setSelectedId(next.id)
+      setCreateId('')
+      setCreateTitle('')
+      setCreateDesc('')
+      setCreateContent('')
+      setCreateEnabled(true)
+      setCreateOpen(false)
+      const h = await adapter.listRuleHistory(200)
+      setHistory(h)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e))
+    } finally {
+      setBusyId(null)
+    }
+  }
+
+  async function removeSelected() {
+    if (!selected) return
+    if (!confirm(`Delete rule "${selected.title}" (${selected.id})? This cannot be undone.`)) return
+    setBusyId(selected.id)
+    setError(null)
+    try {
+      await adapter.deleteRule(selected.id)
+      setRules((prev) => {
+        const remaining = prev ? prev.filter((r) => r.id !== selected.id) : prev
+        setSelectedId((sel) => {
+          if (sel !== selected.id) return sel
+          return remaining && remaining.length ? remaining[0].id : null
+        })
+        return remaining
+      })
+      const h = await adapter.listRuleHistory(200)
+      setHistory(h)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e))
+    } finally {
+      setBusyId(null)
+    }
+  }
+
   const dirty = !!selected && (draftTitle !== selected.title || draftDesc !== (selected.description ?? '') || draftContent !== selected.content)
 
   return (
@@ -95,14 +155,61 @@ export function Rules({ adapter }: { adapter: Adapter }) {
         <div className="panel-header">
           <div>
             <h2>Rules</h2>
-            <p className="muted">View, toggle, and edit active operator rules. Bridge persists to ~/.openclaw/workspace/.clawhub.</p>
+            <p className="muted">
+              View, add, delete, toggle, and edit operator rules. Source of truth: <code>~/.openclaw/workspace/.clawhub/rules.json</code> (history:
+              <code>rule-history.json</code>). Changes apply immediately.
+            </p>
           </div>
-          <div className="right">
+          <div className="right stack-h">
+            <button className="btn" onClick={() => setCreateOpen((v) => !v)} type="button" disabled={loading}>
+              {createOpen ? 'Close' : 'New rule'}
+            </button>
             <button className="btn ghost" onClick={refresh} type="button" disabled={loading}>
               {loading ? 'Refreshing…' : 'Refresh'}
             </button>
           </div>
         </div>
+
+        {createOpen && (
+          <div className="callout">
+            <div className="stack">
+              <div className="stack-h" style={{ justifyContent: 'space-between', alignItems: 'center' }}>
+                <strong>Create rule</strong>
+                <button className="btn" type="button" onClick={createRule} disabled={busyId === '__create__' || !createTitle.trim()}>
+                  {busyId === '__create__' ? 'Creating…' : 'Create'}
+                </button>
+              </div>
+
+              <label className="field">
+                <div className="muted">ID (optional)</div>
+                <input value={createId} onChange={(e) => setCreateId(e.target.value)} placeholder="leave blank to auto-generate" />
+              </label>
+
+              <label className="field">
+                <div className="muted">Title</div>
+                <input value={createTitle} onChange={(e) => setCreateTitle(e.target.value)} />
+              </label>
+
+              <label className="field">
+                <div className="muted">Description</div>
+                <input value={createDesc} onChange={(e) => setCreateDesc(e.target.value)} placeholder="optional" />
+              </label>
+
+              <label className="field">
+                <div className="muted">Body</div>
+                <textarea value={createContent} onChange={(e) => setCreateContent(e.target.value)} rows={8} />
+              </label>
+
+              <label className="field">
+                <div className="muted">Status</div>
+                <select value={createEnabled ? 'enabled' : 'disabled'} onChange={(e) => setCreateEnabled(e.target.value === 'enabled')}>
+                  <option value="enabled">Enabled</option>
+                  <option value="disabled">Disabled</option>
+                </select>
+              </label>
+            </div>
+          </div>
+        )}
 
         {error && (
           <div className="callout warn">
@@ -157,6 +264,9 @@ export function Rules({ adapter }: { adapter: Adapter }) {
             <div className="stack-h" style={{ justifyContent: 'space-between', alignItems: 'center' }}>
               <div className="muted">id: <code>{selected.id}</code></div>
               <div className="stack-h">
+                <button className="btn" type="button" onClick={removeSelected} disabled={busyId === selected.id}>
+                  Delete
+                </button>
                 <CopyButton text={selected.content} label="Copy body" />
                 <button className="btn" type="button" disabled={!dirty || busyId === selected.id} onClick={save}>
                   {busyId === selected.id ? 'Saving…' : dirty ? 'Save' : 'Saved'}

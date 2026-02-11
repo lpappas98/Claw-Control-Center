@@ -96,6 +96,105 @@ export type ControlAction =
 
 export type ControlResult = { ok: boolean; message: string; output?: string }
 
+export type BoardLane = 'proposed' | 'queued' | 'development' | 'review' | 'blocked' | 'done'
+export type Priority = 'P0' | 'P1' | 'P2' | 'P3'
+
+export type TaskStatusHistoryEntry = {
+  at: string
+  from?: BoardLane
+  to: BoardLane
+  note?: string
+}
+
+/**
+ * Operator task details (TPO-level) persisted locally by the bridge.
+ * These are used to seed/enrich the live board (e.g. queued work before assignment).
+ */
+export type Task = {
+  id: string
+  title: string
+  lane: BoardLane
+  priority: Priority
+  owner?: string
+  problem?: string
+  scope?: string
+  acceptanceCriteria?: string[]
+  createdAt: string
+  updatedAt: string
+  statusHistory: TaskStatusHistoryEntry[]
+}
+
+export type TaskCreate = {
+  id?: string
+  title: string
+  lane?: BoardLane
+  priority?: Priority
+  owner?: string
+  problem?: string
+  scope?: string
+  acceptanceCriteria?: string[]
+}
+
+export type TaskUpdate = {
+  id: string
+  title?: string
+  lane?: BoardLane
+  priority?: Priority
+  owner?: string
+  problem?: string
+  scope?: string
+  acceptanceCriteria?: string[]
+}
+
+// ---- PM/PO Intake ----
+export type IntakeProjectStatus = 'idea' | 'questions' | 'scoped'
+
+export type IntakeQuestion = {
+  id: string
+  category: string
+  prompt: string
+  required: boolean
+  answer: string
+}
+
+export type IntakeScopeDraft = {
+  summary: string
+  inScope: string[]
+  outOfScope: string[]
+  assumptions: string[]
+  risks: string[]
+}
+
+export type FeatureNode = {
+  id: string
+  title: string
+  priority: Priority
+  description?: string
+  acceptanceCriteria: string[]
+  children: FeatureNode[]
+}
+
+export type IntakeProject = {
+  id: string
+  title: string
+  idea: string
+  status: IntakeProjectStatus
+  tags: string[]
+  questions: IntakeQuestion[]
+  scope: IntakeScopeDraft | null
+  featureTree: FeatureNode[]
+  createdAt: string
+  updatedAt: string
+}
+
+export type IntakeProjectCreate = {
+  id?: string
+  title: string
+  idea: string
+}
+
+export type IntakeProjectUpdate = Partial<Omit<IntakeProject, 'id' | 'createdAt'>> & { id: string }
+
 export type Rule = {
   id: string
   title: string
@@ -106,6 +205,15 @@ export type Rule = {
   updatedAt: string
 }
 
+export type RuleCreate = {
+  /** Optional explicit id; if omitted the bridge will generate one. */
+  id?: string
+  title: string
+  description?: string
+  content: string
+  enabled?: boolean
+}
+
 export type RuleUpdate = {
   id: string
   title?: string
@@ -113,7 +221,9 @@ export type RuleUpdate = {
   content?: string
 }
 
-export type RuleChangeAction = 'create' | 'update' | 'toggle'
+export type RuleDeleteResult = { ok: true }
+
+export type RuleChangeAction = 'create' | 'update' | 'toggle' | 'delete'
 
 export type RuleChange = {
   id: string
