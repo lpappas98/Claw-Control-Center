@@ -618,64 +618,7 @@ app.get('/api/rules/history', async (req, res) => {
   res.json(ruleHistory.slice(0, limit))
 })
 
-app.get('/api/tasks', async (_req, res) => {
-  const sorted = tasks.slice().sort((a, b) => (b.updatedAt ?? '').localeCompare(a.updatedAt ?? ''))
-  res.json(sorted)
-})
-
-app.post('/api/tasks', async (req, res) => {
-  const create = req.body ?? {}
-  if (typeof create.title !== 'string' || !create.title.trim()) return res.status(400).send('title required')
-
-  const next = makeTask(create)
-  if (tasks.some((t) => t.id === next.id)) return res.status(409).send('task id already exists')
-
-  tasks = [next, ...tasks]
-  scheduleTasksSave()
-
-  pushActivity({
-    id: newId('task'),
-    at: next.createdAt,
-    level: 'info',
-    source: 'operator-hub',
-    message: `task created: ${next.title}`,
-    meta: { eventType: 'task.created', taskId: next.id, lane: next.lane },
-  })
-
-  res.json(next)
-})
-
-app.put('/api/tasks/:id', async (req, res) => {
-  const id = req.params.id
-  const idx = tasks.findIndex((t) => t.id === id)
-  if (idx < 0) return res.status(404).send('task not found')
-
-  const before = tasks[idx]
-  const update = req.body ?? {}
-  const next = applyTaskUpdate(before, update)
-
-  tasks = [next, ...tasks.slice(0, idx), ...tasks.slice(idx + 1)]
-  // de-dupe, keep newest first
-  const seen = new Set()
-  tasks = tasks.filter((t) => {
-    if (seen.has(t.id)) return false
-    seen.add(t.id)
-    return true
-  })
-
-  scheduleTasksSave()
-
-  pushActivity({
-    id: newId('task'),
-    at: next.updatedAt,
-    level: 'info',
-    source: 'operator-hub',
-    message: `task updated: ${next.title}${before.lane !== next.lane ? ` (${before.lane} → ${next.lane})` : ''}`,
-    meta: { eventType: 'task.updated', taskId: next.id, from: before.lane, to: next.lane },
-  })
-
-  res.json(next)
-})
+/* (removed) duplicate /api/tasks handlers; see unified Tasks section below */
 
 app.delete('/api/rules/:id', async (req, res) => {
   const id = req.params.id

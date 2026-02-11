@@ -62,21 +62,7 @@ const mockRuleHistory: RuleChange[] = [
   },
 ]
 
-let mockTasks: Task[] = [
-  {
-    id: 'task-intake-demo',
-    title: 'P1 Intake: sample task (mock)',
-    lane: 'queued',
-    priority: 'P1',
-    owner: 'pm',
-    problem: 'Demonstrate task persistence API shape in offline mode.',
-    scope: 'Simple fields only.',
-    acceptanceCriteria: ['Can list tasks', 'Can create/update tasks'],
-    createdAt: nowIso(),
-    updatedAt: nowIso(),
-    statusHistory: [{ at: nowIso(), to: 'queued', note: 'seed' }],
-  },
-]
+let mockTasks: Task[] = []
 
 let mockIntakeProjects: import('../types').IntakeProject[] = []
 
