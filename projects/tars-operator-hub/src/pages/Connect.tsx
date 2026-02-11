@@ -107,6 +107,11 @@ export function Connect({ adapter }: ConnectProps) {
             setConnectedInstances(instances)
           }
         }
+        
+        // Auto-reset after 3 seconds to show the connected instances list
+        setTimeout(() => {
+          resetConnection()
+        }, 3000)
       } else if (data.expiresAt && data.expiresAt.toDate() < new Date()) {
         setTokenStatus('error')
         setError('Connection token expired')
@@ -186,6 +191,55 @@ export function Connect({ adapter }: ConnectProps) {
           </div>
         </div>
 
+        {/* Show connected instances at the top (always visible) */}
+        {!loadingInstances && connectedInstances.length > 0 && (
+          <div className="connected-instances" style={{ marginBottom: '2rem' }}>
+            <h3>Connected Instances ({connectedInstances.length})</h3>
+            <div className="table-like">
+              {connectedInstances.map((instance) => {
+                const now = Date.now()
+                const lastSeen = new Date(instance.lastSeenAt).getTime()
+                const ageMinutes = Math.floor((now - lastSeen) / 60000)
+                const isOnline = ageMinutes < 2 && instance.status === 'active'
+                
+                return (
+                  <div key={instance.id} className="row">
+                    <div className="row-main">
+                      <div className="row-title">
+                        <strong>{instance.name}</strong>
+                        <span className={`pill ${isOnline ? 'sev-low' : 'sev-med'}`}>
+                          {isOnline ? 'Online' : 'Offline'}
+                        </span>
+                        {isOnline && (
+                          <span className="muted" style={{ fontSize: '0.85rem', marginLeft: '0.5rem' }}>
+                            Last seen {ageMinutes === 0 ? 'just now' : `${ageMinutes}m ago`}
+                          </span>
+                        )}
+                      </div>
+                      <div className="muted">
+                        {instance.metadata?.version && `Version: ${instance.metadata.version}`}
+                        {instance.metadata?.os && ` • OS: ${instance.metadata.os}`}
+                        {instance.metadata?.node && ` • Node: ${instance.metadata.node}`}
+                      </div>
+                    </div>
+                    <div className="row-side">
+                      <span className="muted">
+                        Connected {new Date(instance.connectedAt).toLocaleDateString()}
+                      </span>
+                      <button 
+                        className="btn ghost small" 
+                        onClick={() => handleDisconnect(instance.id)}
+                      >
+                        Disconnect
+                      </button>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
         <div className="connect-content">
           {tokenStatus === 'idle' && (
             <div className="connect-start">
@@ -250,9 +304,10 @@ export function Connect({ adapter }: ConnectProps) {
                   </div>
                 )}
               </div>
-              <button className="btn" onClick={resetConnection}>
-                Connect Another Instance
-              </button>
+              <p className="muted" style={{ marginTop: '1rem' }}>
+                Your instance will appear in the connected instances list above. 
+                Check <strong>Mission Control</strong> to see it in action!
+              </p>
             </div>
           )}
 
@@ -268,40 +323,12 @@ export function Connect({ adapter }: ConnectProps) {
           )}
         </div>
 
-        {/* Show connected instances */}
-        {!loadingInstances && connectedInstances.length > 0 && (
-          <div className="connected-instances" style={{ marginTop: '2rem' }}>
-            <h3>Connected Instances</h3>
-            <div className="table-like">
-              {connectedInstances.map((instance) => (
-                <div key={instance.id} className="row">
-                  <div className="row-main">
-                    <div className="row-title">
-                      <strong>{instance.name}</strong>
-                      <span className={`pill ${instance.status === 'active' ? 'sev-low' : 'sev-high'}`}>
-                        {instance.status}
-                      </span>
-                    </div>
-                    <div className="muted">
-                      {instance.metadata?.version && `Version: ${instance.metadata.version}`}
-                      {instance.metadata?.os && ` • OS: ${instance.metadata.os}`}
-                      {instance.metadata?.node && ` • Node: ${instance.metadata.node}`}
-                    </div>
-                  </div>
-                  <div className="row-side">
-                    <span className="muted">
-                      Connected {new Date(instance.connectedAt).toLocaleDateString()}
-                    </span>
-                    <button 
-                      className="btn ghost small" 
-                      onClick={() => handleDisconnect(instance.id)}
-                    >
-                      Disconnect
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
+        {/* Add another instance button when already connected */}
+        {tokenStatus === 'idle' && connectedInstances.length > 0 && (
+          <div style={{ marginTop: '1rem', textAlign: 'center' }}>
+            <button className="btn" onClick={generateConnectionToken}>
+              Connect Another Instance
+            </button>
           </div>
         )}
       </section>
