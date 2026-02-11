@@ -119,6 +119,25 @@
   padding-bottom: 0.75rem;
 }
 
+.taskboard-panel {
+  display: flex;
+  flex-direction: column;
+}
+
+.taskboard-panel .home-board {
+  flex: 1;
+  align-items: stretch;
+}
+
+.taskboard-panel .lane-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.taskboard-panel .home-lane {
+  flex: 1;
+}
+
 .panel-header {
   display: flex;
   gap: 1rem;
@@ -696,6 +715,10 @@ textarea {
   .home-board {
     flex-direction: column;
     overflow-x: visible;
+  }
+
+  .taskboard-panel .home-board {
+    flex: initial;
   }
 
   .activity-panel,

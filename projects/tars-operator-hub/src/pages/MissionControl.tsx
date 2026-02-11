@@ -234,7 +234,7 @@ export function MissionControl({
         </div>
       </section>
 
-      <section className="panel span-3">
+      <section className="panel span-3 taskboard-panel">
         <div className="panel-header">
           <h3>Task Board</h3>
         </div>
