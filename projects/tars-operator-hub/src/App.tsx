@@ -6,12 +6,13 @@ import { Activity } from './pages/Activity'
 import { Rules } from './pages/Rules'
 import { Config } from './pages/Config'
 import { Login } from './pages/Login'
+import { Connect } from './pages/Connect'
 import { AuthProvider, useAuth } from './lib/AuthContext'
 import { loadAdapterConfig, saveAdapterConfig, toAdapter, type AdapterConfig } from './lib/adapterState'
 
-type NavTab = 'Mission Control' | 'Projects' | 'Activity' | 'Rules' | 'Config' | 'Docs'
+type NavTab = 'Mission Control' | 'Projects' | 'Activity' | 'Rules' | 'Config' | 'Connect' | 'Docs'
 
-const tabs: NavTab[] = ['Mission Control', 'Projects', 'Activity', 'Rules', 'Config', 'Docs']
+const tabs: NavTab[] = ['Mission Control', 'Projects', 'Activity', 'Rules', 'Config', 'Connect', 'Docs']
 
 const NAV_TAB_KEY = 'tars.operatorHub.navTab'
 
@@ -120,6 +121,7 @@ function AppContent() {
       {tab === 'Activity' && <Activity adapter={adapter} />}
       {tab === 'Rules' && <Rules adapter={adapter} />}
       {tab === 'Config' && <Config adapter={adapter} />}
+      {tab === 'Connect' && <Connect />}
       {tab === 'Docs' && (
         <main className="main-grid">
           <section className="panel span-4">

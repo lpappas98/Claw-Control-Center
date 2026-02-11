@@ -1698,3 +1698,111 @@ button.home-task.clickable:focus {
   font-weight: 600;
   font-size: 0.9rem;
 }
+
+/* ---- Connect Page ---- */
+
+.connect-content {
+  padding: 2rem;
+  text-align: center;
+}
+
+.connect-start,
+.connect-loading,
+.connect-waiting,
+.connect-success,
+.connect-error {
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.connect-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+}
+
+.connect-icon.success {
+  color: #8dffc2;
+}
+
+.connect-icon.error {
+  color: #f87171;
+}
+
+.connect-spinner {
+  font-size: 3rem;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.connect-token-display {
+  background: #111426;
+  border: 2px solid #5f6dff;
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin: 1.5rem 0;
+}
+
+.connect-token-label {
+  font-size: 0.85rem;
+  color: #9fa7c8;
+  margin-bottom: 0.5rem;
+}
+
+.connect-token {
+  font-size: 3rem;
+  font-weight: 800;
+  font-family: monospace;
+  letter-spacing: 0.3em;
+  color: #fff;
+}
+
+.connect-token-timer {
+  font-size: 0.9rem;
+  color: #6b7494;
+  margin-top: 0.75rem;
+}
+
+.connect-instructions {
+  text-align: left;
+  margin: 1.5rem 0;
+  padding: 1rem;
+  background: #0b0f1f;
+  border: 1px solid #242b45;
+  border-radius: 12px;
+}
+
+.connect-instructions h4 {
+  margin: 0 0 0.75rem;
+  font-size: 0.9rem;
+  color: #cfd5ec;
+}
+
+.connect-command {
+  margin: 0.75rem 0;
+  padding: 1rem;
+  background: #111426;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.connect-instance-info {
+  display: grid;
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+
+.connected-instances {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid #242b45;
+}
+
+.connected-instances h3 {
+  margin: 0 0 1rem;
+}
