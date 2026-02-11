@@ -536,7 +536,7 @@ textarea {
   border: none;
   border-radius: 8px;
   padding: 0.2rem;
-  background: rgba(17, 25, 48, 0.52);
+  background: transparent;
 }
 
 .home-lane.narrow {
