@@ -276,9 +276,6 @@ export function MissionControl({
         <div className="panel-header">
           <div>
             <h3>Task Board</h3>
-            <p className="muted" style={{ marginTop: 4 }}>
-              Click a card to open details (owner/problem/scope/acceptance/history). Persisted tasks poll: 8s.
-            </p>
           </div>
           <div className="right stack-h">
             <div className="muted" style={{ fontSize: 12, textAlign: 'right' }}>
