@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
-import { doc, setDoc, deleteDoc, serverTimestamp, onSnapshot, Timestamp } from 'firebase/firestore'
+import { doc, setDoc, serverTimestamp, onSnapshot, Timestamp } from 'firebase/firestore'
 import { db } from '../lib/firebase'
 import { useAuth } from '../lib/AuthContext'
-import { useAdapter } from '../lib/useAdapter'
-import type { ConnectionToken, ConnectedInstance } from '../types'
+import type { Adapter } from '../adapters/adapter'
+import type { ConnectedInstance } from '../types'
 
 function generateToken(): string {
   // Generate a 6-character alphanumeric token (easy to type/say)
@@ -15,9 +15,12 @@ function generateToken(): string {
   return token
 }
 
-export function Connect() {
+type ConnectProps = {
+  adapter: Adapter
+}
+
+export function Connect({ adapter }: ConnectProps) {
   const { user } = useAuth()
-  const adapter = useAdapter()
   const [token, setToken] = useState<string | null>(null)
   const [tokenStatus, setTokenStatus] = useState<'idle' | 'generating' | 'waiting' | 'connected' | 'error'>('idle')
   const [connectedInstance, setConnectedInstance] = useState<{ name: string; url?: string } | null>(null)
@@ -95,7 +98,7 @@ export function Connect() {
         // Fetch the connected instance details
         if (adapter.name === 'firestore') {
           const instances = await adapter.listConnectedInstances()
-          const instance = instances.find(i => i.id === data.instanceId)
+          const instance = instances.find((i: ConnectedInstance) => i.id === data.instanceId)
           if (instance) {
             setConnectedInstance({
               name: instance.name,
