@@ -36,12 +36,12 @@ function homeStatus(status: string) {
   return status === 'active' ? 'working' : 'sleeping'
 }
 
-const PINNED_SLOTS: Array<{ slot: string; name: string; role: string }> = [
-  { slot: 'pm', name: 'TARS', role: 'Project Manager' },
-  { slot: 'architect', name: 'Blueprint', role: 'Architect' },
-  { slot: 'qa', name: 'Sentinel', role: 'QA' },
-  { slot: 'dev-1', name: 'Forge', role: 'Developer' },
-  { slot: 'dev-2', name: 'Patch', role: 'Developer' },
+const PINNED_SLOTS: Array<{ slot: string; name: string; role: string; emoji: string }> = [
+  { slot: 'pm', name: 'TARS', role: 'Project Manager', emoji: '🧠' },
+  { slot: 'architect', name: 'Blueprint', role: 'Architect', emoji: '🏗️' },
+  { slot: 'qa', name: 'Sentinel', role: 'QA', emoji: '🛡️' },
+  { slot: 'dev-1', name: 'Forge', role: 'Developer', emoji: '🛠️' },
+  { slot: 'dev-2', name: 'Patch', role: 'Developer', emoji: '🧩' },
 ]
 
 function unknownSystemStatus(now: string): SystemStatus {
@@ -116,6 +116,7 @@ export function MissionControl({
       return {
         id: def.slot,
         name: def.name,
+        emoji: def.emoji,
         role: def.role,
         status: w ? homeStatus(w.status) : 'sleeping',
         rawStatus: w?.status ?? 'offline',
@@ -133,6 +134,7 @@ export function MissionControl({
         return {
           id: w.slot,
           name: profile.name,
+          emoji: '🤖',
           role: profile.role,
           status: homeStatus(w.status),
           rawStatus: w.status,
@@ -202,7 +204,7 @@ export function MissionControl({
             <article className="agent-card" key={agent.id}>
               <div className="agent-head">
                 <div>
-                  <div className="agent-name">{agent.name}</div>
+                  <div className="agent-name">{agent.emoji} {agent.name}</div>
                   <div className="agent-role muted">{agent.role}</div>
                 </div>
                 <Badge kind={agent.rawStatus} />
@@ -210,7 +212,7 @@ export function MissionControl({
               <div className="agent-online-row">
                 <span className={`status-dot ${agent.online ? 'online' : 'offline'}`} />
                 <span className={agent.online ? 'status-text-online' : 'status-text-offline'}>{agent.online ? 'Online' : 'Offline'}</span>
-                <span className="muted">· {agent.status === 'working' ? 'Working' : 'Sleeping'}</span>
+                <span className="muted">· {agent.status === 'working' ? '⚡ Working' : '💤 Sleeping'}</span>
               </div>
               <div className="muted">{agent.task}</div>
               <div className="muted">heartbeat: {fmtAgo(agent.lastBeatAt)}</div>
