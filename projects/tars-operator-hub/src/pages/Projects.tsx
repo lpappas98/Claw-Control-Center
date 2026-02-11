@@ -1082,52 +1082,49 @@ function NewProjectWizard({
 
         <div className="modal-body">
           {mode === 'choose' ? (
-            <div className="stack">
-              <div className="panel" style={{ padding: 14 }}>
-                <h4 style={{ marginTop: 0 }}>Start</h4>
-                <div className="muted">Choose how you want to create this project.</div>
-                <div className="stack-h" style={{ marginTop: 12 }}>
+            <div className="wizard">
+              <div className="wizard-step">
+                <div className="wizard-title">
+                  <h4 style={{ margin: 0 }}>Start</h4>
+                </div>
+                <div className="muted" style={{ marginTop: 8 }}>Choose how you want to create this project.</div>
+                <div className="wizard-actions" style={{ justifyContent: 'flex-start' }}>
                   <button className="btn" type="button" onClick={() => setMode('import')}>Import project</button>
                   <button className="btn ghost" type="button" onClick={startIdea}>Start from idea</button>
                 </div>
               </div>
-              {/* Note removed */}
             </div>
           ) : null}
 
           {mode === 'import' ? (
-            <div className="stack">
-              <div className="panel" style={{ padding: 14 }}>
-                <h4 style={{ marginTop: 0 }}>Import project (mock)</h4>
+            <div className="wizard">
+              <div className="wizard-step">
+                <div className="wizard-title">
+                  <h4 style={{ margin: 0 }}>Import project</h4>
+                </div>
 
-                <div className="import-form" style={{ marginTop: 10 }}>
-                  <div className="import-row">
-                    <div className="import-label">Project name</div>
-                    <input className="input" value={projectName} onChange={(e) => setProjectName(e.target.value)} placeholder="e.g. Trips App" />
+                <div className="form">
+                  <div className="form-row-2">
+                    <div className="field">
+                      <label className="muted">Project name</label>
+                      <input className="input" value={projectName} onChange={(e) => setProjectName(e.target.value)} placeholder="e.g. Trips App" />
+                    </div>
+                    <div className="field">
+                      <label className="muted">Git repo URL (optional)</label>
+                      <input className="input" value={gitUrl} onChange={(e) => setGitUrl(e.target.value)} placeholder="https://github.com/user/repo" />
+                      <div className="form-help">Use this if you want to import from Git instead of a local folder.</div>
+                    </div>
                   </div>
 
-                  <div className="field" style={{ marginTop: 12 }}>
+                  <div className="field">
                     <label className="muted">Description (optional)</label>
                     <textarea className="input" rows={3} value={projectDesc} onChange={(e) => setProjectDesc(e.target.value)} placeholder="Short description…" />
                   </div>
 
-                  <div className="import-row" style={{ marginTop: 12 }}>
-                    <div className="import-label">Import from git</div>
-                    <input className="input" value={gitUrl} onChange={(e) => setGitUrl(e.target.value)} placeholder="e.g. HTTPS://Github.com/Project" />
-                  </div>
-
-                  <div
-                    className="import-dropzone"
-                    onDragOver={(e) => e.preventDefault()}
-                    onDrop={onDropFiles}
-                    style={{ marginTop: 12 }}
-                  >
-                    <div className="muted" style={{ textAlign: 'center' }}>
-                      <strong>Drag & drop files here</strong>
-                      <div className="muted" style={{ marginTop: 6 }}>or</div>
-                    </div>
-
-                    <div style={{ display: 'flex', justifyContent: 'center', marginTop: 10 }}>
+                  <div className="dropzone" onDragOver={(e) => e.preventDefault()} onDrop={onDropFiles}>
+                    <div className="dropzone-inner">
+                      <strong>Drag & drop a folder here</strong>
+                      <div className="muted">or</div>
                       <label className="btn ghost" style={{ display: 'inline-block' }}>
                         Browse / pick folder…
                         <input
@@ -1139,15 +1136,12 @@ function NewProjectWizard({
                           onChange={(e) => setFiles(Array.from(e.target.files ?? []))}
                         />
                       </label>
-                    </div>
-
-                    <div className="muted" style={{ marginTop: 10, textAlign: 'center' }}>
-                      Selected: <strong>{fileCount}</strong> file(s)
+                      <div className="muted">Selected: <strong>{fileCount}</strong> file(s)</div>
                     </div>
                   </div>
                 </div>
 
-                <div className="stack-h" style={{ marginTop: 14, justifyContent: 'flex-end' }}>
+                <div className="wizard-actions">
                   <button className="btn ghost" type="button" onClick={() => setMode('choose')}>Back</button>
                   <button
                     className="btn"
@@ -1186,23 +1180,32 @@ function NewProjectWizard({
           ) : null}
 
           {mode === 'idea' ? (
-            <div className="stack">
-              <div className="panel" style={{ padding: 14 }}>
-                <h4 style={{ marginTop: 0 }}>Idea</h4>
+            <div className="wizard">
+              <div className="wizard-step">
+                <div className="wizard-title">
+                  <h4 style={{ margin: 0 }}>Idea</h4>
+                </div>
 
-                <label className="muted">Project name</label>
-                <input className="input" value={projectName} onChange={(e) => setProjectName(e.target.value)} placeholder="e.g. Trips App" />
+                <div className="form">
+                  <div className="field">
+                    <label className="muted">Project name</label>
+                    <input className="input" value={projectName} onChange={(e) => setProjectName(e.target.value)} placeholder="e.g. Trips App" />
+                  </div>
 
-                <label className="muted" style={{ marginTop: 10 }}>Describe your idea</label>
-                <textarea
-                  className="input"
-                  rows={7}
-                  value={ideaText}
-                  onChange={(e) => setIdeaText(e.target.value)}
-                  placeholder="What are we building? Who is it for? What problem does it solve?"
-                />
+                  <div className="field">
+                    <label className="muted">Describe your idea</label>
+                    <textarea
+                      className="input"
+                      rows={8}
+                      value={ideaText}
+                      onChange={(e) => setIdeaText(e.target.value)}
+                      placeholder="What are we building? Who is it for? What problem does it solve?"
+                    />
+                    <div className="form-help">Tip: include the user, the workflow, and what “done” looks like.</div>
+                  </div>
+                </div>
 
-                <div className="stack-h" style={{ marginTop: 14, justifyContent: 'flex-end' }}>
+                <div className="wizard-actions">
                   <button className="btn ghost" type="button" onClick={() => setMode('choose')}>Back</button>
                   <button className="btn" type="button" disabled={!canContinueIdea} onClick={runAnalysis}>
                     Analyze →
