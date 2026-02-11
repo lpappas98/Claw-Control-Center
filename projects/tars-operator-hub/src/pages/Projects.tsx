@@ -490,9 +490,37 @@ function FeatureDrawer({
   )
 }
 
-function TreeView({ project, onOpen }: { project: Project; onOpen: (n: FeatureNode) => void }) {
+function TreeView({ 
+  project, 
+  onOpen,
+  adapter,
+  onTreeUpdated,
+}: { 
+  project: Project
+  onOpen: (n: FeatureNode) => void
+  adapter?: Adapter
+  onTreeUpdated?: () => void
+}) {
   const [query, setQuery] = useState('')
   const [showDeps, setShowDeps] = useState(false)
+  const [addingNode, setAddingNode] = useState(false)
+  const [newNodeTitle, setNewNodeTitle] = useState('')
+
+  const handleAddNode = async () => {
+    if (!newNodeTitle.trim() || !adapter) return
+    try {
+      await adapter.createPMTreeNode(project.id, {
+        title: newNodeTitle.trim(),
+        status: 'draft',
+        priority: 'P2',
+      })
+      setNewNodeTitle('')
+      setAddingNode(false)
+      onTreeUpdated?.()
+    } catch (err) {
+      console.error('Failed to add node:', err)
+    }
+  }
 
   const all = useMemo(() => flattenTree(project.tree), [project.tree])
 
@@ -521,9 +549,28 @@ function TreeView({ project, onOpen }: { project: Project; onOpen: (n: FeatureNo
           <input type="checkbox" checked={showDeps} onChange={(e) => setShowDeps(e.target.checked)} />
           <span className="muted">Show dependencies</span>
         </label>
-        <button className="btn" type="button" onClick={() => alert('(wireframe) Add new node')}>
-          + Add node
-        </button>
+        {addingNode ? (
+          <div style={{ display: 'flex', gap: 8 }}>
+            <input 
+              className="input" 
+              value={newNodeTitle} 
+              onChange={(e) => setNewNodeTitle(e.target.value)}
+              placeholder="Node title…"
+              onKeyDown={(e) => e.key === 'Enter' && handleAddNode()}
+              autoFocus
+            />
+            <button className="btn" type="button" onClick={handleAddNode} disabled={!newNodeTitle.trim()}>
+              Add
+            </button>
+            <button className="btn ghost" type="button" onClick={() => { setAddingNode(false); setNewNodeTitle('') }}>
+              Cancel
+            </button>
+          </div>
+        ) : (
+          <button className="btn" type="button" onClick={() => setAddingNode(true)}>
+            + Add node
+          </button>
+        )}
       </div>
 
       <div className="panel" style={{ padding: 14 }}>
@@ -1665,7 +1712,7 @@ export function Projects({ adapter }: { adapter: Adapter }) {
 
             <div className="projects-main-body">
               {tab === 'Overview' ? <Overview project={active} /> : null}
-              {tab === 'Tree' ? <TreeView project={active} onOpen={(n) => setDrawer(n)} /> : null}
+              {tab === 'Tree' ? <TreeView project={active} onOpen={(n) => setDrawer(n)} adapter={adapter} onTreeUpdated={loadProjects} /> : null}
               {tab === 'Kanban' ? <KanbanBoard project={active} onOpenFeature={(n) => setDrawer(n)} adapter={adapter} /> : null}
             </div>
 
