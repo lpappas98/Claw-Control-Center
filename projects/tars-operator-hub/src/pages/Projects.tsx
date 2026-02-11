@@ -811,7 +811,11 @@ function NewProjectWizard({
 }) {
   const [mode, setMode] = useState<'choose' | 'import' | 'idea' | 'analysis' | 'questions' | 'review'>('choose')
   const [projectName, setProjectName] = useState('')
+  const [projectDesc, setProjectDesc] = useState('')
   const [ideaText, setIdeaText] = useState('')
+
+  const [importMode, setImportMode] = useState<'folder' | 'git'>('folder')
+  const [gitUrl, setGitUrl] = useState('')
   const [files, setFiles] = useState<File[]>([])
 
   const [analysis, setAnalysis] = useState<ProjectIntake['analysis'][number] | null>(null)
@@ -1058,6 +1062,12 @@ function NewProjectWizard({
 
   const fileCount = files.length
 
+  const onDropFiles = (ev: React.DragEvent) => {
+    ev.preventDefault()
+    const picked = Array.from(ev.dataTransfer.files ?? [])
+    if (picked.length) setFiles(picked)
+  }
+
   return (
     <div className="modal-backdrop" role="presentation" onMouseDown={(e) => (e.target === e.currentTarget ? onClose() : null)}>
       <div className="modal newproj-modal" role="dialog" aria-modal="true" aria-label="New project" onMouseDown={(e) => e.stopPropagation()}>
@@ -1078,7 +1088,7 @@ function NewProjectWizard({
                 <h4 style={{ marginTop: 0 }}>Start</h4>
                 <div className="muted">Choose how you want to create this project.</div>
                 <div className="stack-h" style={{ marginTop: 12 }}>
-                  <button className="btn" type="button" onClick={() => setMode('import')}>Import repo</button>
+                  <button className="btn" type="button" onClick={() => setMode('import')}>Import project</button>
                   <button className="btn ghost" type="button" onClick={startIdea}>Start from idea</button>
                 </div>
               </div>
@@ -1089,57 +1099,91 @@ function NewProjectWizard({
           {mode === 'import' ? (
             <div className="stack">
               <div className="panel" style={{ padding: 14 }}>
-                <h4 style={{ marginTop: 0 }}>Import repo (mock)</h4>
-                <div className="muted">Drag/drop or pick a folder. (UI only for now.)</div>
+                <h4 style={{ marginTop: 0 }}>Import project (mock)</h4>
 
                 <label className="muted" style={{ marginTop: 10 }}>Project name</label>
                 <input className="input" value={projectName} onChange={(e) => setProjectName(e.target.value)} placeholder="e.g. Trips App" />
 
-                <label className="btn ghost" style={{ marginTop: 10, display: 'inline-block' }}>
-                  Pick folder…
-                  <input
-                    type="file"
-                    multiple
-                    // @ts-ignore non-standard, but supported by Chromium
-                    {...({ webkitdirectory: true } as any)}
-                    style={{ display: 'none' }}
-                    onChange={(e) => setFiles(Array.from(e.target.files ?? []))}
-                  />
-                </label>
+                <label className="muted" style={{ marginTop: 10 }}>Description (optional)</label>
+                <textarea className="input" rows={3} value={projectDesc} onChange={(e) => setProjectDesc(e.target.value)} placeholder="Short description…" />
 
-                <div className="muted" style={{ marginTop: 10 }}>
-                  Selected: <strong>{fileCount}</strong> file(s)
+                <div className="stack-h" style={{ marginTop: 10 }}>
+                  <button className={`btn ghost ${importMode === 'folder' ? 'active' : ''}`} type="button" onClick={() => setImportMode('folder')}>
+                    Local folder
+                  </button>
+                  <button className={`btn ghost ${importMode === 'git' ? 'active' : ''}`} type="button" onClick={() => setImportMode('git')}>
+                    Git URL
+                  </button>
                 </div>
+
+                {importMode === 'folder' ? (
+                  <div
+                    className="import-dropzone"
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={onDropFiles}
+                    style={{ marginTop: 12 }}
+                  >
+                    <div className="muted" style={{ textAlign: 'center' }}>
+                      <strong>Drag & drop files here</strong>
+                      <div className="muted" style={{ marginTop: 6 }}>or</div>
+                    </div>
+
+                    <div style={{ display: 'flex', justifyContent: 'center', marginTop: 10 }}>
+                      <label className="btn ghost" style={{ display: 'inline-block' }}>
+                        Browse / pick folder…
+                        <input
+                          type="file"
+                          multiple
+                          // @ts-ignore non-standard, but supported by Chromium
+                          {...({ webkitdirectory: true } as any)}
+                          style={{ display: 'none' }}
+                          onChange={(e) => setFiles(Array.from(e.target.files ?? []))}
+                        />
+                      </label>
+                    </div>
+
+                    <div className="muted" style={{ marginTop: 10, textAlign: 'center' }}>
+                      Selected: <strong>{fileCount}</strong> file(s)
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ marginTop: 12 }}>
+                    <label className="muted">Git repository URL</label>
+                    <input className="input" value={gitUrl} onChange={(e) => setGitUrl(e.target.value)} placeholder="https://github.com/user/repo" />
+                    <div className="muted" style={{ marginTop: 8, fontSize: 12 }}>
+                      (mock) Later we can support auth tokens and branch selection.
+                    </div>
+                  </div>
+                )}
 
                 <div className="stack-h" style={{ marginTop: 14, justifyContent: 'flex-end' }}>
                   <button className="btn ghost" type="button" onClick={() => setMode('choose')}>Back</button>
                   <button
                     className="btn"
                     type="button"
-                    disabled={!projectName.trim() || !fileCount}
+                    disabled={!projectName.trim() || (importMode === 'folder' ? !fileCount : !gitUrl.trim())}
                     onClick={() => {
-                      // For now, just create a placeholder project.
                       const createdAt = nowIso()
                       onCreate({
                         id: `p-${id()}`,
                         name: projectName.trim(),
-                        summary: '(mock) Imported repo project. Intake + analysis will come next.',
+                        summary: projectDesc.trim() || (importMode === 'git' ? `(mock) Imported from ${gitUrl.trim()}` : '(mock) Imported from local folder'),
                         status: 'active',
-                        tags: ['imported'],
+                        tags: [importMode === 'git' ? 'git' : 'folder', 'imported'],
                         owner: 'Logan',
                         updatedAt: createdAt,
-                        links: [],
+                        links: importMode === 'git' ? [{ label: 'Repo', url: gitUrl.trim() }] : [],
                         intake: {
-                          idea: [{ id: 'idea-1', at: createdAt, author: 'human', text: '(import) Repo-first project.' }],
+                          idea: [{ id: 'idea-1', at: createdAt, author: 'human', text: importMode === 'git' ? `(import) ${gitUrl.trim()}` : '(import) Local folder import.' }],
                           analysis: [],
                           questions: [],
                           requirements: [],
                         },
                         tree: [
-                          { id: 'sec-repo', title: 'Repo', summary: 'Imported structure + next questions.', status: 'planned', priority: 'p0', children: [] },
+                          { id: 'sec-repo', title: 'Imported project', summary: 'Next: analyze repo + generate questions.', status: 'planned', priority: 'p0', children: [] },
                         ],
-                        cards: [{ id: `c-${id()}`, title: 'Run repo analysis + generate questions', priority: 'p0', column: 'todo', owner: 'TARS', featureId: 'sec-repo' }],
-                        activity: [{ id: `a-${id()}`, at: createdAt, actor: 'Logan', text: 'Created project from repo import' }],
+                        cards: [{ id: `c-${id()}`, title: 'Run import analysis + generate questions', priority: 'p0', column: 'todo', owner: 'TARS', featureId: 'sec-repo' }],
+                        activity: [{ id: `a-${id()}`, at: createdAt, actor: 'Logan', text: 'Created project from import' }],
                       })
                     }}
                   >

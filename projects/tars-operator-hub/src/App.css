@@ -815,6 +815,13 @@ button.home-task.clickable:focus {
   width: min(560px, 100%);
 }
 
+.import-dropzone {
+  border: 1px dashed #2a3046;
+  border-radius: 14px;
+  background: rgba(11, 15, 31, 0.55);
+  padding: 1rem;
+}
+
 .modal-header,
 .modal-footer {
   padding: 0.9rem 1rem;
