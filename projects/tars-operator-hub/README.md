@@ -43,6 +43,17 @@ See [`docs/RUNBOOK.md`](docs/RUNBOOK.md) for troubleshooting and operational not
   - `~/.openclaw/workspace/worker-heartbeats.json`
   - `~/.openclaw/workspace/.clawhub/worker-heartbeats.json`
 
+### Demo: generate fake worker heartbeats
+
+If you want to see worker cards light up without running real agents:
+
+```bash
+cd ~/.openclaw/workspace/projects/tars-operator-hub
+npm run beats
+```
+
+This writes `~/.openclaw/workspace/.clawhub/worker-heartbeats.json` on an interval.
+
 ## Build / lint / test
 
 ```bash

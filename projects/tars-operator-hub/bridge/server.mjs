@@ -253,18 +253,6 @@ async function computeBlockers() {
   return computeBlockersFrom({ status, workers, workspace: WORKSPACE })
 }
 
-app.get('/api/live', async (_req, res) => {
-  const [status, workers, watchdog] = await Promise.all([getStatus(), listWorkers(), getWatchdog()])
-  const blockers = computeBlockersFrom({ status, workers, workspace: WORKSPACE })
-  res.json({
-    updatedAt: new Date().toISOString(),
-    status,
-    workers,
-    blockers,
-    watchdog,
-  })
-})
-
 app.get('/api/status', async (_req, res) => {
   const s = await getStatus()
   res.json(s)
