@@ -4,13 +4,7 @@ on:
   push:
     branches:
       - main
-    paths:
-      - 'projects/tars-operator-hub/**'
   workflow_dispatch:  # Allow manual triggers
-
-defaults:
-  run:
-    working-directory: projects/tars-operator-hub
 
 jobs:
   build-and-deploy:
@@ -25,7 +19,6 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
-          cache-dependency-path: projects/tars-operator-hub/package-lock.json
 
       - name: Install dependencies
         run: npm ci
@@ -40,7 +33,6 @@ jobs:
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           channelId: live
           projectId: claw-control-center
-          entryPoint: projects/tars-operator-hub
 
       - name: Deploy Firestore Rules
         uses: w9jds/firebase-action@master
@@ -48,20 +40,18 @@ jobs:
           args: deploy --only firestore:rules
         env:
           GCP_SA_KEY: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-          PROJECT_PATH: projects/tars-operator-hub
 
       - name: Install Functions Dependencies
         run: npm ci
-        working-directory: projects/tars-operator-hub/functions
+        working-directory: functions
 
       - name: Build Functions
         run: npm run build
-        working-directory: projects/tars-operator-hub/functions
+        working-directory: functions
 
       - name: Deploy Cloud Functions
         uses: w9jds/firebase-action@master
         with:
-          args: deploy --only functions
+          args: deploy --only functions --force
         env:
           GCP_SA_KEY: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-          PROJECT_PATH: projects/tars-operator-hub
