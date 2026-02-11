@@ -81,7 +81,7 @@ export function Connect({ adapter }: ConnectProps) {
 
   // Listen for token usage (when OpenClaw connects)
   useEffect(() => {
-    if (!token || tokenStatus !== 'waiting') return
+    if (!token || tokenStatus !== 'waiting' || !user) return
 
     const unsubscribe = onSnapshot(doc(db, 'connectionTokens', token), async (snap) => {
       if (!snap.exists()) {
@@ -92,20 +92,48 @@ export function Connect({ adapter }: ConnectProps) {
       
       const data = snap.data()
       
-      if (data.used && data.instanceId) {
+      // Check if OpenClaw has marked the token as used (with instance info)
+      if (data.used && data.instanceName) {
         setTokenStatus('connected')
         
-        // Fetch the connected instance details
-        if (adapter.name === 'firestore') {
-          const instances = await adapter.listConnectedInstances()
-          const instance = instances.find((i: ConnectedInstance) => i.id === data.instanceId)
-          if (instance) {
-            setConnectedInstance({
-              name: instance.name,
-              url: instance.metadata?.version,
-            })
+        // Create the connectedInstance document (we have auth!)
+        const instanceId = data.instanceId || `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`
+        const now = new Date().toISOString()
+        
+        const instanceData: ConnectedInstance = {
+          id: instanceId,
+          userId: user.uid,
+          name: data.instanceName,
+          connectedAt: now,
+          lastSeenAt: now,
+          status: 'active',
+          metadata: data.instanceMetadata || {},
+        }
+        
+        try {
+          // Write the connected instance to user's collection
+          await setDoc(
+            doc(db, 'users', user.uid, 'connectedInstances', instanceId),
+            instanceData
+          )
+          
+          // Update token with the instanceId if not already set
+          if (!data.instanceId) {
+            await setDoc(doc(db, 'connectionTokens', token), { instanceId }, { merge: true })
+          }
+          
+          setConnectedInstance({
+            name: instanceData.name,
+            url: instanceData.metadata?.version,
+          })
+          
+          // Refresh the instances list
+          if (adapter.name === 'firestore') {
+            const instances = await adapter.listConnectedInstances()
             setConnectedInstances(instances)
           }
+        } catch (err) {
+          console.error('Failed to create connected instance:', err)
         }
         
         // Auto-reset after 3 seconds to show the connected instances list
@@ -119,7 +147,7 @@ export function Connect({ adapter }: ConnectProps) {
     })
 
     return () => unsubscribe()
-  }, [token, tokenStatus, adapter])
+  }, [token, tokenStatus, adapter, user])
 
   // Countdown timer
   useEffect(() => {
