@@ -841,22 +841,43 @@ export const firestoreAdapter: Adapter = {
   },
 
   async listConnectedInstances(): Promise<ConnectedInstance[]> {
-    const ref = getUserCollection('connectedInstances')
-    const q = query(ref, orderBy('connectedAt', 'desc'))
-    const snap = await getDocs(q)
-    return snap.docs.map(d => convertTimestamps({ id: d.id, ...d.data() } as ConnectedInstance))
+    // New structure: single connection per user at connection/current
+    try {
+      const userId = getUserId()
+      const connectionDoc = await getDoc(doc(db, 'users', userId, 'connection', 'current'))
+      
+      if (!connectionDoc.exists()) {
+        return []
+      }
+      
+      const data = connectionDoc.data()
+      const instance: ConnectedInstance = {
+        id: data.instanceId,
+        userId,
+        name: data.instanceName,
+        connectedAt: data.connectedAt,
+        lastSeenAt: data.lastHeartbeat,
+        status: data.status,
+        metadata: data.metadata,
+      }
+      
+      return [convertTimestamps(instance)]
+    } catch {
+      return []
+    }
   },
 
-  async updateInstanceHeartbeat(instanceId: string): Promise<void> {
-    const ref = getUserDoc('connectedInstances', instanceId)
-    await updateDoc(ref, {
-      lastSeenAt: new Date().toISOString(),
+  async updateInstanceHeartbeat(_instanceId: string): Promise<void> {
+    const userId = getUserId()
+    await updateDoc(doc(db, 'users', userId, 'connection', 'current'), {
+      lastHeartbeat: new Date().toISOString(),
       status: 'active',
     })
   },
 
-  async disconnectInstance(instanceId: string): Promise<{ ok: boolean }> {
-    await deleteDoc(getUserDoc('connectedInstances', instanceId))
+  async disconnectInstance(_instanceId: string): Promise<{ ok: boolean }> {
+    const userId = getUserId()
+    await deleteDoc(doc(db, 'users', userId, 'connection', 'current'))
     return { ok: true }
   },
 }

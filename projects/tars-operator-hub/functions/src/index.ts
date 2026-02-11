@@ -4,9 +4,35 @@ import * as admin from 'firebase-admin'
 admin.initializeApp()
 const db = admin.firestore()
 
-interface ValidateTokenRequest {
-  token: string
+// ─────────────────────────────────────────────────────────────
+// CORS Helper
+// ─────────────────────────────────────────────────────────────
+
+function corsHeaders(res: functions.Response) {
+  res.set('Access-Control-Allow-Origin', '*')
+  res.set('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS')
+  res.set('Access-Control-Allow-Headers', 'Content-Type, X-Instance-Id')
+}
+
+function handleCors(req: functions.Request, res: functions.Response): boolean {
+  corsHeaders(res)
+  if (req.method === 'OPTIONS') {
+    res.status(204).send('')
+    return true
+  }
+  return false
+}
+
+// ─────────────────────────────────────────────────────────────
+// Auth Helper - Validate instance connection
+// ─────────────────────────────────────────────────────────────
+
+interface Connection {
+  instanceId: string
   instanceName: string
+  connectedAt: string
+  lastHeartbeat: string
+  status: 'active' | 'idle' | 'offline'
   metadata?: {
     version?: string
     os?: string
@@ -14,212 +40,494 @@ interface ValidateTokenRequest {
   }
 }
 
-interface ValidateTokenResponse {
-  success: boolean
-  userId?: string
-  instanceId?: string
-  error?: string
-}
-
-/**
- * Validate a connection token and create a connected instance.
- * This runs with admin privileges so it can write to any user's collection.
- */
-export const validateConnectionToken = functions.https.onRequest(async (req, res) => {
-  // Enable CORS
-  res.set('Access-Control-Allow-Origin', '*')
-  res.set('Access-Control-Allow-Methods', 'POST, OPTIONS')
-  res.set('Access-Control-Allow-Headers', 'Content-Type')
+async function validateInstance(instanceId: string): Promise<{ userId: string; connection: Connection } | null> {
+  if (!instanceId) return null
   
-  if (req.method === 'OPTIONS') {
-    res.status(204).send('')
-    return
+  // Find which user this instance belongs to
+  const usersSnap = await db.collection('users').get()
+  
+  for (const userDoc of usersSnap.docs) {
+    const connectionDoc = await userDoc.ref.collection('connection').doc('current').get()
+    if (connectionDoc.exists) {
+      const data = connectionDoc.data() as Connection
+      if (data.instanceId === instanceId) {
+        return { userId: userDoc.id, connection: data }
+      }
+    }
   }
   
+  return null
+}
+
+// ─────────────────────────────────────────────────────────────
+// Connection Endpoints
+// ─────────────────────────────────────────────────────────────
+
+/**
+ * POST /connect
+ * Validate connection token and create connection
+ */
+export const connect = functions.https.onRequest(async (req, res) => {
+  if (handleCors(req, res)) return
+  
   if (req.method !== 'POST') {
-    res.status(405).json({ success: false, error: 'Method not allowed' })
+    res.status(405).json({ error: 'Method not allowed' })
     return
   }
 
   try {
-    const { token, instanceName, metadata } = req.body as ValidateTokenRequest
+    const { token, instanceName, metadata } = req.body
 
     if (!token || !instanceName) {
-      res.status(400).json({ success: false, error: 'Missing token or instanceName' })
+      res.status(400).json({ error: 'Missing token or instanceName' })
       return
     }
 
-    // 1. Find and validate the token
+    // Find and validate the token
     const tokenDoc = await db.collection('connectionTokens').doc(token).get()
     
     if (!tokenDoc.exists) {
-      res.status(404).json({ success: false, error: 'Invalid connection code' })
+      res.status(404).json({ error: 'Invalid connection code' })
       return
     }
 
     const tokenData = tokenDoc.data()!
     
-    // Check if already used
     if (tokenData.used) {
-      res.status(400).json({ success: false, error: 'Connection code already used' })
+      res.status(400).json({ error: 'Connection code already used' })
       return
     }
 
-    // Check expiration
     const expiresAt = tokenData.expiresAt.toDate()
     if (expiresAt < new Date()) {
-      res.status(400).json({ success: false, error: 'Connection code expired' })
+      res.status(400).json({ error: 'Connection code expired' })
       return
     }
 
-    // 2. Generate instance ID
+    const userId = tokenData.userId
     const instanceId = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`
     const now = new Date().toISOString()
 
-    // 3. Create connected instance under user's collection
-    const instance = {
-      id: instanceId,
-      userId: tokenData.userId,
-      name: instanceName,
+    // Check if user already has a connection (one per user)
+    const existingConnection = await db
+      .collection('users')
+      .doc(userId)
+      .collection('connection')
+      .doc('current')
+      .get()
+
+    if (existingConnection.exists) {
+      res.status(400).json({ error: 'User already has a connected instance. Disconnect first.' })
+      return
+    }
+
+    // Create the connection
+    const connection: Connection = {
+      instanceId,
+      instanceName,
       connectedAt: now,
-      lastSeenAt: now,
+      lastHeartbeat: now,
       status: 'active',
       metadata: metadata || {},
     }
 
     await db
       .collection('users')
-      .doc(tokenData.userId)
-      .collection('connectedInstances')
-      .doc(instanceId)
-      .set(instance)
+      .doc(userId)
+      .collection('connection')
+      .doc('current')
+      .set(connection)
 
-    // 4. Mark token as used
+    // Mark token as used
     await tokenDoc.ref.update({
       used: true,
       usedAt: now,
       instanceId,
     })
 
-    const response: ValidateTokenResponse = {
+    res.status(200).json({
       success: true,
-      userId: tokenData.userId,
       instanceId,
-    }
-
-    res.status(200).json(response)
+      userId,
+    })
   } catch (error) {
-    console.error('Error validating token:', error)
-    res.status(500).json({ success: false, error: String(error) })
+    console.error('Connect error:', error)
+    res.status(500).json({ error: String(error) })
   }
 })
 
 /**
- * Update heartbeat for a connected instance.
+ * POST /heartbeat
+ * Update instance heartbeat and status
  */
-export const updateHeartbeat = functions.https.onRequest(async (req, res) => {
-  // Enable CORS
-  res.set('Access-Control-Allow-Origin', '*')
-  res.set('Access-Control-Allow-Methods', 'POST, OPTIONS')
-  res.set('Access-Control-Allow-Headers', 'Content-Type')
-  
-  if (req.method === 'OPTIONS') {
-    res.status(204).send('')
-    return
-  }
+export const heartbeat = functions.https.onRequest(async (req, res) => {
+  if (handleCors(req, res)) return
   
   if (req.method !== 'POST') {
-    res.status(405).json({ success: false, error: 'Method not allowed' })
+    res.status(405).json({ error: 'Method not allowed' })
     return
   }
 
   try {
-    const { userId, instanceId } = req.body
+    const instanceId = req.headers['x-instance-id'] as string
+    const { status, currentTask } = req.body
 
-    if (!userId || !instanceId) {
-      res.status(400).json({ success: false, error: 'Missing userId or instanceId' })
+    const auth = await validateInstance(instanceId)
+    if (!auth) {
+      res.status(401).json({ error: 'Invalid or disconnected instance' })
       return
     }
 
     const now = new Date().toISOString()
+    const update: Record<string, unknown> = {
+      lastHeartbeat: now,
+      status: status || 'active',
+    }
+    
+    if (currentTask !== undefined) {
+      update.currentTask = currentTask
+    }
 
     await db
       .collection('users')
-      .doc(userId)
-      .collection('connectedInstances')
-      .doc(instanceId)
-      .update({
-        lastSeenAt: now,
-        status: 'active',
-      })
+      .doc(auth.userId)
+      .collection('connection')
+      .doc('current')
+      .update(update)
 
-    res.status(200).json({ success: true, lastSeenAt: now })
+    res.status(200).json({ success: true, lastHeartbeat: now })
   } catch (error) {
-    console.error('Error updating heartbeat:', error)
-    res.status(500).json({ success: false, error: String(error) })
+    console.error('Heartbeat error:', error)
+    res.status(500).json({ error: String(error) })
   }
 })
 
-interface MigrateDataRequest {
-  userId: string
-  tasks?: Array<{
-    id: string
-    title: string
-    lane: string
-    priority: string
-    owner?: string
-    problem?: string
-    scope?: string
-    acceptanceCriteria?: string[]
-    createdAt: string
-    updatedAt: string
-    statusHistory?: Array<{ at: string; from?: string; to: string; note?: string }>
-  }>
-  activity?: Array<{
-    id: string
-    at: string
-    level: string
-    source: string
-    message: string
-    meta?: Record<string, unknown>
-  }>
-}
-
 /**
- * Migrate legacy data to a user's Firestore collections.
- * This is a one-time migration helper.
+ * POST /disconnect
+ * Remove instance connection
  */
-export const migrateData = functions.https.onRequest(async (req, res) => {
-  // Enable CORS
-  res.set('Access-Control-Allow-Origin', '*')
-  res.set('Access-Control-Allow-Methods', 'POST, OPTIONS')
-  res.set('Access-Control-Allow-Headers', 'Content-Type')
-  
-  if (req.method === 'OPTIONS') {
-    res.status(204).send('')
-    return
-  }
+export const disconnect = functions.https.onRequest(async (req, res) => {
+  if (handleCors(req, res)) return
   
   if (req.method !== 'POST') {
-    res.status(405).json({ success: false, error: 'Method not allowed' })
+    res.status(405).json({ error: 'Method not allowed' })
     return
   }
 
   try {
-    const { userId, tasks, activity } = req.body as MigrateDataRequest
+    const instanceId = req.headers['x-instance-id'] as string
 
-    if (!userId) {
-      res.status(400).json({ success: false, error: 'Missing userId' })
+    const auth = await validateInstance(instanceId)
+    if (!auth) {
+      res.status(401).json({ error: 'Invalid or already disconnected instance' })
       return
     }
 
-    const results = {
-      tasks: 0,
-      activity: 0,
+    await db
+      .collection('users')
+      .doc(auth.userId)
+      .collection('connection')
+      .doc('current')
+      .delete()
+
+    res.status(200).json({ success: true })
+  } catch (error) {
+    console.error('Disconnect error:', error)
+    res.status(500).json({ error: String(error) })
+  }
+})
+
+// ─────────────────────────────────────────────────────────────
+// Tasks Endpoints
+// ─────────────────────────────────────────────────────────────
+
+/**
+ * GET /tasks
+ * Get all tasks for the connected user
+ */
+export const getTasks = functions.https.onRequest(async (req, res) => {
+  if (handleCors(req, res)) return
+  
+  if (req.method !== 'GET') {
+    res.status(405).json({ error: 'Method not allowed' })
+    return
+  }
+
+  try {
+    const instanceId = req.headers['x-instance-id'] as string
+
+    const auth = await validateInstance(instanceId)
+    if (!auth) {
+      res.status(401).json({ error: 'Invalid or disconnected instance' })
+      return
     }
 
-    // Migrate tasks
-    if (tasks && tasks.length > 0) {
+    const tasksSnap = await db
+      .collection('users')
+      .doc(auth.userId)
+      .collection('tasks')
+      .orderBy('updatedAt', 'desc')
+      .get()
+
+    const tasks = tasksSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+
+    res.status(200).json({ tasks })
+  } catch (error) {
+    console.error('Get tasks error:', error)
+    res.status(500).json({ error: String(error) })
+  }
+})
+
+/**
+ * POST /tasks
+ * Create a new task
+ */
+export const createTask = functions.https.onRequest(async (req, res) => {
+  if (handleCors(req, res)) return
+  
+  if (req.method !== 'POST') {
+    res.status(405).json({ error: 'Method not allowed' })
+    return
+  }
+
+  try {
+    const instanceId = req.headers['x-instance-id'] as string
+
+    const auth = await validateInstance(instanceId)
+    if (!auth) {
+      res.status(401).json({ error: 'Invalid or disconnected instance' })
+      return
+    }
+
+    const { title, lane, priority, owner, problem, scope, acceptanceCriteria } = req.body
+
+    if (!title) {
+      res.status(400).json({ error: 'Missing title' })
+      return
+    }
+
+    const now = new Date().toISOString()
+    const taskId = `task-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`
+
+    const task = {
+      id: taskId,
+      title,
+      lane: lane || 'proposed',
+      priority: priority || 'P2',
+      owner: owner || null,
+      problem: problem || null,
+      scope: scope || null,
+      acceptanceCriteria: acceptanceCriteria || [],
+      createdAt: now,
+      updatedAt: now,
+      statusHistory: [{ at: now, to: lane || 'proposed', note: 'created' }],
+    }
+
+    await db
+      .collection('users')
+      .doc(auth.userId)
+      .collection('tasks')
+      .doc(taskId)
+      .set(task)
+
+    res.status(201).json({ task })
+  } catch (error) {
+    console.error('Create task error:', error)
+    res.status(500).json({ error: String(error) })
+  }
+})
+
+/**
+ * PATCH /updateTask
+ * Update an existing task
+ */
+export const updateTask = functions.https.onRequest(async (req, res) => {
+  if (handleCors(req, res)) return
+  
+  if (req.method !== 'PATCH' && req.method !== 'POST') {
+    res.status(405).json({ error: 'Method not allowed' })
+    return
+  }
+
+  try {
+    const instanceId = req.headers['x-instance-id'] as string
+
+    const auth = await validateInstance(instanceId)
+    if (!auth) {
+      res.status(401).json({ error: 'Invalid or disconnected instance' })
+      return
+    }
+
+    const { taskId, ...updates } = req.body
+
+    if (!taskId) {
+      res.status(400).json({ error: 'Missing taskId' })
+      return
+    }
+
+    const taskRef = db
+      .collection('users')
+      .doc(auth.userId)
+      .collection('tasks')
+      .doc(taskId)
+
+    const taskDoc = await taskRef.get()
+    if (!taskDoc.exists) {
+      res.status(404).json({ error: 'Task not found' })
+      return
+    }
+
+    const now = new Date().toISOString()
+    const taskData = taskDoc.data()!
+
+    // Track lane changes in status history
+    if (updates.lane && updates.lane !== taskData.lane) {
+      const history = taskData.statusHistory || []
+      history.push({
+        at: now,
+        from: taskData.lane,
+        to: updates.lane,
+        note: updates.note || null,
+      })
+      updates.statusHistory = history
+    }
+
+    updates.updatedAt = now
+    delete updates.note // Don't persist the note field directly
+
+    await taskRef.update(updates)
+
+    const updatedDoc = await taskRef.get()
+    const task = { id: updatedDoc.id, ...updatedDoc.data() }
+
+    res.status(200).json({ task })
+  } catch (error) {
+    console.error('Update task error:', error)
+    res.status(500).json({ error: String(error) })
+  }
+})
+
+// ─────────────────────────────────────────────────────────────
+// Projects Endpoints
+// ─────────────────────────────────────────────────────────────
+
+/**
+ * GET /projects
+ * Get all projects for the connected user
+ */
+export const getProjects = functions.https.onRequest(async (req, res) => {
+  if (handleCors(req, res)) return
+  
+  if (req.method !== 'GET') {
+    res.status(405).json({ error: 'Method not allowed' })
+    return
+  }
+
+  try {
+    const instanceId = req.headers['x-instance-id'] as string
+
+    const auth = await validateInstance(instanceId)
+    if (!auth) {
+      res.status(401).json({ error: 'Invalid or disconnected instance' })
+      return
+    }
+
+    const projectsSnap = await db
+      .collection('users')
+      .doc(auth.userId)
+      .collection('pmProjects')
+      .orderBy('updatedAt', 'desc')
+      .get()
+
+    const projects = projectsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+
+    res.status(200).json({ projects })
+  } catch (error) {
+    console.error('Get projects error:', error)
+    res.status(500).json({ error: String(error) })
+  }
+})
+
+// ─────────────────────────────────────────────────────────────
+// Activity Endpoints
+// ─────────────────────────────────────────────────────────────
+
+/**
+ * POST /activity
+ * Log an activity event
+ */
+export const logActivity = functions.https.onRequest(async (req, res) => {
+  if (handleCors(req, res)) return
+  
+  if (req.method !== 'POST') {
+    res.status(405).json({ error: 'Method not allowed' })
+    return
+  }
+
+  try {
+    const instanceId = req.headers['x-instance-id'] as string
+
+    const auth = await validateInstance(instanceId)
+    if (!auth) {
+      res.status(401).json({ error: 'Invalid or disconnected instance' })
+      return
+    }
+
+    const { level, source, message, meta } = req.body
+
+    const now = new Date().toISOString()
+    const activityId = `activity-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`
+
+    const activity = {
+      id: activityId,
+      at: now,
+      level: level || 'info',
+      source: source || auth.connection.instanceName,
+      message: message || '',
+      meta: meta || {},
+    }
+
+    await db
+      .collection('users')
+      .doc(auth.userId)
+      .collection('activity')
+      .doc(activityId)
+      .set(activity)
+
+    res.status(201).json({ activity })
+  } catch (error) {
+    console.error('Log activity error:', error)
+    res.status(500).json({ error: String(error) })
+  }
+})
+
+// ─────────────────────────────────────────────────────────────
+// Migration Helper (one-time use)
+// ─────────────────────────────────────────────────────────────
+
+/**
+ * POST /migrate
+ * Migrate legacy data to Firestore
+ */
+export const migrate = functions.https.onRequest(async (req, res) => {
+  if (handleCors(req, res)) return
+  
+  if (req.method !== 'POST') {
+    res.status(405).json({ error: 'Method not allowed' })
+    return
+  }
+
+  try {
+    const { userId, tasks, activity } = req.body
+
+    if (!userId) {
+      res.status(400).json({ error: 'Missing userId' })
+      return
+    }
+
+    const results = { tasks: 0, activity: 0 }
+
+    if (tasks && Array.isArray(tasks)) {
       const batch = db.batch()
       for (const task of tasks) {
         const ref = db.collection('users').doc(userId).collection('tasks').doc(task.id)
@@ -229,20 +537,23 @@ export const migrateData = functions.https.onRequest(async (req, res) => {
       await batch.commit()
     }
 
-    // Migrate activity
-    if (activity && activity.length > 0) {
-      const batch = db.batch()
-      for (const event of activity) {
-        const ref = db.collection('users').doc(userId).collection('activity').doc(event.id)
-        batch.set(ref, event)
-        results.activity++
+    if (activity && Array.isArray(activity)) {
+      // Batch in chunks of 500 (Firestore limit)
+      for (let i = 0; i < activity.length; i += 500) {
+        const batch = db.batch()
+        const chunk = activity.slice(i, i + 500)
+        for (const event of chunk) {
+          const ref = db.collection('users').doc(userId).collection('activity').doc(event.id)
+          batch.set(ref, event)
+          results.activity++
+        }
+        await batch.commit()
       }
-      await batch.commit()
     }
 
     res.status(200).json({ success: true, migrated: results })
   } catch (error) {
-    console.error('Error migrating data:', error)
-    res.status(500).json({ success: false, error: String(error) })
+    console.error('Migrate error:', error)
+    res.status(500).json({ error: String(error) })
   }
 })
