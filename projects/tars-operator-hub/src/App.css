@@ -801,6 +801,20 @@ button.home-task.clickable:focus {
   box-shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
 }
 
+/* narrower + centered content for the New Project wizard */
+.modal.newproj-modal {
+  width: min(640px, 100%);
+}
+
+.modal.newproj-modal .modal-body {
+  display: grid;
+  justify-content: center;
+}
+
+.modal.newproj-modal .modal-body > * {
+  width: min(560px, 100%);
+}
+
 .modal-header,
 .modal-footer {
   padding: 0.9rem 1rem;

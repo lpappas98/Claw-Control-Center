@@ -1060,7 +1060,7 @@ function NewProjectWizard({
 
   return (
     <div className="modal-backdrop" role="presentation" onMouseDown={(e) => (e.target === e.currentTarget ? onClose() : null)}>
-      <div className="modal" role="dialog" aria-modal="true" aria-label="New project" onMouseDown={(e) => e.stopPropagation()}>
+      <div className="modal newproj-modal" role="dialog" aria-modal="true" aria-label="New project" onMouseDown={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <div style={{ minWidth: 0 }}>
             <div className="muted" style={{ fontSize: 12 }}>new project</div>
@@ -1082,12 +1082,7 @@ function NewProjectWizard({
                   <button className="btn ghost" type="button" onClick={startIdea}>Start from idea</button>
                 </div>
               </div>
-              <div className="callout">
-                <strong>Note</strong>
-                <div className="muted" style={{ marginTop: 6 }}>
-                  Intake answers are stored verbatim and referenced later when generating feature requirements/specs.
-                </div>
-              </div>
+              {/* Note removed */}
             </div>
           ) : null}
 
