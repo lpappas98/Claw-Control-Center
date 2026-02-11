@@ -7,11 +7,11 @@ const OUT_FILE = path.join(WORKSPACE, '.clawhub', 'worker-heartbeats.json')
 const TICK_MS = Number(process.env.SLOT_HEARTBEAT_MS ?? 15000)
 
 const slots = [
-  { slot: 'pm', label: 'TARS', role: 'Project Manager', task: 'Orchestrating Operator Hub delivery', mode: 'active' },
-  { slot: 'architect', label: 'Blueprint', role: 'Architect', task: 'Designing permanent agent runtime model', mode: 'active' },
-  { slot: 'qa', label: 'Sentinel', role: 'QA', task: 'Preparing hub verification checks', mode: 'waiting' },
-  { slot: 'dev-1', label: 'Forge', role: 'Developer', task: 'Implementing Home board and agent UX', mode: 'active' },
-  { slot: 'dev-2', label: 'Patch', role: 'Developer', task: 'Polishing layout, spacing, and status clarity', mode: 'active' },
+  { slot: 'pm', label: 'TARS', role: 'Project Manager', task: 'Tracking Projects delivery + unblocking', mode: 'active' },
+  { slot: 'architect', label: 'Blueprint', role: 'Architect', task: 'Bridge: projects persistence + APIs', mode: 'active' },
+  { slot: 'dev-1', label: 'Forge', role: 'Developer', task: 'Projects UI: wire to bridge adapter (keep UI)', mode: 'active' },
+  { slot: 'dev-2', label: 'Patch', role: 'Developer', task: 'Projects types + adapter parity', mode: 'active' },
+  { slot: 'qa', label: 'Sentinel', role: 'QA', task: 'Projects E2E verification script (bridge mode)', mode: 'waiting' },
 ]
 
 /** @type {Map<string, Array<{at:string}>>} */
