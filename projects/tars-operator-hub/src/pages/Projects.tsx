@@ -39,6 +39,7 @@ type FeatureNode = {
   owner?: string
   children?: FeatureNode[]
   dependsOn?: string[]
+  sources?: { kind: 'idea' | 'question' | 'requirement'; id: string }[]
 }
 
 type KanbanColumnId = 'todo' | 'in_progress' | 'blocked' | 'done'
@@ -53,6 +54,29 @@ type KanbanCard = {
   column: KanbanColumnId
 }
 
+type IntakeIdea = { id: string; at: string; author: 'human' | 'ai'; text: string }
+
+type IntakeQuestion = {
+  id: string
+  category: string
+  prompt: string
+  answer: { text: string; at: string; author: 'human' | 'ai' } | null
+}
+
+type ProjectIntake = {
+  idea: IntakeIdea[]
+  analysis: { id: string; at: string; type: 'software' | 'ops' | 'hybrid'; tags: string[]; risks: string[]; summary: string }[]
+  questions: IntakeQuestion[]
+  requirements: {
+    id: string
+    at: string
+    source: 'human' | 'ai'
+    kind: 'goal' | 'constraint' | 'non_goal'
+    text: string
+    citations?: { kind: 'idea' | 'question'; id: string }[]
+  }[]
+}
+
 type Project = {
   id: string
   name: string
@@ -65,6 +89,7 @@ type Project = {
   tree: FeatureNode[]
   cards: KanbanCard[]
   activity: { id: string; at: string; actor: string; text: string }[]
+  intake?: ProjectIntake
 }
 
 function fmtAgo(iso: string) {
@@ -368,6 +393,21 @@ function FeatureDrawer({
                   <li>Edge cases are captured as open questions or explicit behavior.</li>
                   <li>Linked work items exist in Kanban.</li>
                 </ul>
+              </div>
+
+              <div className="panel" style={{ padding: 14 }}>
+                <h4 style={{ marginTop: 0 }}>Sources</h4>
+                {feature.sources?.length ? (
+                  <div className="muted">
+                    {feature.sources.map((s) => (
+                      <code key={`${s.kind}:${s.id}`} style={{ marginRight: 10 }}>
+                        {s.kind}:{s.id}
+                      </code>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="muted">No sources linked yet. (Intake answers will show up here.)</div>
+                )}
               </div>
 
               <div className="panel" style={{ padding: 14 }}>
@@ -762,12 +802,500 @@ function Overview({ project }: { project: Project }) {
   )
 }
 
+function NewProjectWizard({
+  onClose,
+  onCreate,
+}: {
+  onClose: () => void
+  onCreate: (p: Project) => void
+}) {
+  const [mode, setMode] = useState<'choose' | 'import' | 'idea' | 'analysis' | 'questions' | 'review'>('choose')
+  const [projectName, setProjectName] = useState('')
+  const [ideaText, setIdeaText] = useState('')
+  const [files, setFiles] = useState<File[]>([])
+
+  const [analysis, setAnalysis] = useState<ProjectIntake['analysis'][number] | null>(null)
+  const [questions, setQuestions] = useState<IntakeQuestion[]>([])
+
+  const nowIso = () => new Date().toISOString()
+  const id = () => Math.random().toString(16).slice(2, 10)
+
+  const classify = (idea: string) => {
+    const t = idea.toLowerCase()
+    const hasSoftware = /(api|backend|frontend|mobile|web|database|repo|github|auth)/.test(t)
+    const hasOps = /(checklist|sop|process|warehouse|home|garden|equipment|maintenance|schedule|inventory)/.test(t)
+    const type: 'software' | 'ops' | 'hybrid' = hasSoftware && hasOps ? 'hybrid' : hasSoftware ? 'software' : hasOps ? 'ops' : 'hybrid'
+
+    const tags = Array.from(
+      new Set(
+        [
+          hasSoftware ? 'software' : null,
+          hasOps ? 'ops' : null,
+          t.includes('mobile') ? 'mobile' : null,
+          t.includes('web') ? 'web' : null,
+          t.includes('api') ? 'api' : null,
+          t.includes('local') ? 'local-first' : null,
+        ].filter(Boolean) as string[],
+      ),
+    )
+
+    const risks = [
+      /(payment|stripe|billing)/.test(t) ? 'payments' : null,
+      /(email|sms|push)/.test(t) ? 'notifications' : null,
+      /(pii|personal data|privacy)/.test(t) ? 'pii/privacy' : null,
+      /(multi-user|team|collabor)/.test(t) ? 'multi-user' : null,
+    ].filter(Boolean) as string[]
+
+    return { type, tags: tags.length ? tags : ['hybrid'], risks }
+  }
+
+  const generateQuestions = (type: 'software' | 'ops' | 'hybrid'): IntakeQuestion[] => {
+    const base: Array<{ category: string; prompt: string }> = [
+      { category: 'Outcome', prompt: 'What does success look like for this project (measurable or concrete)?' },
+      { category: 'Users', prompt: 'Who is this for? List the primary user(s)/actor(s).' },
+      { category: 'Workflow', prompt: 'Describe the main workflow in 3–6 steps.' },
+      { category: 'Scope', prompt: 'What are the non-goals (explicitly out of scope for v1)?' },
+      { category: 'Constraints', prompt: 'Any constraints: timeline, budget, offline/local-only, devices, performance?' },
+      { category: 'Risks', prompt: 'What are the biggest unknowns or risks we should validate early?' },
+    ]
+
+    const software: Array<{ category: string; prompt: string }> = [
+      { category: 'Platform', prompt: 'What platforms: web, mobile, desktop? Single-user or multi-user?' },
+      { category: 'Data', prompt: 'What are the core objects/data entities? (e.g., Trip, List, Item, Profile)' },
+      { category: 'Integrations', prompt: 'Any integrations (GitHub, maps, payments, auth, etc.)?' },
+      { category: 'Permissions', prompt: 'Any roles/permissions/sharing rules?' },
+    ]
+
+    const ops: Array<{ category: string; prompt: string }> = [
+      { category: 'SOP', prompt: 'What is the standard process/checklist? List steps and decision points.' },
+      { category: 'Assets', prompt: 'What assets/locations are involved (tools, rooms, machines, sites)?' },
+      { category: 'Schedule', prompt: 'Does this recur on a schedule? What triggers it?' },
+      { category: 'Safety', prompt: 'Any safety rules, stop conditions, or escalation paths?' },
+    ]
+
+    const extra = type === 'software' ? software : type === 'ops' ? ops : [...software.slice(0, 2), ...ops.slice(0, 2)]
+
+    const picked = [...base, ...extra].slice(0, 10)
+
+    return picked.map((q, idx) => ({
+      id: `q-${idx + 1}`,
+      category: q.category,
+      prompt: q.prompt,
+      answer: null,
+    }))
+  }
+
+  const makeSeedTree = (type: 'software' | 'ops' | 'hybrid', citations: { kind: 'idea' | 'question'; id: string }[]): FeatureNode[] => {
+    const src = (kind: 'idea' | 'question', id: string) => [{ kind, id } as const]
+
+    const common: FeatureNode[] = [
+      {
+        id: 'sec-foundation',
+        title: 'Foundation',
+        summary: 'Core setup, constraints, and first principles for the project.',
+        status: 'planned',
+        priority: 'p0',
+        sources: src('idea', 'idea-1'),
+        children: [
+          {
+            id: 'feat-scope',
+            title: 'Scope + non-goals',
+            summary: 'Capture v1 boundaries so execution doesn’t sprawl.',
+            status: 'planned',
+            priority: 'p0',
+            sources: src('question', 'q-4'),
+          },
+          {
+            id: 'feat-constraints',
+            title: 'Constraints',
+            summary: 'Make constraints explicit (time, budget, offline/local-first).',
+            status: 'planned',
+            priority: 'p0',
+            sources: src('question', 'q-5'),
+          },
+        ],
+      },
+    ]
+
+    if (type === 'software') {
+      return [
+        ...common,
+        {
+          id: 'sec-backend',
+          title: 'Backend',
+          summary: 'APIs, data model, and services.',
+          status: 'planned',
+          priority: 'p0',
+          sources: citations.map((c) => ({ kind: c.kind, id: c.id })),
+          children: [
+            { id: 'feat-endpoints', title: 'Key endpoints', summary: 'Define core endpoints + contracts.', status: 'planned', priority: 'p0', sources: src('question', 'q-8') },
+            { id: 'feat-data', title: 'Data model', summary: 'Entities + relationships.', status: 'planned', priority: 'p0', sources: src('question', 'q-8') },
+          ],
+        },
+        {
+          id: 'sec-app',
+          title: 'App sections',
+          summary: 'Major UI surfaces / modules.',
+          status: 'planned',
+          priority: 'p1',
+          sources: src('question', 'q-3'),
+          children: [
+            { id: 'feat-section-1', title: 'Primary section', summary: 'Main user workflow UI.', status: 'planned', priority: 'p0', sources: src('question', 'q-3') },
+            { id: 'feat-section-2', title: 'Profile / settings', summary: 'Preferences, account, configuration.', status: 'planned', priority: 'p2', sources: src('question', 'q-7') },
+          ],
+        },
+      ]
+    }
+
+    if (type === 'ops') {
+      return [
+        ...common,
+        {
+          id: 'sec-process',
+          title: 'Process / SOP',
+          summary: 'Steps, checklists, and decision points.',
+          status: 'planned',
+          priority: 'p0',
+          sources: src('question', 'q-7'),
+          children: [
+            { id: 'feat-checklist', title: 'Checklist', summary: 'Operator checklist steps.', status: 'planned', priority: 'p0', sources: src('question', 'q-7') },
+            { id: 'feat-escalation', title: 'Escalation / stop conditions', summary: 'What to do when something goes wrong.', status: 'planned', priority: 'p1', sources: src('question', 'q-10') },
+          ],
+        },
+        {
+          id: 'sec-schedule',
+          title: 'Scheduling',
+          summary: 'Triggers, cadence, reminders.',
+          status: 'planned',
+          priority: 'p1',
+          sources: src('question', 'q-9'),
+        },
+      ]
+    }
+
+    // hybrid
+    return [
+      ...common,
+      {
+        id: 'sec-backend',
+        title: 'Backend / automation',
+        summary: 'APIs, agents, automations, and integrations.',
+        status: 'planned',
+        priority: 'p0',
+        sources: src('question', 'q-8'),
+      },
+      {
+        id: 'sec-app',
+        title: 'App sections',
+        summary: 'Primary user surfaces + configuration.',
+        status: 'planned',
+        priority: 'p1',
+        sources: src('question', 'q-3'),
+      },
+      {
+        id: 'sec-process',
+        title: 'Ops / SOP',
+        summary: 'Checklists and safety rules.',
+        status: 'planned',
+        priority: 'p1',
+        sources: src('question', 'q-7'),
+      },
+    ]
+  }
+
+  const canContinueIdea = ideaText.trim().length >= 20
+
+  const startIdea = () => {
+    setMode('idea')
+    if (!projectName.trim()) setProjectName('New project')
+  }
+
+  const runAnalysis = () => {
+    const c = classify(ideaText)
+    const a = {
+      id: `ana-${id()}`,
+      at: nowIso(),
+      type: c.type,
+      tags: c.tags,
+      risks: c.risks,
+      summary: `(mock) Detected ${c.type} project. Generated questions are tailored to your description.`,
+    } as const
+    setAnalysis(a)
+    setQuestions(generateQuestions(a.type))
+    setMode('analysis')
+  }
+
+  const createProject = () => {
+    const createdAt = nowIso()
+
+    const intake: ProjectIntake = {
+      idea: [{ id: 'idea-1', at: createdAt, author: 'human', text: ideaText.trim() }],
+      analysis: analysis ? [analysis] : [],
+      questions,
+      requirements: [],
+    }
+
+    const p: Project = {
+      id: `p-${id()}`,
+      name: projectName.trim() || 'New project',
+      summary: ideaText.trim().slice(0, 140) + (ideaText.trim().length > 140 ? '…' : ''),
+      status: 'active',
+      tags: analysis?.tags ?? ['hybrid'],
+      owner: 'Logan',
+      updatedAt: createdAt,
+      links: [],
+      intake,
+      tree: makeSeedTree(analysis?.type ?? 'hybrid', [{ kind: 'idea', id: 'idea-1' }]),
+      cards: [
+        { id: `c-${id()}`, title: 'Review intake answers + confirm scope', priority: 'p0', column: 'todo', owner: 'Logan', featureId: 'feat-scope' },
+        { id: `c-${id()}`, title: 'Turn tree nodes into detailed feature specs', priority: 'p1', column: 'todo', owner: 'TARS', featureId: 'sec-app' },
+      ],
+      activity: [{ id: `a-${id()}`, at: createdAt, actor: 'Logan', text: 'Created project via intake wizard' }],
+    }
+
+    onCreate(p)
+  }
+
+  const fileCount = files.length
+
+  return (
+    <div className="modal-backdrop" role="presentation" onMouseDown={(e) => (e.target === e.currentTarget ? onClose() : null)}>
+      <div className="modal" role="dialog" aria-modal="true" aria-label="New project" onMouseDown={(e) => e.stopPropagation()}>
+        <div className="modal-header">
+          <div style={{ minWidth: 0 }}>
+            <div className="muted" style={{ fontSize: 12 }}>new project</div>
+            <h3 style={{ margin: '6px 0 0' }}>Create project</h3>
+          </div>
+          <div className="stack-h">
+            <button className="btn ghost" type="button" onClick={onClose}>Close</button>
+          </div>
+        </div>
+
+        <div className="modal-body">
+          {mode === 'choose' ? (
+            <div className="stack">
+              <div className="panel" style={{ padding: 14 }}>
+                <h4 style={{ marginTop: 0 }}>Start</h4>
+                <div className="muted">Choose how you want to create this project.</div>
+                <div className="stack-h" style={{ marginTop: 12 }}>
+                  <button className="btn" type="button" onClick={() => setMode('import')}>Import repo</button>
+                  <button className="btn ghost" type="button" onClick={startIdea}>Start from idea</button>
+                </div>
+              </div>
+              <div className="callout">
+                <strong>Note</strong>
+                <div className="muted" style={{ marginTop: 6 }}>
+                  Intake answers are stored verbatim and referenced later when generating feature requirements/specs.
+                </div>
+              </div>
+            </div>
+          ) : null}
+
+          {mode === 'import' ? (
+            <div className="stack">
+              <div className="panel" style={{ padding: 14 }}>
+                <h4 style={{ marginTop: 0 }}>Import repo (mock)</h4>
+                <div className="muted">Drag/drop or pick a folder. (UI only for now.)</div>
+
+                <label className="muted" style={{ marginTop: 10 }}>Project name</label>
+                <input className="input" value={projectName} onChange={(e) => setProjectName(e.target.value)} placeholder="e.g. Trips App" />
+
+                <label className="btn ghost" style={{ marginTop: 10, display: 'inline-block' }}>
+                  Pick folder…
+                  <input
+                    type="file"
+                    multiple
+                    // @ts-ignore non-standard, but supported by Chromium
+                    {...({ webkitdirectory: true } as any)}
+                    style={{ display: 'none' }}
+                    onChange={(e) => setFiles(Array.from(e.target.files ?? []))}
+                  />
+                </label>
+
+                <div className="muted" style={{ marginTop: 10 }}>
+                  Selected: <strong>{fileCount}</strong> file(s)
+                </div>
+
+                <div className="stack-h" style={{ marginTop: 14, justifyContent: 'flex-end' }}>
+                  <button className="btn ghost" type="button" onClick={() => setMode('choose')}>Back</button>
+                  <button
+                    className="btn"
+                    type="button"
+                    disabled={!projectName.trim() || !fileCount}
+                    onClick={() => {
+                      // For now, just create a placeholder project.
+                      const createdAt = nowIso()
+                      onCreate({
+                        id: `p-${id()}`,
+                        name: projectName.trim(),
+                        summary: '(mock) Imported repo project. Intake + analysis will come next.',
+                        status: 'active',
+                        tags: ['imported'],
+                        owner: 'Logan',
+                        updatedAt: createdAt,
+                        links: [],
+                        intake: {
+                          idea: [{ id: 'idea-1', at: createdAt, author: 'human', text: '(import) Repo-first project.' }],
+                          analysis: [],
+                          questions: [],
+                          requirements: [],
+                        },
+                        tree: [
+                          { id: 'sec-repo', title: 'Repo', summary: 'Imported structure + next questions.', status: 'planned', priority: 'p0', children: [] },
+                        ],
+                        cards: [{ id: `c-${id()}`, title: 'Run repo analysis + generate questions', priority: 'p0', column: 'todo', owner: 'TARS', featureId: 'sec-repo' }],
+                        activity: [{ id: `a-${id()}`, at: createdAt, actor: 'Logan', text: 'Created project from repo import' }],
+                      })
+                    }}
+                  >
+                    Create
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : null}
+
+          {mode === 'idea' ? (
+            <div className="stack">
+              <div className="panel" style={{ padding: 14 }}>
+                <h4 style={{ marginTop: 0 }}>Idea</h4>
+
+                <label className="muted">Project name</label>
+                <input className="input" value={projectName} onChange={(e) => setProjectName(e.target.value)} placeholder="e.g. Trips App" />
+
+                <label className="muted" style={{ marginTop: 10 }}>Describe your idea</label>
+                <textarea
+                  className="input"
+                  rows={7}
+                  value={ideaText}
+                  onChange={(e) => setIdeaText(e.target.value)}
+                  placeholder="What are we building? Who is it for? What problem does it solve?"
+                />
+
+                <div className="stack-h" style={{ marginTop: 14, justifyContent: 'flex-end' }}>
+                  <button className="btn ghost" type="button" onClick={() => setMode('choose')}>Back</button>
+                  <button className="btn" type="button" disabled={!canContinueIdea} onClick={runAnalysis}>
+                    Analyze →
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : null}
+
+          {mode === 'analysis' ? (
+            <div className="stack">
+              <div className="panel" style={{ padding: 14 }}>
+                <h4 style={{ marginTop: 0 }}>Analysis (mock)</h4>
+                <div className="grid-3">
+                  <div className="stat-card">
+                    <div className="stat-title">Type</div>
+                    <div className="stat-value"><strong>{analysis?.type ?? '—'}</strong></div>
+                    <div className="muted">detected from idea</div>
+                  </div>
+                  <div className="stat-card">
+                    <div className="stat-title">Tags</div>
+                    <div className="stat-value"><strong>{(analysis?.tags ?? []).join(' · ') || '—'}</strong></div>
+                    <div className="muted">editable later</div>
+                  </div>
+                  <div className="stat-card">
+                    <div className="stat-title">Risks</div>
+                    <div className="stat-value"><strong>{analysis?.risks.length ? analysis?.risks.join(', ') : 'none'}</strong></div>
+                    <div className="muted">first pass</div>
+                  </div>
+                </div>
+                <div className="callout" style={{ marginTop: 12 }}>
+                  <strong>Summary</strong>
+                  <div className="muted" style={{ marginTop: 6 }}>{analysis?.summary}</div>
+                </div>
+
+                <div className="stack-h" style={{ marginTop: 14, justifyContent: 'flex-end' }}>
+                  <button className="btn ghost" type="button" onClick={() => setMode('idea')}>Back</button>
+                  <button className="btn" type="button" onClick={() => setMode('questions')}>
+                    Questions →
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : null}
+
+          {mode === 'questions' ? (
+            <div className="stack">
+              <div className="panel" style={{ padding: 14 }}>
+                <h4 style={{ marginTop: 0 }}>Clarifying questions</h4>
+                <div className="muted">These are generated based on your idea (mocked for now). Answers are stored and referenced later.</div>
+
+                <div className="table-like" style={{ marginTop: 12 }}>
+                  {questions.map((q) => (
+                    <div key={q.id} className="row" style={{ margin: 0 }}>
+                      <div className="row-main">
+                        <div className="row-title">
+                          <strong>{q.prompt}</strong>
+                          <span className="pill">{q.category}</span>
+                          <span className="muted"><code>{q.id}</code></span>
+                        </div>
+                        <textarea
+                          className="input"
+                          rows={3}
+                          value={q.answer?.text ?? ''}
+                          onChange={(e) =>
+                            setQuestions((prev) =>
+                              prev.map((x) => (x.id === q.id ? { ...x, answer: { text: e.target.value, at: nowIso(), author: 'human' } } : x)),
+                            )
+                          }
+                          placeholder="Your answer…"
+                          style={{ width: '100%', marginTop: 8, resize: 'vertical' }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="stack-h" style={{ marginTop: 14, justifyContent: 'flex-end' }}>
+                  <button className="btn ghost" type="button" onClick={() => setMode('analysis')}>Back</button>
+                  <button className="btn" type="button" onClick={() => setMode('review')}>
+                    Review →
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : null}
+
+          {mode === 'review' ? (
+            <div className="stack">
+              <div className="panel" style={{ padding: 14 }}>
+                <h4 style={{ marginTop: 0 }}>Review</h4>
+                <div className="callout">
+                  <strong>What will be stored</strong>
+                  <ul className="muted" style={{ margin: '8px 0 0', paddingLeft: 18 }}>
+                    <li>Idea (verbatim)</li>
+                    <li>Analysis output (versioned)</li>
+                    <li>Generated questions + all answers (verbatim)</li>
+                    <li>Generated tree + linked sources (citations)</li>
+                  </ul>
+                </div>
+
+                <div className="stack-h" style={{ marginTop: 14, justifyContent: 'flex-end' }}>
+                  <button className="btn ghost" type="button" onClick={() => setMode('questions')}>Back</button>
+                  <button className="btn" type="button" onClick={createProject}>
+                    Create project
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : null}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export function Projects({ adapter: _adapter }: { adapter: Adapter }) {
-  const [projects] = useState<Project[]>(() => fakeProjects())
+  const [projects, setProjects] = useState<Project[]>(() => fakeProjects())
   const [activeId, setActiveId] = useState(projects[0]?.id ?? null)
   const [tab, setTab] = useState<ProjectTab>('Overview')
   const [drawer, setDrawer] = useState<FeatureNode | null>(null)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [showNewProject, setShowNewProject] = useState(false)
 
   const active = useMemo(() => projects.find((p) => p.id === activeId) ?? projects[0] ?? null, [projects, activeId])
 
@@ -810,7 +1338,7 @@ export function Projects({ adapter: _adapter }: { adapter: Adapter }) {
             <button
               className="btn"
               type="button"
-              onClick={() => alert('(wireframe) Create new project')}
+              onClick={() => setShowNewProject(true)}
             >
               New Project
             </button>
@@ -859,6 +1387,19 @@ export function Projects({ adapter: _adapter }: { adapter: Adapter }) {
       </section>
 
       {active && drawer ? <FeatureDrawer project={active} feature={drawer} onClose={() => setDrawer(null)} /> : null}
+
+      {showNewProject ? (
+        <NewProjectWizard
+          onClose={() => setShowNewProject(false)}
+          onCreate={(p) => {
+            setProjects((prev) => [p, ...prev])
+            setActiveId(p.id)
+            setTab('Overview')
+            setSidebarCollapsed(false)
+            setShowNewProject(false)
+          }}
+        />
+      ) : null}
     </main>
   )
 }
