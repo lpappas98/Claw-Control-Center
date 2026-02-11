@@ -83,7 +83,17 @@ export default function App() {
         </div>
       </header>
 
-      {tab === 'Mission Control' && <MissionControl adapter={adapter} cfg={cfg} onCfg={updateCfg} />}
+      {tab === 'Mission Control' && (
+        <MissionControl
+          adapter={adapter}
+          cfg={cfg}
+          onCfg={updateCfg}
+          onOpenTab={(next) => {
+            setTab(next as NavTab)
+            saveNavTab(next as NavTab)
+          }}
+        />
+      )}
       {tab === 'Projects' && <Projects adapter={adapter} />}
       {tab === 'Activity' && <Activity adapter={adapter} />}
       {tab === 'Rules' && <Rules adapter={adapter} />}
