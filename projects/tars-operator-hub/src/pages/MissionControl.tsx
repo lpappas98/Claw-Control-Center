@@ -263,7 +263,7 @@ export function MissionControl({
                 <div className="home-lane-heading">{lane.title}</div>
                 <div className="home-lane narrow">
                   <div className="stack">
-                    {laneTasks.length === 0 && <div className="muted">No tasks</div>}
+                    {laneTasks.length === 0 && <div className="home-task empty">No tasks</div>}
                     {laneTasks.map((task) => (
                       <div className="home-task" key={task.id}>
                         <div className={`priority-tag ${task.priority.toLowerCase()}`}>{task.priority}</div>

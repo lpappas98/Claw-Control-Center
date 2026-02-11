@@ -673,6 +673,15 @@ textarea {
   background: rgba(21, 17, 8, 0.55);
 }
 
+.home-task.empty {
+  border-style: dashed;
+  border-color: #3e4f86;
+  background: rgba(28, 40, 78, 0.45);
+  color: #a9b9e8;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
 @media (max-width: 1100px) {
   .topbar {
     grid-template-columns: 1fr;
