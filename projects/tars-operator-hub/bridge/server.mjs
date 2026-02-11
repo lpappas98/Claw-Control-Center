@@ -24,11 +24,28 @@ import {
   toMarkdownBrief,
 } from './intakeProjects.mjs'
 
+import {
+  appendActivity as appendPmActivity,
+  createKanbanCard,
+  createPmProject,
+  createTreeNode,
+  deleteKanbanCard,
+  deleteTreeNode,
+  listPmProjects,
+  loadPmProject,
+  replaceIntake,
+  softDeletePmProject,
+  toMarkdownProject,
+  updateKanbanCard,
+  updatePmProject,
+  upsertTreeNode,
+} from './pmProjectsStore.mjs'
+
 const execFileAsync = promisify(execFile)
 
 const app = express()
 app.use(cors())
-app.use(express.json({ limit: '1mb' }))
+app.use(express.json({ limit: '5mb' }))
 
 const PORT = Number(process.env.PORT ?? 8787)
 const WORKSPACE = process.env.OPENCLAW_WORKSPACE ?? path.join(os.homedir(), '.openclaw', 'workspace')
@@ -37,6 +54,7 @@ const RULES_FILE = process.env.OPERATOR_HUB_RULES_FILE ?? path.join(WORKSPACE, '
 const RULE_HISTORY_FILE = process.env.OPERATOR_HUB_RULE_HISTORY_FILE ?? path.join(WORKSPACE, '.clawhub', 'rule-history.json')
 const TASKS_FILE = process.env.OPERATOR_HUB_TASKS_FILE ?? path.join(WORKSPACE, '.clawhub', 'tasks.json')
 const INTAKE_PROJECTS_FILE = process.env.OPERATOR_HUB_INTAKE_PROJECTS_FILE ?? path.join(WORKSPACE, '.clawhub', 'intake-projects.json')
+const PM_PROJECTS_DIR = process.env.OPERATOR_HUB_PM_PROJECTS_DIR ?? path.join(WORKSPACE, '.clawhub', 'projects')
 
 /** @type {import('../src/types').ActivityEvent[]} */
 let activity = await loadActivity(ACTIVITY_FILE)
@@ -869,6 +887,368 @@ app.get('/api/intake/projects/:id/export.md', async (req, res) => {
   if (!p) return res.status(404).send('intake project not found')
   res.setHeader('content-type', 'text/markdown; charset=utf-8')
   res.send(toMarkdownBrief(p))
+})
+
+// ---- PM Projects Hub (overview + tree + kanban + intake artifacts) ----
+app.get('/api/pm/projects', async (_req, res) => {
+  const list = await listPmProjects(PM_PROJECTS_DIR)
+  res.json(list)
+})
+
+app.post('/api/pm/projects', async (req, res) => {
+  try {
+    const created = await createPmProject(PM_PROJECTS_DIR, req.body ?? {})
+    res.json(created)
+  } catch (err) {
+    res.status(400).send(err?.message ?? 'invalid project')
+  }
+})
+
+app.get('/api/pm/projects/:id', async (req, res) => {
+  try {
+    const p = await loadPmProject(PM_PROJECTS_DIR, req.params.id)
+    if (!p) return res.status(404).send('project not found')
+    res.json(p)
+  } catch (err) {
+    res.status(400).send(err?.message ?? 'invalid request')
+  }
+})
+
+app.put('/api/pm/projects/:id', async (req, res) => {
+  try {
+    const next = await updatePmProject(PM_PROJECTS_DIR, req.params.id, req.body ?? {})
+    if (!next) return res.status(404).send('project not found')
+    res.json(next)
+  } catch (err) {
+    res.status(400).send(err?.message ?? 'invalid request')
+  }
+})
+
+app.delete('/api/pm/projects/:id', async (req, res) => {
+  try {
+    const ok = await softDeletePmProject(PM_PROJECTS_DIR, req.params.id)
+    if (!ok) return res.status(404).send('project not found')
+    res.json({ ok: true })
+  } catch (err) {
+    res.status(400).send(err?.message ?? 'invalid request')
+  }
+})
+
+app.get('/api/pm/projects/:id/export.json', async (req, res) => {
+  try {
+    const p = await loadPmProject(PM_PROJECTS_DIR, req.params.id)
+    if (!p) return res.status(404).send('project not found')
+    res.setHeader('content-type', 'application/json; charset=utf-8')
+    res.setHeader('content-disposition', `attachment; filename=project-${p.id}.json`)
+    res.send(JSON.stringify(p, null, 2))
+  } catch (err) {
+    res.status(400).send(err?.message ?? 'invalid request')
+  }
+})
+
+app.get('/api/pm/projects/:id/export.md', async (req, res) => {
+  try {
+    const p = await loadPmProject(PM_PROJECTS_DIR, req.params.id)
+    if (!p) return res.status(404).send('project not found')
+    res.setHeader('content-type', 'text/markdown; charset=utf-8')
+    res.send(toMarkdownProject(p))
+  } catch (err) {
+    res.status(400).send(err?.message ?? 'invalid request')
+  }
+})
+
+// Tree
+app.get('/api/pm/projects/:id/tree', async (req, res) => {
+  try {
+    const p = await loadPmProject(PM_PROJECTS_DIR, req.params.id)
+    if (!p) return res.status(404).send('project not found')
+    res.json(p.tree ?? [])
+  } catch (err) {
+    res.status(400).send(err?.message ?? 'invalid request')
+  }
+})
+
+app.post('/api/pm/projects/:id/tree/nodes', async (req, res) => {
+  try {
+    const created = await createTreeNode(PM_PROJECTS_DIR, req.params.id, req.body ?? {})
+    if (!created) return res.status(404).send('project not found')
+    if (created?.error) return res.status(400).send(created.error)
+    res.json(created)
+  } catch (err) {
+    res.status(400).send(err?.message ?? 'invalid request')
+  }
+})
+
+app.put('/api/pm/projects/:id/tree/nodes/:nodeId', async (req, res) => {
+  try {
+    const next = await upsertTreeNode(PM_PROJECTS_DIR, req.params.id, req.params.nodeId, req.body ?? {})
+    if (!next) return res.status(404).send('node not found')
+    res.json(next)
+  } catch (err) {
+    res.status(400).send(err?.message ?? 'invalid request')
+  }
+})
+
+app.delete('/api/pm/projects/:id/tree/nodes/:nodeId', async (req, res) => {
+  try {
+    const ok = await deleteTreeNode(PM_PROJECTS_DIR, req.params.id, req.params.nodeId)
+    if (ok === null) return res.status(404).send('project not found')
+    if (!ok) return res.status(404).send('node not found')
+    res.json({ ok: true })
+  } catch (err) {
+    res.status(400).send(err?.message ?? 'invalid request')
+  }
+})
+
+// Cards
+app.get('/api/pm/projects/:id/cards', async (req, res) => {
+  try {
+    const p = await loadPmProject(PM_PROJECTS_DIR, req.params.id)
+    if (!p) return res.status(404).send('project not found')
+    res.json(p.cards ?? [])
+  } catch (err) {
+    res.status(400).send(err?.message ?? 'invalid request')
+  }
+})
+
+app.post('/api/pm/projects/:id/cards', async (req, res) => {
+  try {
+    const c = await createKanbanCard(PM_PROJECTS_DIR, req.params.id, req.body ?? {})
+    if (!c) return res.status(404).send('project not found')
+    res.json(c)
+  } catch (err) {
+    res.status(400).send(err?.message ?? 'invalid request')
+  }
+})
+
+app.put('/api/pm/projects/:id/cards/:cardId', async (req, res) => {
+  try {
+    const c = await updateKanbanCard(PM_PROJECTS_DIR, req.params.id, req.params.cardId, req.body ?? {})
+    if (!c) return res.status(404).send('card not found')
+    res.json(c)
+  } catch (err) {
+    res.status(400).send(err?.message ?? 'invalid request')
+  }
+})
+
+app.delete('/api/pm/projects/:id/cards/:cardId', async (req, res) => {
+  try {
+    const ok = await deleteKanbanCard(PM_PROJECTS_DIR, req.params.id, req.params.cardId)
+    if (ok === null) return res.status(404).send('project not found')
+    if (!ok) return res.status(404).send('card not found')
+    res.json({ ok: true })
+  } catch (err) {
+    res.status(400).send(err?.message ?? 'invalid request')
+  }
+})
+
+// Intake artifacts
+app.get('/api/pm/projects/:id/intake', async (req, res) => {
+  try {
+    const p = await loadPmProject(PM_PROJECTS_DIR, req.params.id)
+    if (!p) return res.status(404).send('project not found')
+    res.json(p.intake ?? { idea: [], analysis: [], questions: [], requirements: [] })
+  } catch (err) {
+    res.status(400).send(err?.message ?? 'invalid request')
+  }
+})
+
+app.put('/api/pm/projects/:id/intake', async (req, res) => {
+  try {
+    const next = await replaceIntake(PM_PROJECTS_DIR, req.params.id, req.body ?? {})
+    if (!next) return res.status(404).send('project not found')
+    res.json(next)
+  } catch (err) {
+    res.status(400).send(err?.message ?? 'invalid request')
+  }
+})
+
+app.post('/api/pm/projects/:id/intake/idea', async (req, res) => {
+  try {
+    const p = await loadPmProject(PM_PROJECTS_DIR, req.params.id)
+    if (!p) return res.status(404).send('project not found')
+
+    const text = typeof req.body?.text === 'string' ? req.body.text.trim() : ''
+    if (!text) return res.status(400).send('text required')
+
+    const at = new Date().toISOString()
+    const next = {
+      ...p.intake,
+      idea: [{ id: `idea-${Date.now()}`, at, author: req.body?.author === 'ai' ? 'ai' : 'human', text }, ...(p.intake?.idea ?? [])].slice(0, 50),
+    }
+
+    const saved = await replaceIntake(PM_PROJECTS_DIR, req.params.id, next)
+    res.json(saved)
+  } catch (err) {
+    res.status(400).send(err?.message ?? 'invalid request')
+  }
+})
+
+app.post('/api/pm/projects/:id/intake/analysis', async (req, res) => {
+  try {
+    const p = await loadPmProject(PM_PROJECTS_DIR, req.params.id)
+    if (!p) return res.status(404).send('project not found')
+
+    const at = new Date().toISOString()
+    const id = typeof req.body?.id === 'string' && req.body.id.trim() ? req.body.id.trim() : `ana-${Date.now()}`
+
+    const entry = {
+      id,
+      at,
+      type: req.body?.type,
+      tags: req.body?.tags,
+      risks: req.body?.risks,
+      summary: typeof req.body?.summary === 'string' ? req.body.summary : '',
+    }
+
+    const next = { ...p.intake, analysis: [entry, ...(p.intake?.analysis ?? [])].slice(0, 50) }
+    const saved = await replaceIntake(PM_PROJECTS_DIR, req.params.id, next)
+    res.json(saved)
+  } catch (err) {
+    res.status(400).send(err?.message ?? 'invalid request')
+  }
+})
+
+app.post('/api/pm/projects/:id/intake/questions/generate', async (req, res) => {
+  try {
+    const p = await loadPmProject(PM_PROJECTS_DIR, req.params.id)
+    if (!p) return res.status(404).send('project not found')
+
+    const ideaText =
+      (typeof req.body?.idea === 'string' && req.body.idea.trim()) ||
+      p.intake?.idea?.[0]?.text ||
+      p.summary ||
+      ''
+
+    const generated = generateClarifyingQuestions({ idea: ideaText })
+    const questions = generated.map((q) => ({ id: q.id, category: q.category, prompt: q.prompt, answer: null }))
+
+    const next = { ...p.intake, questions }
+    const saved = await replaceIntake(PM_PROJECTS_DIR, req.params.id, next)
+    res.json(saved)
+  } catch (err) {
+    res.status(400).send(err?.message ?? 'invalid request')
+  }
+})
+
+app.post('/api/pm/projects/:id/intake/questions/:qid/answer', async (req, res) => {
+  try {
+    const p = await loadPmProject(PM_PROJECTS_DIR, req.params.id)
+    if (!p) return res.status(404).send('project not found')
+
+    const qid = req.params.qid
+    const text = typeof req.body?.text === 'string' ? req.body.text : ''
+
+    const at = new Date().toISOString()
+    const nextQuestions = (p.intake?.questions ?? []).map((q) =>
+      q.id === qid ? { ...q, answer: text.trim() ? { text, at, author: req.body?.author === 'ai' ? 'ai' : 'human' } : null } : q,
+    )
+
+    const saved = await replaceIntake(PM_PROJECTS_DIR, req.params.id, { ...p.intake, questions: nextQuestions })
+    res.json(saved)
+  } catch (err) {
+    res.status(400).send(err?.message ?? 'invalid request')
+  }
+})
+
+app.post('/api/pm/projects/:id/intake/requirements', async (req, res) => {
+  try {
+    const p = await loadPmProject(PM_PROJECTS_DIR, req.params.id)
+    if (!p) return res.status(404).send('project not found')
+
+    const text = typeof req.body?.text === 'string' ? req.body.text.trim() : ''
+    if (!text) return res.status(400).send('text required')
+
+    const at = new Date().toISOString()
+    const r = {
+      id: typeof req.body?.id === 'string' && req.body.id.trim() ? req.body.id.trim() : `req-${Date.now()}`,
+      at,
+      source: req.body?.source,
+      kind: req.body?.kind,
+      text,
+      citations: req.body?.citations,
+    }
+
+    const next = { ...p.intake, requirements: [r, ...(p.intake?.requirements ?? [])].slice(0, 500) }
+    const saved = await replaceIntake(PM_PROJECTS_DIR, req.params.id, next)
+    res.json(saved)
+  } catch (err) {
+    res.status(400).send(err?.message ?? 'invalid request')
+  }
+})
+
+// Activity
+app.post('/api/pm/projects/:id/activity', async (req, res) => {
+  try {
+    const item = await appendPmActivity(PM_PROJECTS_DIR, req.params.id, req.body ?? {})
+    if (!item) return res.status(404).send('project not found')
+    res.json(item)
+  } catch (err) {
+    res.status(400).send(err?.message ?? 'invalid request')
+  }
+})
+
+// One-way migration helper: convert existing /api/intake/projects records into PM projects.
+// This is best-effort and does NOT delete the legacy intake store.
+app.post('/api/pm/migrate/from-intake', async (_req, res) => {
+  const created = []
+  const skipped = []
+
+  for (const ip of intakeProjects ?? []) {
+    try {
+      const existing = await loadPmProject(PM_PROJECTS_DIR, ip.id)
+      if (existing) {
+        skipped.push({ id: ip.id, reason: 'already exists' })
+        continue
+      }
+
+      const intake = {
+        idea: [{ id: 'idea-1', at: ip.createdAt ?? new Date().toISOString(), author: 'human', text: ip.idea ?? '' }],
+        analysis: [],
+        questions: (ip.questions ?? []).map((q) => ({
+          id: q.id,
+          category: q.category,
+          prompt: q.prompt,
+          answer: q.answer && String(q.answer).trim() ? { text: q.answer, at: ip.updatedAt ?? new Date().toISOString(), author: 'human' } : null,
+        })),
+        requirements: [],
+      }
+
+      const tree = (ip.featureTree ?? []).map((n) => {
+        const mapPriority = (p) => (p === 'P0' ? 'p0' : p === 'P1' ? 'p1' : 'p2')
+        const walk = (x) => ({
+          id: x.id,
+          title: x.title,
+          summary: x.description,
+          status: 'planned',
+          priority: mapPriority(x.priority),
+          sources: [{ kind: 'idea', id: 'idea-1' }],
+          children: Array.isArray(x.children) ? x.children.map(walk) : [],
+        })
+        return walk(n)
+      })
+
+      const proj = await createPmProject(PM_PROJECTS_DIR, {
+        id: ip.id,
+        name: ip.title ?? ip.id,
+        summary: (ip.idea ?? '').slice(0, 280),
+        status: 'active',
+        tags: ip.tags ?? [],
+        owner: 'unknown',
+        links: [],
+        tree,
+        cards: [],
+        activity: [{ id: `a-${Date.now()}`, at: new Date().toISOString(), actor: 'system', text: 'Migrated from legacy intake project' }],
+        intake,
+      })
+
+      created.push({ id: proj.id })
+    } catch (err) {
+      skipped.push({ id: ip?.id, reason: err?.message ?? 'failed' })
+    }
+  }
+
+  res.json({ ok: true, created, skipped })
 })
 
 app.post('/api/control', async (req, res) => {

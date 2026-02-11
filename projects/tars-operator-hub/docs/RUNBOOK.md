@@ -30,13 +30,103 @@ The bridge is a small local Express server that:
 
 ### Bridge endpoints
 
+Core status:
+
 - `GET /healthz`
 - `GET /api/status`
+- `GET /api/live` (bridge-computed snapshot)
+
+Workspace code projects (enumerated from `~/.openclaw/workspace/projects/*`):
+
 - `GET /api/projects`
+
+Ops telemetry:
+
 - `GET /api/workers`
 - `GET /api/blockers`
 - `GET /api/activity?limit=200`
+
+Models/config:
+
+- `GET /api/models`
+- `POST /api/models/set`
+
+Rules:
+
+- `GET /api/rules`
+- `POST /api/rules`
+- `PUT /api/rules/:id`
+- `DELETE /api/rules/:id`
+- `POST /api/rules/:id/toggle`
+- `GET /api/rules/history?limit=200`
+
+Operator tasks:
+
+- `GET /api/tasks`
+- `POST /api/tasks`
+- `PUT /api/tasks/:id`
+
+Legacy intake (single JSON file; kept for compatibility):
+
+- `GET /api/intake/projects`
+- `GET /api/intake/projects/:id`
+- `POST /api/intake/projects`
+- `PUT /api/intake/projects/:id`
+- `POST /api/intake/projects/:id/generate-questions`
+- `POST /api/intake/projects/:id/generate-scope`
+- `GET /api/intake/projects/:id/export.md`
+
+Projects Hub (new; persisted under `~/.openclaw/workspace/.clawhub/projects/<projectId>/*`):
+
+- `GET /api/pm/projects` (list overviews)
+- `POST /api/pm/projects` (create)
+- `GET /api/pm/projects/:id` (full project)
+- `PUT /api/pm/projects/:id` (update)
+- `DELETE /api/pm/projects/:id` (soft-delete → `_trash/`)
+- `GET /api/pm/projects/:id/export.json`
+- `GET /api/pm/projects/:id/export.md`
+
+  Feature tree:
+  - `GET /api/pm/projects/:id/tree`
+  - `POST /api/pm/projects/:id/tree/nodes`
+  - `PUT /api/pm/projects/:id/tree/nodes/:nodeId`
+  - `DELETE /api/pm/projects/:id/tree/nodes/:nodeId`
+
+  Kanban:
+  - `GET /api/pm/projects/:id/cards`
+  - `POST /api/pm/projects/:id/cards`
+  - `PUT /api/pm/projects/:id/cards/:cardId`
+  - `DELETE /api/pm/projects/:id/cards/:cardId`
+
+  Intake artifacts:
+  - `GET /api/pm/projects/:id/intake`
+  - `PUT /api/pm/projects/:id/intake`
+  - `POST /api/pm/projects/:id/intake/idea` (append idea version)
+  - `POST /api/pm/projects/:id/intake/analysis` (append analysis)
+  - `POST /api/pm/projects/:id/intake/questions/generate`
+  - `POST /api/pm/projects/:id/intake/questions/:qid/answer`
+  - `POST /api/pm/projects/:id/intake/requirements`
+
+  Activity:
+  - `POST /api/pm/projects/:id/activity`
+
+Migration helper:
+
+- `POST /api/pm/migrate/from-intake` (best-effort import; does **not** delete legacy intake data)
+
+Controls:
+
 - `POST /api/control` (expects a JSON `ControlAction`)
+
+## Persistence
+
+Bridge state is local-first and stored in `~/.openclaw/workspace/.clawhub/`:
+
+- `activity.json` (UI activity feed)
+- `rules.json` + `rule-history.json`
+- `tasks.json`
+- `intake-projects.json` (legacy intake)
+- `projects/` (Projects Hub; one folder per project)
 
 ## Troubleshooting
 
