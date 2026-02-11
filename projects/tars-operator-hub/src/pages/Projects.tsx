@@ -1,5 +1,6 @@
-import React, { useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import type { Adapter } from '../adapters/adapter'
+import type { PMProject, PMTreeNode, PMCard, PMIntake } from '../types'
 import { Badge } from '../components/Badge'
 
 function FeedItem({
@@ -60,6 +61,7 @@ type IntakeQuestion = {
   id: string
   category: string
   prompt: string
+  required?: boolean
   answer: { text: string; at: string; author: 'human' | 'ai' } | null
 }
 
@@ -805,9 +807,11 @@ function Overview({ project }: { project: Project }) {
 function NewProjectWizard({
   onClose,
   onCreate,
+  adapter,
 }: {
   onClose: () => void
   onCreate: (p: Project) => void
+  adapter: Adapter
 }) {
   const [mode, setMode] = useState<'choose' | 'import' | 'idea' | 'analysis' | 'questions' | 'review'>('choose')
   const [projectName, setProjectName] = useState('')
@@ -1028,7 +1032,7 @@ function NewProjectWizard({
     setMode('analysis')
   }
 
-  const createProject = () => {
+  const createProject = async () => {
     const createdAt = nowIso()
 
     const intake: ProjectIntake = {
@@ -1038,25 +1042,104 @@ function NewProjectWizard({
       requirements: [],
     }
 
-    const p: Project = {
-      id: `p-${id()}`,
-      name: projectName.trim() || 'New project',
-      summary: ideaText.trim().slice(0, 140) + (ideaText.trim().length > 140 ? '…' : ''),
-      status: 'active',
-      tags: analysis?.tags ?? ['hybrid'],
-      owner: 'Logan',
-      updatedAt: createdAt,
-      links: [],
-      intake,
-      tree: makeSeedTree(analysis?.type ?? 'hybrid', [{ kind: 'idea', id: 'idea-1' }]),
-      cards: [
-        { id: `c-${id()}`, title: 'Review intake answers + confirm scope', priority: 'p0', column: 'todo', owner: 'Logan', featureId: 'feat-scope' },
-        { id: `c-${id()}`, title: 'Turn tree nodes into detailed feature specs', priority: 'p1', column: 'todo', owner: 'TARS', featureId: 'sec-app' },
-      ],
-      activity: [{ id: `a-${id()}`, at: createdAt, actor: 'Logan', text: 'Created project via intake wizard' }],
-    }
+    try {
+      // Create PM project via adapter
+      const pmProject = await adapter.createPMProject({
+        name: projectName.trim() || 'New project',
+        summary: ideaText.trim().slice(0, 140) + (ideaText.trim().length > 140 ? '…' : ''),
+        status: 'active',
+        tags: analysis?.tags ?? ['hybrid'],
+        owner: 'Logan',
+      })
 
-    onCreate(p)
+      // Add intake idea
+      await adapter.addPMIdeaVersion(pmProject.id, ideaText.trim())
+
+      // Add intake analysis if present
+      if (analysis) {
+        await adapter.addPMAnalysis(pmProject.id, analysis.summary, [])
+      }
+
+      // Set questions if any
+      if (questions.length) {
+        const pmIntake = await adapter.getPMIntake(pmProject.id)
+        await adapter.setPMIntake(pmProject.id, {
+          ...pmIntake,
+          questions: questions.map(q => ({
+            id: q.id,
+            category: q.category,
+            prompt: q.prompt,
+            required: q.required ?? true,
+            answer: q.answer?.text ?? '',
+            answeredAt: q.answer?.at,
+          })),
+        })
+      }
+
+      // Create seed tree nodes
+      const seedTree = makeSeedTree(analysis?.type ?? 'hybrid', [{ kind: 'idea', id: 'idea-1' }])
+      for (const node of seedTree) {
+        await adapter.createPMTreeNode(pmProject.id, {
+          title: node.title,
+          description: node.summary,
+          status: 'draft',
+          priority: node.priority.toUpperCase() as 'P0' | 'P1' | 'P2',
+          tags: node.tags ?? [],
+        })
+      }
+
+      // Create seed cards
+      const seedCards = [
+        { title: 'Review intake answers + confirm scope', priority: 'P0' as const, lane: 'proposed' as const, owner: 'Logan' },
+        { title: 'Turn tree nodes into detailed feature specs', priority: 'P1' as const, lane: 'proposed' as const, owner: 'TARS' },
+      ]
+      for (const card of seedCards) {
+        await adapter.createPMCard(pmProject.id, {
+          featureId: '',
+          title: card.title,
+          lane: card.lane,
+          priority: card.priority,
+          owner: card.owner,
+        })
+      }
+
+      // Add activity
+      await adapter.addPMActivity(pmProject.id, {
+        actor: 'Logan',
+        action: 'Created project via intake wizard',
+      })
+
+      // Build the local Project object for immediate UI update
+      const [tree, cards, pmIntake] = await Promise.all([
+        adapter.getPMTree(pmProject.id),
+        adapter.listPMCards(pmProject.id),
+        adapter.getPMIntake(pmProject.id),
+      ])
+
+      const p = pmToProject(pmProject, tree, cards, pmIntake)
+      onCreate(p)
+    } catch (err) {
+      console.error('Failed to create project via adapter:', err)
+      // Fall back to local-only creation
+      const p: Project = {
+        id: `p-${id()}`,
+        name: projectName.trim() || 'New project',
+        summary: ideaText.trim().slice(0, 140) + (ideaText.trim().length > 140 ? '…' : ''),
+        status: 'active',
+        tags: analysis?.tags ?? ['hybrid'],
+        owner: 'Logan',
+        updatedAt: createdAt,
+        links: [],
+        intake,
+        tree: makeSeedTree(analysis?.type ?? 'hybrid', [{ kind: 'idea', id: 'idea-1' }]),
+        cards: [
+          { id: `c-${id()}`, title: 'Review intake answers + confirm scope', priority: 'p0', column: 'todo', owner: 'Logan', featureId: 'feat-scope' },
+          { id: `c-${id()}`, title: 'Turn tree nodes into detailed feature specs', priority: 'p1', column: 'todo', owner: 'TARS', featureId: 'sec-app' },
+        ],
+        activity: [{ id: `a-${id()}`, at: createdAt, actor: 'Logan', text: 'Created project via intake wizard' }],
+      }
+      onCreate(p)
+    }
   }
 
   const fileCount = files.length
@@ -1322,15 +1405,160 @@ function NewProjectWizard({
   )
 }
 
-export function Projects({ adapter: _adapter }: { adapter: Adapter }) {
-  const [projects, setProjects] = useState<Project[]>(() => fakeProjects())
-  const [activeId, setActiveId] = useState(projects[0]?.id ?? null)
+// Convert PM data to internal Project format
+function pmToProject(
+  pm: PMProject,
+  tree: PMTreeNode[],
+  cards: PMCard[],
+  intake: PMIntake
+): Project {
+  // Convert PM tree nodes to internal FeatureNode format
+  const convertNode = (n: PMTreeNode): FeatureNode => ({
+    id: n.id,
+    title: n.title,
+    summary: n.description,
+    status: n.status === 'done' ? 'done' : n.status === 'in-progress' ? 'in_progress' : n.status === 'ready' ? 'planned' : 'planned',
+    priority: n.priority?.toLowerCase() as FeatureNode['priority'] ?? 'p2',
+    tags: n.tags,
+    owner: n.owner,
+    children: n.children?.map(convertNode) ?? [],
+    dependsOn: n.dependsOn,
+    sources: n.sources?.map(s => ({ kind: 'question' as const, id: s.questionId })),
+  })
+
+  // Build tree hierarchy from flat nodes
+  const nodeMap = new Map<string, PMTreeNode>()
+  for (const n of tree) nodeMap.set(n.id, n)
+  
+  const rootNodes = tree.filter(n => !n.parentId)
+  const buildChildren = (parentId: string): PMTreeNode[] => 
+    tree.filter(n => n.parentId === parentId).map(n => ({
+      ...n,
+      children: buildChildren(n.id)
+    }))
+  
+  const treeWithChildren = rootNodes.map(n => ({
+    ...n,
+    children: buildChildren(n.id)
+  }))
+
+  // Convert cards
+  const convertCard = (c: PMCard): KanbanCard => ({
+    id: c.id,
+    title: c.title,
+    featureId: c.featureId,
+    owner: c.owner,
+    priority: c.priority?.toLowerCase() as KanbanCard['priority'] ?? 'p2',
+    column: c.lane === 'done' ? 'done' : c.lane === 'development' ? 'in_progress' : c.lane === 'blocked' ? 'blocked' : 'todo',
+  })
+
+  // Convert intake
+  const projectIntake: ProjectIntake = {
+    idea: intake.ideas.map(i => ({
+      id: i.id,
+      at: i.createdAt,
+      author: 'human' as const,
+      text: i.text,
+    })),
+    analysis: intake.analyses.map(a => ({
+      id: a.id,
+      at: a.createdAt,
+      type: 'software' as const,
+      tags: [],
+      risks: [],
+      summary: a.summary,
+    })),
+    questions: intake.questions.map(q => ({
+      id: q.id,
+      category: q.category,
+      prompt: q.prompt,
+      answer: q.answer ? { text: q.answer, at: q.answeredAt ?? '', author: 'human' as const } : null,
+    })),
+    requirements: intake.requirements.map(r => ({
+      id: r.id,
+      at: r.createdAt,
+      source: 'human' as const,
+      kind: 'goal' as const,
+      text: r.text,
+      citations: r.sources?.map(s => ({ kind: 'question' as const, id: s.questionId })),
+    })),
+  }
+
+  return {
+    id: pm.id,
+    name: pm.name,
+    summary: pm.summary ?? '',
+    status: pm.status === 'completed' ? 'archived' : pm.status === 'paused' ? 'paused' : 'active',
+    tags: pm.tags,
+    owner: pm.owner ?? '',
+    updatedAt: pm.updatedAt,
+    links: pm.links,
+    tree: treeWithChildren.map(convertNode),
+    cards: cards.map(convertCard),
+    activity: [],
+    intake: projectIntake,
+  }
+}
+
+export function Projects({ adapter }: { adapter: Adapter }) {
+  const [projects, setProjects] = useState<Project[]>([])
+  const [loading, setLoading] = useState(true)
+  const [activeId, setActiveId] = useState<string | null>(null)
   const [tab, setTab] = useState<ProjectTab>('Overview')
   const [drawer, setDrawer] = useState<FeatureNode | null>(null)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [showNewProject, setShowNewProject] = useState(false)
 
+  // Load projects from adapter
+  const loadProjects = useCallback(async () => {
+    try {
+      setLoading(true)
+      const pmProjects = await adapter.listPMProjects()
+      
+      // Load full data for each project
+      const fullProjects: Project[] = await Promise.all(
+        pmProjects.map(async (pm) => {
+          const [tree, cards, intake] = await Promise.all([
+            adapter.getPMTree(pm.id),
+            adapter.listPMCards(pm.id),
+            adapter.getPMIntake(pm.id),
+          ])
+          return pmToProject(pm, tree, cards, intake)
+        })
+      )
+      
+      setProjects(fullProjects)
+      if (fullProjects.length && !activeId) {
+        setActiveId(fullProjects[0].id)
+      }
+    } catch (err) {
+      console.error('Failed to load projects:', err)
+      // Fall back to fake data for demo/mock mode
+      const fake = fakeProjects()
+      setProjects(fake)
+      if (fake.length && !activeId) {
+        setActiveId(fake[0].id)
+      }
+    } finally {
+      setLoading(false)
+    }
+  }, [adapter, activeId])
+
+  useEffect(() => {
+    loadProjects()
+  }, [loadProjects])
+
   const active = useMemo(() => projects.find((p) => p.id === activeId) ?? projects[0] ?? null, [projects, activeId])
+
+  if (loading) {
+    return (
+      <main className="projects-layout">
+        <div className="panel span-4" style={{ padding: 24, textAlign: 'center' }}>
+          <p className="muted">Loading projects...</p>
+        </div>
+      </main>
+    )
+  }
 
   return (
     <main className={`projects-layout ${sidebarCollapsed ? 'collapsed' : ''}`}>
@@ -1423,6 +1651,7 @@ export function Projects({ adapter: _adapter }: { adapter: Adapter }) {
 
       {showNewProject ? (
         <NewProjectWizard
+          adapter={adapter}
           onClose={() => setShowNewProject(false)}
           onCreate={(p) => {
             setProjects((prev) => [p, ...prev])
