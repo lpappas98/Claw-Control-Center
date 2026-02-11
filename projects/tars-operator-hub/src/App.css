@@ -815,8 +815,30 @@ button.home-task.clickable:focus {
   width: min(560px, 100%);
 }
 
+.import-form {
+  display: grid;
+}
+
+.import-row {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 12px;
+  align-items: center;
+}
+
+.import-label {
+  border: 1px solid #242b45;
+  background: rgba(22, 27, 47, 0.8);
+  border-radius: 12px;
+  padding: 0.55rem 0.65rem;
+  text-align: center;
+  font-weight: 900;
+  color: #cfd5ec;
+  line-height: 1.05;
+}
+
 .import-dropzone {
-  border: 1px dashed #2a3046;
+  border: 1px solid #242b45;
   border-radius: 14px;
   background: rgba(11, 15, 31, 0.55);
   padding: 1rem;

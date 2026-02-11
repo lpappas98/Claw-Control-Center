@@ -814,7 +814,6 @@ function NewProjectWizard({
   const [projectDesc, setProjectDesc] = useState('')
   const [ideaText, setIdeaText] = useState('')
 
-  const [importMode, setImportMode] = useState<'folder' | 'git'>('folder')
   const [gitUrl, setGitUrl] = useState('')
   const [files, setFiles] = useState<File[]>([])
 
@@ -1101,22 +1100,22 @@ function NewProjectWizard({
               <div className="panel" style={{ padding: 14 }}>
                 <h4 style={{ marginTop: 0 }}>Import project (mock)</h4>
 
-                <label className="muted" style={{ marginTop: 10 }}>Project name</label>
-                <input className="input" value={projectName} onChange={(e) => setProjectName(e.target.value)} placeholder="e.g. Trips App" />
+                <div className="import-form" style={{ marginTop: 10 }}>
+                  <div className="import-row">
+                    <div className="import-label">Project<br/>Name</div>
+                    <input className="input" value={projectName} onChange={(e) => setProjectName(e.target.value)} placeholder="e.g. Trips App" />
+                  </div>
 
-                <label className="muted" style={{ marginTop: 10 }}>Description (optional)</label>
-                <textarea className="input" rows={3} value={projectDesc} onChange={(e) => setProjectDesc(e.target.value)} placeholder="Short description…" />
+                  <div className="field" style={{ marginTop: 12 }}>
+                    <label className="muted">Description (optional)</label>
+                    <textarea className="input" rows={3} value={projectDesc} onChange={(e) => setProjectDesc(e.target.value)} placeholder="Short description…" />
+                  </div>
 
-                <div className="stack-h" style={{ marginTop: 10 }}>
-                  <button className={`btn ghost ${importMode === 'folder' ? 'active' : ''}`} type="button" onClick={() => setImportMode('folder')}>
-                    Local folder
-                  </button>
-                  <button className={`btn ghost ${importMode === 'git' ? 'active' : ''}`} type="button" onClick={() => setImportMode('git')}>
-                    Git URL
-                  </button>
-                </div>
+                  <div className="import-row" style={{ marginTop: 12 }}>
+                    <div className="import-label">Import<br/>From Git</div>
+                    <input className="input" value={gitUrl} onChange={(e) => setGitUrl(e.target.value)} placeholder="e.g. HTTPS://Github.com/Project" />
+                  </div>
 
-                {importMode === 'folder' ? (
                   <div
                     className="import-dropzone"
                     onDragOver={(e) => e.preventDefault()}
@@ -1146,35 +1145,27 @@ function NewProjectWizard({
                       Selected: <strong>{fileCount}</strong> file(s)
                     </div>
                   </div>
-                ) : (
-                  <div style={{ marginTop: 12 }}>
-                    <label className="muted">Git repository URL</label>
-                    <input className="input" value={gitUrl} onChange={(e) => setGitUrl(e.target.value)} placeholder="https://github.com/user/repo" />
-                    <div className="muted" style={{ marginTop: 8, fontSize: 12 }}>
-                      (mock) Later we can support auth tokens and branch selection.
-                    </div>
-                  </div>
-                )}
+                </div>
 
                 <div className="stack-h" style={{ marginTop: 14, justifyContent: 'flex-end' }}>
                   <button className="btn ghost" type="button" onClick={() => setMode('choose')}>Back</button>
                   <button
                     className="btn"
                     type="button"
-                    disabled={!projectName.trim() || (importMode === 'folder' ? !fileCount : !gitUrl.trim())}
+                    disabled={!projectName.trim() || (!fileCount && !gitUrl.trim())}
                     onClick={() => {
                       const createdAt = nowIso()
                       onCreate({
                         id: `p-${id()}`,
                         name: projectName.trim(),
-                        summary: projectDesc.trim() || (importMode === 'git' ? `(mock) Imported from ${gitUrl.trim()}` : '(mock) Imported from local folder'),
+                        summary: projectDesc.trim() || (gitUrl.trim() ? `(mock) Imported from ${gitUrl.trim()}` : '(mock) Imported from local folder'),
                         status: 'active',
-                        tags: [importMode === 'git' ? 'git' : 'folder', 'imported'],
+                        tags: [gitUrl.trim() ? 'git' : 'folder', 'imported'],
                         owner: 'Logan',
                         updatedAt: createdAt,
-                        links: importMode === 'git' ? [{ label: 'Repo', url: gitUrl.trim() }] : [],
+                        links: gitUrl.trim() ? [{ label: 'Repo', url: gitUrl.trim() }] : [],
                         intake: {
-                          idea: [{ id: 'idea-1', at: createdAt, author: 'human', text: importMode === 'git' ? `(import) ${gitUrl.trim()}` : '(import) Local folder import.' }],
+                          idea: [{ id: 'idea-1', at: createdAt, author: 'human', text: gitUrl.trim() ? `(import) ${gitUrl.trim()}` : '(import) Local folder import.' }],
                           analysis: [],
                           questions: [],
                           requirements: [],
