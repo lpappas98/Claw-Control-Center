@@ -617,7 +617,17 @@ function TreeView({ project, onOpen }: { project: Project; onOpen: (n: FeatureNo
   )
 }
 
-function KanbanBoard({ project, onOpenFeature }: { project: Project; onOpenFeature: (n: FeatureNode) => void }) {
+function KanbanBoard({ 
+  project, 
+  onOpenFeature,
+  adapter,
+  onCardMoved,
+}: { 
+  project: Project
+  onOpenFeature: (n: FeatureNode) => void
+  adapter?: Adapter
+  onCardMoved?: (cardId: string, newColumn: KanbanColumnId) => void
+}) {
   const [cards, setCards] = useState<KanbanCard[]>(() => project.cards)
 
   const byCol = useMemo(() => {
@@ -633,11 +643,30 @@ function KanbanBoard({ project, onOpenFeature }: { project: Project; onOpenFeatu
     { id: 'done', title: 'Done', hint: 'Shipped' },
   ]
 
-  const onDrop = (col: KanbanColumnId, ev: React.DragEvent) => {
+  const onDrop = async (col: KanbanColumnId, ev: React.DragEvent) => {
     ev.preventDefault()
     const id = ev.dataTransfer.getData('text/kanban-card')
     if (!id) return
+    
+    // Update local state immediately for responsiveness
     setCards((prev) => prev.map((c) => (c.id === id ? { ...c, column: col } : c)))
+    
+    // Persist via adapter if available
+    if (adapter && project.id) {
+      try {
+        // Map column to BoardLane
+        const laneMap: Record<KanbanColumnId, import('../types').BoardLane> = {
+          todo: 'proposed',
+          in_progress: 'development',
+          blocked: 'blocked',
+          done: 'done',
+        }
+        await adapter.updatePMCard(project.id, { id, lane: laneMap[col] })
+        onCardMoved?.(id, col)
+      } catch (err) {
+        console.error('Failed to persist card move:', err)
+      }
+    }
   }
 
   const openFeatureForCard = (c: KanbanCard) => {
@@ -1637,7 +1666,7 @@ export function Projects({ adapter }: { adapter: Adapter }) {
             <div className="projects-main-body">
               {tab === 'Overview' ? <Overview project={active} /> : null}
               {tab === 'Tree' ? <TreeView project={active} onOpen={(n) => setDrawer(n)} /> : null}
-              {tab === 'Kanban' ? <KanbanBoard project={active} onOpenFeature={(n) => setDrawer(n)} /> : null}
+              {tab === 'Kanban' ? <KanbanBoard project={active} onOpenFeature={(n) => setDrawer(n)} adapter={adapter} /> : null}
             </div>
 
             <div className="projects-main-footer">
