@@ -9,8 +9,8 @@
 ## Quick Deploy
 
 ```bash
-# Navigate to project
-cd ~/.openclaw/workspace/projects/tars-operator-hub
+# Navigate to project root
+cd /path/to/claw-control-center
 
 # Install dependencies (if not done)
 npm install --include=dev

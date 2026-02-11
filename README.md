@@ -1,63 +1,112 @@
-# TARS Operator Hub (local)
+# Claw Control Center
 
-Single-user local operator UI for managing assistant operations.
+Web-based control center for managing OpenClaw instances and operations.
 
-## What it does
+## Features
 
-- **Mission Control**: system status panels (gateway/nodes/relay), worker heartbeat visualization, blockers + remediation commands, and a controls scaffold.
-- **Projects**: list projects under `~/.openclaw/workspace/projects` (via optional bridge).
-- **Activity**: clear, filterable activity feed.
+- **Mission Control**: View connected OpenClaw instances with real-time status
+- **Tasks**: Manage tasks across all connected instances
+- **Projects**: PM Projects with tree view, kanban boards, and feature-level intake
+- **Activity**: Filterable activity feed across all operations
+- **Connect**: Token-based connection flow for OpenClaw instances
 
-This project is **local-only** and does **not** use Firestore.
+## Tech Stack
 
-## Run
+- **Frontend**: React + TypeScript + Vite
+- **Backend**: Firebase (Firestore + Cloud Functions + Hosting + Auth)
+- **Deployment**: Automated via GitHub Actions → Firebase Hosting
 
-### 1) Start the optional bridge (recommended)
+## Live Site
 
-The bridge runs on `http://localhost:8787` and provides `/api/*` endpoints by shelling out to `openclaw` and reading workspace files.
+🌐 **https://claw-control-center.web.app**
+
+## Local Development
+
+### 1) Install dependencies
 
 ```bash
-cd ~/.openclaw/workspace/projects/tars-operator-hub
 npm install
-npm run bridge
 ```
 
-### 2) Start the UI
+### 2) Start dev server
 
 ```bash
-cd ~/.openclaw/workspace/projects/tars-operator-hub
 npm run dev
 ```
 
-Open the URL printed by Vite.
+Open the URL printed by Vite (usually `http://localhost:5173`).
 
-## Runbook
-
-See [`docs/RUNBOOK.md`](docs/RUNBOOK.md) for troubleshooting and operational notes.
-
-## Notes
-
-- The bridge currently has **real gateway status + gateway controls**.
-- Node + browser relay telemetry are scaffolded and will be wired to canonical APIs once available.
-- Worker heartbeats are read from (first match):
-  - `~/.openclaw/workspace/worker-heartbeats.json`
-  - `~/.openclaw/workspace/.clawhub/worker-heartbeats.json`
-
-### Demo: generate fake worker heartbeats
-
-If you want to see worker cards light up without running real agents:
+### 3) Preview production build
 
 ```bash
-cd ~/.openclaw/workspace/projects/tars-operator-hub
-npm run beats
-```
-
-This writes `~/.openclaw/workspace/.clawhub/worker-heartbeats.json` on an interval.
-
-## Build / lint / test
-
-```bash
-npm run lint
-npm run test
 npm run build
+npm run preview
 ```
+
+## Firebase Setup
+
+The project uses Firebase for:
+- **Firestore**: Data storage (tasks, projects, activity, connections)
+- **Cloud Functions**: API layer for secure operations
+- **Firebase Auth**: Google OAuth authentication
+- **Hosting**: Static site hosting
+
+Firebase project: `claw-control-center`
+
+## Cloud Functions
+
+API endpoints for OpenClaw instance connections:
+
+- `POST /connect` - Validate token and establish connection
+- `POST /heartbeat` - Update instance status
+- `POST /disconnect` - Remove connection
+- `GET /getTasks` - Fetch user tasks
+- `POST /createTask` - Create new task
+- `PATCH /updateTask` - Update existing task
+- `GET /getProjects` - Fetch user projects
+- `POST /logActivity` - Log activity event
+- `POST /migrate` - Migrate legacy data
+
+See `functions/src/index.ts` for implementation.
+
+## OpenClaw Client
+
+The `openclaw-client/` directory contains the connection library for OpenClaw instances.
+
+**Usage:**
+```typescript
+import { connectToControlCenter, sendHeartbeat } from './openclaw-client/connection'
+
+// Connect with code from Control Center
+const result = await connectToControlCenter('CODE123', 'My Instance', {
+  version: '1.0.0',
+  os: 'Linux',
+  node: 'v22.0.0'
+})
+
+if (result.success) {
+  // Start heartbeat
+  setInterval(() => sendHeartbeat(result.instanceId!), 60000)
+}
+```
+
+## Documentation
+
+- **[Operator Guide](docs/OPERATOR_GUIDE.md)** - How to use the Control Center
+- **[Operator Manual](docs/OPERATOR_MANUAL.md)** - Step-by-step instructions
+- **[Operators Overview](docs/OPERATORS.md)** - What operators can do
+- **[Deployment](docs/DEPLOY.md)** - Deployment procedures
+- **[Runbook](docs/RUNBOOK.md)** - Troubleshooting and operations
+
+## Build / Lint / Test
+
+```bash
+npm run lint          # Run ESLint
+npm run test          # Run tests
+npm run build         # Build for production
+npm run preview       # Preview production build
+```
+
+## License
+
+Private project - not for public distribution.

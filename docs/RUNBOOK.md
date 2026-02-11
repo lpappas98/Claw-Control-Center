@@ -8,7 +8,7 @@ This UI is intended for **single-user local operations**.
 ## Quick start
 
 ```bash
-cd ~/.openclaw/workspace/projects/tars-operator-hub
+cd /path/to/claw-control-center
 npm install
 
 # terminal 1
@@ -141,7 +141,7 @@ curl -sS http://localhost:8787/healthz
 2) If that fails, start it:
 
 ```bash
-cd ~/.openclaw/workspace/projects/tars-operator-hub
+cd /path/to/claw-control-center
 npm run bridge
 ```
 
