@@ -1,11 +1,16 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useMemo } from 'react'
 import type { Adapter } from '../adapters/adapter'
 import type { AdapterConfig } from '../lib/adapterState'
 import { usePoll } from '../lib/usePoll'
 import { Badge } from '../components/Badge'
-import { CopyButton } from '../components/CopyButton'
-import { Sparkline } from '../components/Sparkline'
-import type { ControlAction, ControlResult, LiveSnapshot } from '../types'
+import type { ActivityEvent, LiveSnapshot } from '../types'
+
+type HomeTask = {
+  id: string
+  title: string
+  lane: 'working' | 'sleeping' | 'blocked'
+  agent: string
+}
 
 function fmtAgo(iso?: string) {
   if (!iso) return '—'
@@ -16,18 +21,20 @@ function fmtAgo(iso?: string) {
   return `${Math.round(ms / 3_600_000)}h ago`
 }
 
-function fmtAgeMs(ms?: number) {
-  if (ms === undefined || ms === null) return '—'
-  if (!Number.isFinite(ms)) return '—'
-  if (ms < 60_000) return `${Math.round(ms / 1000)}s`
-  if (ms < 3_600_000) return `${Math.round(ms / 60_000)}m`
-  return `${Math.round(ms / 3_600_000)}h`
+function agentProfile(slot: string, fallback?: string) {
+  if (slot === 'dev-1') return { name: 'Forge', role: 'Developer' }
+  if (slot === 'dev-2') return { name: 'Patch', role: 'Developer' }
+  if (slot === 'qa') return { name: 'Sentinel', role: 'QA' }
+  if (slot === 'architect') return { name: 'Blueprint', role: 'Architect' }
+  return { name: fallback ?? slot, role: 'Agent' }
+}
+
+function homeStatus(status: string) {
+  return status === 'active' ? 'working' : 'sleeping'
 }
 
 export function MissionControl({
   adapter,
-  cfg,
-  onCfg,
 }: {
   adapter: Adapter
   cfg: AdapterConfig
@@ -46,43 +53,62 @@ export function MissionControl({
   }, [adapter])
 
   const live = usePoll(liveFn, 5000)
-  const status = live.data?.status
-  const workers = live.data?.workers
-  const blockers = live.data?.blockers
-  const watchdog = live.data?.watchdog
+  const activity = usePoll<ActivityEvent[]>(() => adapter.listActivity(40), 7000)
 
-  const [controlBusy, setControlBusy] = useState<string | null>(null)
-  const [controlResult, setControlResult] = useState<(ControlResult & { kind: string }) | null>(null)
+  const agents = useMemo(() => {
+    return (live.data?.workers ?? []).map((w) => {
+      const profile = agentProfile(w.slot, w.label)
+      return {
+        id: w.slot,
+        name: profile.name,
+        role: profile.role,
+        status: homeStatus(w.status),
+        rawStatus: w.status,
+        task: w.task ?? 'No active task',
+        lastBeatAt: w.lastBeatAt,
+      }
+    })
+  }, [live.data?.workers])
 
-  const controlsEnabled = cfg.kind === 'bridge'
+  const tasks = useMemo<HomeTask[]>(() => {
+    const workerTasks: HomeTask[] = (live.data?.workers ?? [])
+      .filter((w) => !!w.task)
+      .map((w, idx) => {
+        const profile = agentProfile(w.slot, w.label)
+        return {
+          id: `${w.slot}-${idx}`,
+          title: w.task ?? 'Untitled task',
+          lane: w.status === 'active' ? 'working' : 'sleeping',
+          agent: profile.name,
+        }
+      })
 
-  const workerSummary = useMemo(() => {
-    const list = workers ?? []
-    const counts = { active: 0, waiting: 0, stale: 0, offline: 0 }
-    for (const w of list) counts[w.status] = (counts[w.status] ?? 0) + 1
-    return counts
-  }, [workers])
+    const blockerTasks: HomeTask[] = (live.data?.blockers ?? []).map((b) => ({
+      id: `blocker-${b.id}`,
+      title: b.title,
+      lane: 'blocked',
+      agent: 'Unassigned',
+    }))
 
-  async function run(action: ControlAction) {
-    setControlResult(null)
-    setControlBusy(action.kind)
-    try {
-      const res = await adapter.runControl(action)
-      setControlResult({ ...res, kind: action.kind })
-    } catch (e) {
-      setControlResult({ ok: false, message: e instanceof Error ? e.message : String(e), kind: action.kind })
-    } finally {
-      setControlBusy(null)
-    }
-  }
+    return [...workerTasks, ...blockerTasks]
+  }, [live.data?.workers, live.data?.blockers])
+
+  const lanes = useMemo(
+    () => ({
+      working: tasks.filter((t) => t.lane === 'working'),
+      sleeping: tasks.filter((t) => t.lane === 'sleeping'),
+      blocked: tasks.filter((t) => t.lane === 'blocked'),
+    }),
+    [tasks],
+  )
 
   return (
     <main className="main-grid">
-      <section className="panel span-3">
+      <section className="panel span-4">
         <div className="panel-header">
           <div>
-            <h2>Mission Control</h2>
-            <p className="muted">Live operator visibility (local mode). Polling every few seconds.</p>
+            <h2>Home</h2>
+            <p className="muted">Active agents, current tasks, and unified activity feed.</p>
           </div>
           <div className="right" style={{ textAlign: 'right' }}>
             <div className="muted">updated: {live.data?.updatedAt ? new Date(live.data.updatedAt).toLocaleTimeString() : '—'}</div>
@@ -94,239 +120,78 @@ export function MissionControl({
 
         {live.error && (
           <div className="callout warn">
-            <strong>Status adapter error:</strong> {live.error.message}
-            {cfg.kind === 'bridge' && (
-              <div className="stack-h">
-                <CopyButton text={`cd ~/.openclaw/workspace/projects/tars-operator-hub && npm run bridge`} label="Copy bridge start" />
-                <button className="btn ghost" type="button" onClick={() => onCfg({ kind: 'mock' })}>
-                  Switch to mock
-                </button>
-              </div>
-            )}
+            <strong>Live snapshot error:</strong> {live.error.message}
           </div>
         )}
 
-        <div className="grid-3">
-          <div className="stat-card">
-            <div className="stat-title">Gateway</div>
-            <div className="stat-value">
-              <Badge kind={status?.gateway.health ?? 'unknown'} />
-            </div>
-            <div className="muted">{status?.gateway.summary ?? '—'}</div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-title">Nodes</div>
-            <div className="stat-value">
-              <Badge kind={status?.nodes.health ?? 'unknown'} />
-            </div>
-            <div className="muted">
-              paired: {status?.nodes.pairedCount ?? 0} · pending: {status?.nodes.pendingCount ?? 0}
-            </div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-title">Browser Relay</div>
-            <div className="stat-value">
-              <Badge kind={status?.browserRelay.health ?? 'unknown'} />
-            </div>
-            <div className="muted">attached tabs: {status?.browserRelay.attachedTabs ?? 0}</div>
-          </div>
-        </div>
-      </section>
-
-      <section className="panel">
-        <h3>Controls (scaffold)</h3>
-        <p className="muted">Bridge-backed controls only. Mock adapter is read-only.</p>
-        {!controlsEnabled && <div className="callout warn">Controls disabled: switch Adapter to Bridge.</div>}
-        <div className="stack">
-          <button className="btn" disabled={!controlsEnabled || !!controlBusy} onClick={() => run({ kind: 'gateway.restart' })} type="button">
-            {controlBusy === 'gateway.restart' ? 'Restarting…' : 'Restart gateway'}
-          </button>
-          <div className="stack-h">
-            <button className="btn ghost" disabled={!controlsEnabled || !!controlBusy} onClick={() => run({ kind: 'gateway.start' })} type="button">
-              Start
-            </button>
-            <button className="btn ghost" disabled={!controlsEnabled || !!controlBusy} onClick={() => run({ kind: 'gateway.stop' })} type="button">
-              Stop
-            </button>
-          </div>
-          <button className="btn ghost" disabled={!controlsEnabled || !!controlBusy} onClick={() => run({ kind: 'nodes.refresh' })} type="button">
-            Refresh nodes
-          </button>
-          {controlResult && (
-            <div className={`callout ${controlResult.ok ? '' : 'warn'}`}>
-              <div className="stack-h">
-                <strong>{controlResult.ok ? 'OK' : 'FAILED'}:</strong>
-                <span>{controlResult.kind}</span>
-                <span className="muted">· {controlResult.message}</span>
+        <div className="agent-strip">
+          {agents.map((agent) => (
+            <article className="agent-card" key={agent.id}>
+              <div className="agent-head">
+                <div>
+                  <div className="agent-name">{agent.name}</div>
+                  <div className="agent-role muted">{agent.role}</div>
+                </div>
+                <Badge kind={agent.rawStatus} />
               </div>
-              {controlResult.output && (
-                <details>
-                  <summary className="muted">output</summary>
-                  <pre className="code">{controlResult.output}</pre>
-                  <CopyButton text={controlResult.output} label="Copy output" />
-                </details>
-              )}
-            </div>
-          )}
+              <div className="agent-mode">{agent.status === 'working' ? 'Working' : 'Sleeping'}</div>
+              <div className="muted">{agent.task}</div>
+              <div className="muted">heartbeat: {fmtAgo(agent.lastBeatAt)}</div>
+            </article>
+          ))}
+          {!live.loading && agents.length === 0 && <div className="muted">No active agents reported.</div>}
         </div>
       </section>
 
       <section className="panel span-2">
         <div className="panel-header">
           <div>
-            <h3>Agents</h3>
-            <div className="muted">
-              active {workerSummary.active} · waiting {workerSummary.waiting} · stale {workerSummary.stale} · offline {workerSummary.offline}
-            </div>
-          </div>
-          <div className="right muted">snapshot: {fmtAgo(live.data?.updatedAt)} · poll: 5s</div>
-        </div>
-
-        <div className="table-like">
-          {(workers ?? [])
-            .slice()
-            .sort((a, b) => {
-              const order = { active: 0, waiting: 1, stale: 2, offline: 3 } as const
-              const d = order[a.status] - order[b.status]
-              if (d !== 0) return d
-              return (a.slot ?? '').localeCompare(b.slot ?? '')
-            })
-            .map((w) => (
-              <div className="row" key={w.slot}>
-                <div className="row-main">
-                  <div className="row-title">
-                    <span className={`dot ${w.status}`} title={w.status} aria-label={`agent ${w.status}`} role="img" />
-                    <strong>{w.slot}</strong>
-                    {w.label && <span className="muted">· {w.label}</span>}
-                    <Badge kind={w.status} />
-                  </div>
-                  <div className="muted">{w.task ?? '—'}</div>
-                </div>
-                <div className="row-side">
-                  <div className="muted">last: {fmtAgo(w.lastBeatAt)}</div>
-                  <Sparkline points={w.beats.slice(0, 24)} />
-                </div>
-              </div>
-            ))}
-          {!live.loading && (workers?.length ?? 0) === 0 && <div className="muted">No agents reported.</div>}
-        </div>
-      </section>
-
-      <section className="panel">
-        <div className="panel-header">
-          <div>
-            <h3>Diagnostics</h3>
-            <p className="muted">Watchdog + heartbeat ingestion health.</p>
+            <h3>Task Board</h3>
+            <p className="muted">Each task is tagged with assigned agent.</p>
           </div>
         </div>
 
-        <div className="stack">
-          <div className="stat-card">
-            <div className="stat-title">Watchdog</div>
-            <div className="stat-value">
-              <Badge kind={watchdog?.health ?? 'unknown'} />
-            </div>
-            <div className="muted">{watchdog?.summary ?? '—'}</div>
-          </div>
-
-          <div className="callout">
-            <div className="stack">
-              <div className="stack-h">
-                <strong>Heartbeat file</strong>
-                <span className="muted">· age {fmtAgeMs(watchdog?.heartbeatFile?.ageMs)}</span>
-                <span className="muted">· parse {watchdog?.heartbeatFile?.parseOk ? 'ok' : 'fail'}</span>
-                {typeof watchdog?.heartbeatFile?.workerCount === 'number' && <span className="muted">· workers {watchdog.heartbeatFile.workerCount}</span>}
-              </div>
-              <div className="muted">{watchdog?.heartbeatFile?.path ?? '—'}</div>
-              {watchdog?.heartbeatFile?.mtime && <div className="muted">mtime: {new Date(watchdog.heartbeatFile.mtime).toLocaleString()}</div>}
-              {watchdog?.heartbeatFile?.error && (
-                <details>
-                  <summary className="muted">error</summary>
-                  <pre className="code">{watchdog.heartbeatFile.error}</pre>
-                </details>
-              )}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="panel span-2">
-        <div className="panel-header">
-          <div>
-            <h3>Blockers & Remediation</h3>
-            <p className="muted">Detected issues + one-click copy commands.</p>
-          </div>
-        </div>
-        <div className="stack">
-          {(blockers ?? []).map((b) => (
-            <div className="callout" key={b.id}>
-              <div className="stack-h">
-                <strong>{b.title}</strong>
-                <span className={`pill sev-${b.severity.toLowerCase()}`}>{b.severity}</span>
-                <span className="muted">· {new Date(b.detectedAt).toLocaleString()}</span>
-              </div>
-              {b.details && <div className="muted">{b.details}</div>}
+        <div className="home-board">
+          {([
+            ['working', 'Working', lanes.working],
+            ['sleeping', 'Sleeping', lanes.sleeping],
+            ['blocked', 'Blocked', lanes.blocked],
+          ] as const).map(([key, title, laneTasks]) => (
+            <div className="home-lane" key={key}>
+              <div className="home-lane-title">{title}</div>
               <div className="stack">
-                {b.remediation.map((r) => (
-                  <div className="cmd" key={r.label}>
-                    <div className="cmd-label">{r.label}</div>
-                    <pre className="code">{r.command}</pre>
-                    <div className="stack-h">
-                      <CopyButton text={r.command} />
-                      {r.action && cfg.kind === 'bridge' && (
-                        <button className="btn" disabled={!!controlBusy} onClick={() => run(r.action as ControlAction)} type="button">
-                          {controlBusy === r.action.kind ? 'Running…' : 'Run'}
-                        </button>
-                      )}
-                    </div>
+                {laneTasks.length === 0 && <div className="muted">No tasks</div>}
+                {laneTasks.map((task) => (
+                  <div className="home-task" key={task.id}>
+                    <div>{task.title}</div>
+                    <div className="home-task-tag">{task.agent}</div>
                   </div>
                 ))}
               </div>
             </div>
           ))}
-          {!live.loading && (blockers?.length ?? 0) === 0 && <div className="muted">No blockers detected.</div>}
         </div>
       </section>
 
       <section className="panel span-2">
-        <h3>Adapter</h3>
-        <p className="muted">Switch between local bridge and offline mock data.</p>
-        <div className="stack">
-          <div className="stack-h">
-            <button className={`btn ${cfg.kind === 'bridge' ? '' : 'ghost'}`} type="button" onClick={() => onCfg({ kind: 'bridge', baseUrl: cfg.kind === 'bridge' ? cfg.baseUrl : 'http://localhost:8787' })}>
-              Bridge
-            </button>
-            <button className={`btn ${cfg.kind === 'mock' ? '' : 'ghost'}`} type="button" onClick={() => onCfg({ kind: 'mock' })}>
-              Mock
-            </button>
+        <div className="panel-header">
+          <div>
+            <h3>Activity Feed</h3>
+            <p className="muted">Unified activity across agents and operator actions.</p>
           </div>
-          {cfg.kind === 'bridge' && (
-            <label className="field">
-              <div className="muted">Bridge base URL</div>
-              <input
-                value={cfg.baseUrl}
-                onChange={(e) => onCfg({ kind: 'bridge', baseUrl: e.target.value })}
-                placeholder="http://localhost:8787"
-              />
-            </label>
-          )}
         </div>
-      </section>
 
-      <section className="panel span-2">
-        <h3>Quick commands</h3>
-        <p className="muted">Copy/paste runbooks.</p>
         <div className="stack">
-          <div className="cmd">
-            <div className="cmd-label">Restart gateway</div>
-            <pre className="code">openclaw gateway restart</pre>
-            <CopyButton text="openclaw gateway restart" />
-          </div>
-          <div className="cmd">
-            <div className="cmd-label">Gateway status</div>
-            <pre className="code">openclaw gateway status</pre>
-            <CopyButton text="openclaw gateway status" />
-          </div>
+          {(activity.data ?? []).slice(0, 18).map((item) => (
+            <article className={`feed-item ${item.level}`} key={item.id}>
+              <div className="feed-head">
+                <span className="feed-source">{item.source}</span>
+                <span className="muted">{fmtAgo(item.at)}</span>
+              </div>
+              <div className="feed-msg">{item.message}</div>
+            </article>
+          ))}
+          {!activity.loading && (activity.data?.length ?? 0) === 0 && <div className="muted">No activity yet.</div>}
         </div>
       </section>
     </main>
