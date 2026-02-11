@@ -49,3 +49,19 @@ jobs:
         env:
           GCP_SA_KEY: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           PROJECT_PATH: projects/tars-operator-hub
+
+      - name: Install Functions Dependencies
+        run: npm ci
+        working-directory: projects/tars-operator-hub/functions
+
+      - name: Build Functions
+        run: npm run build
+        working-directory: projects/tars-operator-hub/functions
+
+      - name: Deploy Cloud Functions
+        uses: w9jds/firebase-action@master
+        with:
+          args: deploy --only functions
+        env:
+          GCP_SA_KEY: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          PROJECT_PATH: projects/tars-operator-hub
