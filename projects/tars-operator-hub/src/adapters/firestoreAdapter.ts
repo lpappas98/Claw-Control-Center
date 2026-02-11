@@ -49,6 +49,11 @@ import type {
   FeatureIntake,
   BoardLane,
   Priority,
+  ConnectionToken,
+  ConnectedInstance,
+  ConnectionTokenCreate,
+  ConnectionValidateRequest,
+  ConnectionValidateResponse,
 } from '../types'
 
 // Helper to get current user ID or throw
@@ -739,5 +744,119 @@ export const firestoreAdapter: Adapter = {
     }
     
     return pmProject
+  },
+
+  // ─────────────────────────────────────────────────────────────
+  // OpenClaw Connections
+  // ─────────────────────────────────────────────────────────────
+
+  async generateConnectionToken(opts?: ConnectionTokenCreate): Promise<ConnectionToken> {
+    const userId = getUserId()
+    const id = makeId()
+    // Generate 6-character alphanumeric token (similar to UTTH46)
+    const token = Array.from({ length: 6 }, () => 
+      '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'[Math.floor(Math.random() * 36)]
+    ).join('')
+    
+    const expiresInMs = (opts?.expiresInMinutes || 15) * 60 * 1000
+    const now = new Date()
+    const expiresAt = new Date(now.getTime() + expiresInMs)
+    
+    const connectionToken: ConnectionToken = {
+      id,
+      token,
+      userId,
+      createdAt: now.toISOString(),
+      expiresAt: expiresAt.toISOString(),
+      used: false,
+    }
+    
+    await setDoc(getUserDoc('connectionTokens', id), connectionToken)
+    
+    return connectionToken
+  },
+
+  async listConnectionTokens(): Promise<ConnectionToken[]> {
+    const ref = getUserCollection('connectionTokens')
+    const q = query(ref, orderBy('createdAt', 'desc'))
+    const snap = await getDocs(q)
+    return snap.docs.map(d => convertTimestamps({ id: d.id, ...d.data() } as ConnectionToken))
+  },
+
+  async validateConnectionToken(req: ConnectionValidateRequest): Promise<ConnectionValidateResponse> {
+    try {
+      // Find token across all users (for validation)
+      // Note: This requires a different approach since we can't query across user subcollections
+      // For now, we'll use a global connectionTokens collection
+      const tokensRef = collection(db, 'connectionTokens')
+      const q = query(tokensRef, orderBy('createdAt', 'desc'))
+      const snap = await getDocs(q)
+      
+      const tokenDoc = snap.docs.find(d => {
+        const data = d.data() as ConnectionToken
+        return data.token === req.token && !data.used
+      })
+      
+      if (!tokenDoc) {
+        return { success: false, error: 'Invalid or already used token' }
+      }
+      
+      const tokenData = tokenDoc.data() as ConnectionToken
+      
+      // Check expiration
+      if (new Date(tokenData.expiresAt) < new Date()) {
+        return { success: false, error: 'Token expired' }
+      }
+      
+      // Create connected instance
+      const instanceId = makeId()
+      const instance: ConnectedInstance = {
+        id: instanceId,
+        userId: tokenData.userId,
+        name: req.instanceName,
+        connectedAt: new Date().toISOString(),
+        lastSeenAt: new Date().toISOString(),
+        status: 'active',
+        metadata: req.metadata,
+      }
+      
+      // Save instance under user's collection
+      await setDoc(doc(db, 'users', tokenData.userId, 'connectedInstances', instanceId), instance)
+      
+      // Mark token as used
+      await updateDoc(tokenDoc.ref, {
+        used: true,
+        usedAt: new Date().toISOString(),
+        instanceId,
+      })
+      
+      return {
+        success: true,
+        userId: tokenData.userId,
+        instanceId,
+      }
+    } catch (error) {
+      return { success: false, error: String(error) }
+    }
+  },
+
+  async listConnectedInstances(): Promise<ConnectedInstance[]> {
+    const ref = getUserCollection('connectedInstances')
+    const q = query(ref, orderBy('connectedAt', 'desc'))
+    const snap = await getDocs(q)
+    return snap.docs.map(d => convertTimestamps({ id: d.id, ...d.data() } as ConnectedInstance))
+  },
+
+  async updateInstanceHeartbeat(instanceId: string): Promise<void> {
+    const ref = getUserDoc('connectedInstances', instanceId)
+    await updateDoc(ref, {
+      lastSeenAt: new Date().toISOString(),
+      status: 'active',
+    })
+  },
+
+  async disconnectInstance(instanceId: string): Promise<{ ok: boolean }> {
+    await deleteDoc(getUserDoc('connectedInstances', instanceId))
+    return { ok: true }
   },
 }
