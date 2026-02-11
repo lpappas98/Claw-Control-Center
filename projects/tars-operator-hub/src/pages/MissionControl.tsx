@@ -5,10 +5,12 @@ import { usePoll } from '../lib/usePoll'
 import { Badge } from '../components/Badge'
 import type { ActivityEvent, LiveSnapshot } from '../types'
 
+type BoardLane = 'proposed' | 'queued' | 'development' | 'review' | 'blocked' | 'done'
+
 type HomeTask = {
   id: string
   title: string
-  lane: 'working' | 'sleeping' | 'blocked'
+  lane: BoardLane
   agent: string
 }
 
@@ -35,6 +37,7 @@ function homeStatus(status: string) {
 
 export function MissionControl({
   adapter,
+  cfg,
 }: {
   adapter: Adapter
   cfg: AdapterConfig
@@ -78,7 +81,7 @@ export function MissionControl({
         return {
           id: `${w.slot}-${idx}`,
           title: w.task ?? 'Untitled task',
-          lane: w.status === 'active' ? 'working' : 'sleeping',
+          lane: w.status === 'active' ? 'development' : 'queued',
           agent: profile.name,
         }
       })
@@ -93,14 +96,14 @@ export function MissionControl({
     return [...workerTasks, ...blockerTasks]
   }, [live.data?.workers, live.data?.blockers])
 
-  const lanes = useMemo(
-    () => ({
-      working: tasks.filter((t) => t.lane === 'working'),
-      sleeping: tasks.filter((t) => t.lane === 'sleeping'),
-      blocked: tasks.filter((t) => t.lane === 'blocked'),
-    }),
-    [tasks],
-  )
+  const laneOrder: Array<{ key: BoardLane; title: string }> = [
+    { key: 'proposed', title: 'Proposed' },
+    { key: 'queued', title: 'Queued' },
+    { key: 'development', title: 'Development' },
+    { key: 'review', title: 'Review' },
+    { key: 'blocked', title: 'Blocked' },
+    { key: 'done', title: 'Done' },
+  ]
 
   return (
     <main className="main-grid">
@@ -121,6 +124,11 @@ export function MissionControl({
         {live.error && (
           <div className="callout warn">
             <strong>Live snapshot error:</strong> {live.error.message}
+            {cfg.kind === 'bridge' && (
+              <div className="muted" style={{ marginTop: 6 }}>
+                Bridge URL is {cfg.baseUrl}. If viewing from another device, use this host IP (not localhost).
+              </div>
+            )}
           </div>
         )}
 
@@ -143,56 +151,57 @@ export function MissionControl({
         </div>
       </section>
 
-      <section className="panel span-2">
-        <div className="panel-header">
-          <div>
-            <h3>Task Board</h3>
-            <p className="muted">Each task is tagged with assigned agent.</p>
-          </div>
-        </div>
-
-        <div className="home-board">
-          {([
-            ['working', 'Working', lanes.working],
-            ['sleeping', 'Sleeping', lanes.sleeping],
-            ['blocked', 'Blocked', lanes.blocked],
-          ] as const).map(([key, title, laneTasks]) => (
-            <div className="home-lane" key={key}>
-              <div className="home-lane-title">{title}</div>
-              <div className="stack">
-                {laneTasks.length === 0 && <div className="muted">No tasks</div>}
-                {laneTasks.map((task) => (
-                  <div className="home-task" key={task.id}>
-                    <div>{task.title}</div>
-                    <div className="home-task-tag">{task.agent}</div>
-                  </div>
-                ))}
-              </div>
+      <section className="panel span-4 home-main">
+        <div className="home-left">
+          <div className="panel-header">
+            <div>
+              <h3>Task Board</h3>
+              <p className="muted">Same workflow behavior: Proposed → Queued → Development → Review → Blocked → Done.</p>
             </div>
-          ))}
-        </div>
-      </section>
+          </div>
 
-      <section className="panel span-2">
-        <div className="panel-header">
-          <div>
-            <h3>Activity Feed</h3>
-            <p className="muted">Unified activity across agents and operator actions.</p>
+          <div className="home-board">
+            {laneOrder.map((lane) => {
+              const laneTasks = tasks.filter((t) => t.lane === lane.key)
+              return (
+                <div className="home-lane" key={lane.key}>
+                  <div className="home-lane-title">{lane.title}</div>
+                  <div className="stack">
+                    {laneTasks.length === 0 && <div className="muted">No tasks</div>}
+                    {laneTasks.map((task) => (
+                      <div className="home-task" key={task.id}>
+                        <div>{task.title}</div>
+                        <div className="home-task-tag">{task.agent}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )
+            })}
           </div>
         </div>
 
-        <div className="stack">
-          {(activity.data ?? []).slice(0, 18).map((item) => (
-            <article className={`feed-item ${item.level}`} key={item.id}>
-              <div className="feed-head">
-                <span className="feed-source">{item.source}</span>
-                <span className="muted">{fmtAgo(item.at)}</span>
-              </div>
-              <div className="feed-msg">{item.message}</div>
-            </article>
-          ))}
-          {!activity.loading && (activity.data?.length ?? 0) === 0 && <div className="muted">No activity yet.</div>}
-        </div>
+        <aside className="home-right">
+          <div className="panel-header">
+            <div>
+              <h3>Activity Feed</h3>
+              <p className="muted">All agents + operator activity.</p>
+            </div>
+          </div>
+
+          <div className="stack">
+            {(activity.data ?? []).slice(0, 20).map((item) => (
+              <article className={`feed-item ${item.level}`} key={item.id}>
+                <div className="feed-head">
+                  <span className="feed-source">{item.source}</span>
+                  <span className="muted">{fmtAgo(item.at)}</span>
+                </div>
+                <div className="feed-msg">{item.message}</div>
+              </article>
+            ))}
+            {!activity.loading && (activity.data?.length ?? 0) === 0 && <div className="muted">No activity yet.</div>}
+          </div>
+        </aside>
       </section>
     </main>
   )

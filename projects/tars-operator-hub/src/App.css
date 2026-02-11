@@ -447,6 +447,17 @@ textarea {
   font-weight: 700;
 }
 
+.home-main {
+  display: grid;
+  grid-template-columns: minmax(0, 4fr) minmax(280px, 1fr);
+  gap: 0.9rem;
+}
+
+.home-left,
+.home-right {
+  min-width: 0;
+}
+
 .home-board {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -511,6 +522,10 @@ textarea {
   .row-side {
     align-items: flex-start;
     min-width: auto;
+  }
+
+  .home-main {
+    grid-template-columns: 1fr;
   }
 
   .feed-grid,
