@@ -5,6 +5,8 @@ import { Projects } from './pages/Projects'
 import { Activity } from './pages/Activity'
 import { Rules } from './pages/Rules'
 import { Config } from './pages/Config'
+import { Login } from './pages/Login'
+import { AuthProvider, useAuth } from './lib/AuthContext'
 import { loadAdapterConfig, saveAdapterConfig, toAdapter, type AdapterConfig } from './lib/adapterState'
 
 type NavTab = 'Mission Control' | 'Projects' | 'Activity' | 'Rules' | 'Config' | 'Docs'
@@ -31,7 +33,8 @@ function saveNavTab(tab: NavTab) {
   }
 }
 
-export default function App() {
+function AppContent() {
+  const { user, profile, loading, signOut } = useAuth()
   const [tab, setTab] = useState<NavTab>(() => loadNavTab())
   const [cfg, setCfg] = useState<AdapterConfig>(() => loadAdapterConfig())
 
@@ -42,12 +45,31 @@ export default function App() {
     saveAdapterConfig(next)
   }, [])
 
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="app-shell">
+        <div className="login-page">
+          <div className="login-card" style={{ textAlign: 'center', padding: '3rem' }}>
+            <div className="login-logo">🔧</div>
+            <p className="muted">Loading...</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Show login if not authenticated
+  if (!user) {
+    return <Login />
+  }
+
   return (
     <div className="app-shell">
       <header className="topbar">
         <div className="brand">
-          <div className="brand-title">TARS Operator Hub</div>
-          <div className="brand-sub">single-user local mode</div>
+          <div className="brand-title">Claw Control Center</div>
+          <div className="brand-sub">Operator Hub</div>
         </div>
 
         <nav className="nav-tabs" aria-label="Primary">
@@ -67,20 +89,20 @@ export default function App() {
         </nav>
 
         <div className="top-actions">
-          <div className="adapter-pill" title="Data source adapter">
-            <span className="muted">Adapter:</span> <strong>{adapter.name}</strong>
+          <div className="user-menu">
+            {profile?.photoURL && (
+              <img src={profile.photoURL} alt="" className="user-avatar" />
+            )}
+            <span className="user-name">{profile?.displayName || user.email}</span>
+            <button
+              className="btn ghost"
+              onClick={signOut}
+              type="button"
+              title="Sign out"
+            >
+              Sign out
+            </button>
           </div>
-          <button
-            className="btn ghost"
-            onClick={() => {
-              if (cfg.kind === 'bridge') updateCfg({ kind: 'mock' })
-              else updateCfg({ kind: 'bridge', baseUrl: 'http://localhost:8787' })
-            }}
-            type="button"
-            title="Toggle between mock data and local bridge"
-          >
-            Toggle
-          </button>
         </div>
       </header>
 
@@ -94,15 +116,22 @@ export default function App() {
           <section className="panel span-4">
             <h2>Docs</h2>
             <p className="muted">
-              Run the optional local bridge for live status + controls.
+              Connect your OpenClaw instance to this hub.
             </p>
             <pre className="code">
-              {`# terminal 1\ncd ~/.openclaw/workspace/projects/tars-operator-hub\nnpm run bridge\n\n# terminal 2\ncd ~/.openclaw/workspace/projects/tars-operator-hub\nnpm run dev\n`}
+              {`# In your OpenClaw chat, say:\n"Connect to Claw Control Center"\n\n# The bot will guide you through the connection process.`}
             </pre>
-            <p className="muted">Bridge defaults to http://localhost:8787</p>
           </section>
         </main>
       )}
     </div>
+  )
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   )
 }
