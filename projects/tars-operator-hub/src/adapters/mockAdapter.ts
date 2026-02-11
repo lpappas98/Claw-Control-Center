@@ -18,6 +18,17 @@ import type {
   TaskUpdate,
   WatchdogDiagnostics,
   WorkerHeartbeat,
+  PMProject,
+  PMProjectCreate,
+  PMProjectUpdate,
+  PMTreeNode,
+  PMTreeNodeCreate,
+  PMTreeNodeUpdate,
+  PMCard,
+  PMCardCreate,
+  PMCardUpdate,
+  PMIntake,
+  PMActivity,
 } from '../types'
 
 const nowIso = () => new Date().toISOString()
@@ -66,7 +77,12 @@ let mockTasks: Task[] = []
 
 let mockIntakeProjects: import('../types').IntakeProject[] = []
 
-
+// PM Projects Hub mock data
+let mockPMProjects: PMProject[] = []
+let mockPMTrees: Map<string, PMTreeNode[]> = new Map()
+let mockPMCards: Map<string, PMCard[]> = new Map()
+let mockPMIntakes: Map<string, PMIntake> = new Map()
+let mockPMActivities: Map<string, PMActivity[]> = new Map()
 
 function pushRuleChange(change: Omit<RuleChange, 'id'>) {
   mockRuleHistory.unshift({ id: `chg-${Math.random().toString(16).slice(2)}-${Date.now()}`, ...change })
@@ -455,5 +471,312 @@ export const mockAdapter: Adapter = {
     await sleep(80)
     const p = await this.getIntakeProject(id)
     return `# ${p.title}\n\n${p.idea}`
+  },
+
+  // ---- PM Projects Hub ----
+  async listPMProjects(): Promise<PMProject[]> {
+    await sleep(100)
+    return mockPMProjects.slice().sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
+  },
+
+  async getPMProject(id: string): Promise<PMProject> {
+    await sleep(80)
+    const p = mockPMProjects.find((x) => x.id === id)
+    if (!p) throw new Error(`PM project not found: ${id}`)
+    return p
+  },
+
+  async createPMProject(create: PMProjectCreate): Promise<PMProject> {
+    await sleep(150)
+    const now = nowIso()
+    const id = create.id ?? (create.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || `pm-${Date.now()}`)
+    if (mockPMProjects.some((p) => p.id === id)) throw new Error(`PM project already exists: ${id}`)
+
+    const next: PMProject = {
+      id,
+      name: create.name,
+      summary: create.summary,
+      status: create.status ?? 'active',
+      tags: create.tags ?? [],
+      links: [],
+      owner: create.owner,
+      createdAt: now,
+      updatedAt: now,
+    }
+    mockPMProjects = [next, ...mockPMProjects]
+    mockPMTrees.set(id, [])
+    mockPMCards.set(id, [])
+    mockPMIntakes.set(id, { ideas: [], analyses: [], questions: [], requirements: [] })
+    mockPMActivities.set(id, [])
+    return next
+  },
+
+  async updatePMProject(update: PMProjectUpdate): Promise<PMProject> {
+    await sleep(100)
+    const idx = mockPMProjects.findIndex((p) => p.id === update.id)
+    if (idx < 0) throw new Error(`PM project not found: ${update.id}`)
+    const before = mockPMProjects[idx]
+    const next: PMProject = {
+      ...before,
+      name: update.name ?? before.name,
+      summary: update.summary ?? before.summary,
+      status: update.status ?? before.status,
+      tags: update.tags ?? before.tags,
+      links: update.links ?? before.links,
+      owner: update.owner ?? before.owner,
+      updatedAt: nowIso(),
+    }
+    mockPMProjects = [...mockPMProjects.slice(0, idx), next, ...mockPMProjects.slice(idx + 1)]
+    return next
+  },
+
+  async deletePMProject(id: string): Promise<{ ok: boolean }> {
+    await sleep(100)
+    const idx = mockPMProjects.findIndex((p) => p.id === id)
+    if (idx < 0) throw new Error(`PM project not found: ${id}`)
+    mockPMProjects = [...mockPMProjects.slice(0, idx), ...mockPMProjects.slice(idx + 1)]
+    mockPMTrees.delete(id)
+    mockPMCards.delete(id)
+    mockPMIntakes.delete(id)
+    mockPMActivities.delete(id)
+    return { ok: true }
+  },
+
+  async exportPMProjectJSON(id: string): Promise<object> {
+    await sleep(80)
+    const p = await this.getPMProject(id)
+    return {
+      project: p,
+      tree: mockPMTrees.get(id) ?? [],
+      cards: mockPMCards.get(id) ?? [],
+      intake: mockPMIntakes.get(id) ?? { ideas: [], analyses: [], questions: [], requirements: [] },
+    }
+  },
+
+  async exportPMProjectMarkdown(id: string): Promise<string> {
+    await sleep(80)
+    const p = await this.getPMProject(id)
+    return `# ${p.name}\n\n${p.summary ?? ''}`
+  },
+
+  // PM Projects - Tree
+  async getPMTree(projectId: string): Promise<PMTreeNode[]> {
+    await sleep(80)
+    return mockPMTrees.get(projectId) ?? []
+  },
+
+  async createPMTreeNode(projectId: string, create: PMTreeNodeCreate): Promise<PMTreeNode> {
+    await sleep(100)
+    const now = nowIso()
+    const id = create.id ?? `node-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`
+    const node: PMTreeNode = {
+      id,
+      parentId: create.parentId,
+      title: create.title,
+      description: create.description,
+      status: create.status ?? 'draft',
+      priority: create.priority ?? 'P2',
+      owner: create.owner,
+      tags: create.tags ?? [],
+      acceptanceCriteria: create.acceptanceCriteria ?? [],
+      dependsOn: create.dependsOn ?? [],
+      sources: create.sources ?? [],
+      children: [],
+      createdAt: now,
+      updatedAt: now,
+    }
+    const tree = mockPMTrees.get(projectId) ?? []
+    mockPMTrees.set(projectId, [...tree, node])
+    return node
+  },
+
+  async updatePMTreeNode(projectId: string, update: PMTreeNodeUpdate): Promise<PMTreeNode> {
+    await sleep(100)
+    const tree = mockPMTrees.get(projectId) ?? []
+    const idx = tree.findIndex((n) => n.id === update.id)
+    if (idx < 0) throw new Error(`Tree node not found: ${update.id}`)
+    const before = tree[idx]
+    const next: PMTreeNode = {
+      ...before,
+      parentId: update.parentId ?? before.parentId,
+      title: update.title ?? before.title,
+      description: update.description ?? before.description,
+      status: update.status ?? before.status,
+      priority: update.priority ?? before.priority,
+      owner: update.owner ?? before.owner,
+      tags: update.tags ?? before.tags,
+      acceptanceCriteria: update.acceptanceCriteria ?? before.acceptanceCriteria,
+      dependsOn: update.dependsOn ?? before.dependsOn,
+      sources: update.sources ?? before.sources,
+      updatedAt: nowIso(),
+    }
+    mockPMTrees.set(projectId, [...tree.slice(0, idx), next, ...tree.slice(idx + 1)])
+    return next
+  },
+
+  async deletePMTreeNode(projectId: string, nodeId: string): Promise<{ ok: boolean }> {
+    await sleep(80)
+    const tree = mockPMTrees.get(projectId) ?? []
+    const idx = tree.findIndex((n) => n.id === nodeId)
+    if (idx < 0) throw new Error(`Tree node not found: ${nodeId}`)
+    mockPMTrees.set(projectId, [...tree.slice(0, idx), ...tree.slice(idx + 1)])
+    return { ok: true }
+  },
+
+  // PM Projects - Kanban Cards
+  async listPMCards(projectId: string): Promise<PMCard[]> {
+    await sleep(80)
+    return mockPMCards.get(projectId) ?? []
+  },
+
+  async createPMCard(projectId: string, create: PMCardCreate): Promise<PMCard> {
+    await sleep(100)
+    const now = nowIso()
+    const id = create.id ?? `card-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`
+    const card: PMCard = {
+      id,
+      featureId: create.featureId,
+      title: create.title,
+      lane: create.lane ?? 'proposed',
+      priority: create.priority ?? 'P2',
+      owner: create.owner,
+      description: create.description,
+      createdAt: now,
+      updatedAt: now,
+    }
+    const cards = mockPMCards.get(projectId) ?? []
+    mockPMCards.set(projectId, [...cards, card])
+    return card
+  },
+
+  async updatePMCard(projectId: string, update: PMCardUpdate): Promise<PMCard> {
+    await sleep(100)
+    const cards = mockPMCards.get(projectId) ?? []
+    const idx = cards.findIndex((c) => c.id === update.id)
+    if (idx < 0) throw new Error(`Card not found: ${update.id}`)
+    const before = cards[idx]
+    const next: PMCard = {
+      ...before,
+      featureId: update.featureId ?? before.featureId,
+      title: update.title ?? before.title,
+      lane: update.lane ?? before.lane,
+      priority: update.priority ?? before.priority,
+      owner: update.owner ?? before.owner,
+      description: update.description ?? before.description,
+      updatedAt: nowIso(),
+    }
+    mockPMCards.set(projectId, [...cards.slice(0, idx), next, ...cards.slice(idx + 1)])
+    return next
+  },
+
+  async deletePMCard(projectId: string, cardId: string): Promise<{ ok: boolean }> {
+    await sleep(80)
+    const cards = mockPMCards.get(projectId) ?? []
+    const idx = cards.findIndex((c) => c.id === cardId)
+    if (idx < 0) throw new Error(`Card not found: ${cardId}`)
+    mockPMCards.set(projectId, [...cards.slice(0, idx), ...cards.slice(idx + 1)])
+    return { ok: true }
+  },
+
+  // PM Projects - Intake
+  async getPMIntake(projectId: string): Promise<PMIntake> {
+    await sleep(80)
+    return mockPMIntakes.get(projectId) ?? { ideas: [], analyses: [], questions: [], requirements: [] }
+  },
+
+  async setPMIntake(projectId: string, intake: PMIntake): Promise<PMIntake> {
+    await sleep(100)
+    mockPMIntakes.set(projectId, intake)
+    return intake
+  },
+
+  async addPMIdeaVersion(projectId: string, text: string): Promise<PMIntake> {
+    await sleep(100)
+    const intake = mockPMIntakes.get(projectId) ?? { ideas: [], analyses: [], questions: [], requirements: [] }
+    const idea = { id: `idea-${Date.now()}`, text, createdAt: nowIso() }
+    intake.ideas = [...intake.ideas, idea]
+    mockPMIntakes.set(projectId, intake)
+    return intake
+  },
+
+  async addPMAnalysis(projectId: string, summary: string, keyPoints: string[]): Promise<PMIntake> {
+    await sleep(100)
+    const intake = mockPMIntakes.get(projectId) ?? { ideas: [], analyses: [], questions: [], requirements: [] }
+    const analysis = { id: `analysis-${Date.now()}`, summary, keyPoints, createdAt: nowIso() }
+    intake.analyses = [...intake.analyses, analysis]
+    mockPMIntakes.set(projectId, intake)
+    return intake
+  },
+
+  async generatePMQuestions(projectId: string): Promise<PMIntake> {
+    await sleep(200)
+    const intake = mockPMIntakes.get(projectId) ?? { ideas: [], analyses: [], questions: [], requirements: [] }
+    const questions = [
+      { id: `q-${Date.now()}-1`, category: 'Goal', prompt: 'What problem are we solving?', required: true, answer: '' },
+      { id: `q-${Date.now()}-2`, category: 'Users', prompt: 'Who are the primary users?', required: true, answer: '' },
+      { id: `q-${Date.now()}-3`, category: 'Scope', prompt: 'What is out of scope?', required: true, answer: '' },
+    ]
+    intake.questions = questions
+    mockPMIntakes.set(projectId, intake)
+    return intake
+  },
+
+  async answerPMQuestion(projectId: string, questionId: string, answer: string): Promise<PMIntake> {
+    await sleep(100)
+    const intake = mockPMIntakes.get(projectId) ?? { ideas: [], analyses: [], questions: [], requirements: [] }
+    const idx = intake.questions.findIndex((q) => q.id === questionId)
+    if (idx >= 0) {
+      intake.questions[idx] = { ...intake.questions[idx], answer, answeredAt: nowIso() }
+    }
+    mockPMIntakes.set(projectId, intake)
+    return intake
+  },
+
+  // PM Projects - Activity
+  async listPMActivity(projectId: string, limit = 50): Promise<PMActivity[]> {
+    await sleep(80)
+    const activities = mockPMActivities.get(projectId) ?? []
+    return activities.slice(0, limit)
+  },
+
+  async addPMActivity(projectId: string, activity: Omit<PMActivity, 'id' | 'at'>): Promise<PMActivity> {
+    await sleep(80)
+    const now = nowIso()
+    const entry: PMActivity = {
+      id: `activity-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
+      at: now,
+      ...activity,
+    }
+    const activities = mockPMActivities.get(projectId) ?? []
+    mockPMActivities.set(projectId, [entry, ...activities])
+    return entry
+  },
+
+  // Migration helper
+  async migrateIntakeToPM(intakeProjectId: string): Promise<PMProject> {
+    await sleep(150)
+    const intake = await this.getIntakeProject(intakeProjectId)
+    const pmProject = await this.createPMProject({
+      name: intake.title,
+      summary: intake.idea,
+      status: 'active',
+      tags: intake.tags,
+    })
+    // Copy intake data
+    const pmIntake: PMIntake = {
+      ideas: [{ id: `idea-migrated`, text: intake.idea, createdAt: intake.createdAt }],
+      analyses: [],
+      questions: intake.questions.map((q) => ({
+        id: q.id,
+        category: q.category,
+        prompt: q.prompt,
+        required: q.required,
+        answer: q.answer,
+        answeredAt: q.answer ? nowIso() : undefined,
+      })),
+      requirements: [],
+    }
+    mockPMIntakes.set(pmProject.id, pmIntake)
+    return pmProject
   },
 }

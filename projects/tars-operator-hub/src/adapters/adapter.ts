@@ -20,6 +20,17 @@ import type {
   IntakeProjectUpdate,
   ModelList,
   ModelSetResult,
+  PMProject,
+  PMProjectCreate,
+  PMProjectUpdate,
+  PMTreeNode,
+  PMTreeNodeCreate,
+  PMTreeNodeUpdate,
+  PMCard,
+  PMCardCreate,
+  PMCardUpdate,
+  PMIntake,
+  PMActivity,
 } from '../types'
 
 export type Adapter = {
@@ -58,4 +69,40 @@ export type Adapter = {
   generateIntakeQuestions(id: string): Promise<IntakeProject>
   generateIntakeScope(id: string): Promise<IntakeProject>
   exportIntakeMarkdown(id: string): Promise<string>
+
+  // PM Projects Hub (full persistence)
+  listPMProjects(): Promise<PMProject[]>
+  getPMProject(id: string): Promise<PMProject>
+  createPMProject(create: PMProjectCreate): Promise<PMProject>
+  updatePMProject(update: PMProjectUpdate): Promise<PMProject>
+  deletePMProject(id: string): Promise<{ ok: boolean }>
+  exportPMProjectJSON(id: string): Promise<object>
+  exportPMProjectMarkdown(id: string): Promise<string>
+
+  // PM Projects - Tree
+  getPMTree(projectId: string): Promise<PMTreeNode[]>
+  createPMTreeNode(projectId: string, create: PMTreeNodeCreate): Promise<PMTreeNode>
+  updatePMTreeNode(projectId: string, update: PMTreeNodeUpdate): Promise<PMTreeNode>
+  deletePMTreeNode(projectId: string, nodeId: string): Promise<{ ok: boolean }>
+
+  // PM Projects - Kanban Cards
+  listPMCards(projectId: string): Promise<PMCard[]>
+  createPMCard(projectId: string, create: PMCardCreate): Promise<PMCard>
+  updatePMCard(projectId: string, update: PMCardUpdate): Promise<PMCard>
+  deletePMCard(projectId: string, cardId: string): Promise<{ ok: boolean }>
+
+  // PM Projects - Intake
+  getPMIntake(projectId: string): Promise<PMIntake>
+  setPMIntake(projectId: string, intake: PMIntake): Promise<PMIntake>
+  addPMIdeaVersion(projectId: string, text: string): Promise<PMIntake>
+  addPMAnalysis(projectId: string, summary: string, keyPoints: string[]): Promise<PMIntake>
+  generatePMQuestions(projectId: string): Promise<PMIntake>
+  answerPMQuestion(projectId: string, questionId: string, answer: string): Promise<PMIntake>
+
+  // PM Projects - Activity
+  listPMActivity(projectId: string, limit?: number): Promise<PMActivity[]>
+  addPMActivity(projectId: string, activity: Omit<PMActivity, 'id' | 'at'>): Promise<PMActivity>
+
+  // Migration helper
+  migrateIntakeToPM(intakeProjectId: string): Promise<PMProject>
 }

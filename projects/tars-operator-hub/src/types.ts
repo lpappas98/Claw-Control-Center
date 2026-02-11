@@ -258,3 +258,175 @@ export type ModelSetResult = {
   message: string
   defaultModel?: string
 }
+
+// ---- PM Projects Hub ----
+
+export type PMProjectStatus = 'active' | 'paused' | 'completed' | 'archived'
+
+/** Source citation linking back to intake answers */
+export type PMSource = {
+  questionId: string
+  excerpt: string
+}
+
+/** Tree node for feature/epic/story breakdown */
+export type PMTreeNode = {
+  id: string
+  parentId?: string
+  title: string
+  description?: string
+  status: 'draft' | 'ready' | 'in-progress' | 'done'
+  priority: Priority
+  owner?: string
+  tags: string[]
+  acceptanceCriteria: string[]
+  dependsOn: string[]
+  sources: PMSource[]
+  children: PMTreeNode[]
+  createdAt: string
+  updatedAt: string
+}
+
+/** Kanban card linked to a tree node */
+export type PMCard = {
+  id: string
+  featureId: string
+  title: string
+  lane: BoardLane
+  priority: Priority
+  owner?: string
+  description?: string
+  createdAt: string
+  updatedAt: string
+}
+
+/** Intake idea version (immutable once saved) */
+export type PMIdeaVersion = {
+  id: string
+  text: string
+  createdAt: string
+}
+
+/** Intake analysis version */
+export type PMAnalysis = {
+  id: string
+  summary: string
+  keyPoints: string[]
+  createdAt: string
+}
+
+/** Intake question with answer */
+export type PMIntakeQuestion = {
+  id: string
+  category: string
+  prompt: string
+  required: boolean
+  answer: string
+  answeredAt?: string
+}
+
+/** Intake requirement derived from answers */
+export type PMRequirement = {
+  id: string
+  text: string
+  sources: PMSource[]
+  createdAt: string
+}
+
+/** Full intake artifacts for a project */
+export type PMIntake = {
+  ideas: PMIdeaVersion[]
+  analyses: PMAnalysis[]
+  questions: PMIntakeQuestion[]
+  requirements: PMRequirement[]
+}
+
+/** Activity event for a project */
+export type PMActivity = {
+  id: string
+  at: string
+  actor?: string
+  action: string
+  target?: string
+  details?: Record<string, unknown>
+}
+
+/** Full PM Project entity */
+export type PMProject = {
+  id: string
+  name: string
+  summary?: string
+  status: PMProjectStatus
+  tags: string[]
+  links: Array<{ label: string; url: string }>
+  owner?: string
+  createdAt: string
+  updatedAt: string
+}
+
+export type PMProjectCreate = {
+  id?: string
+  name: string
+  summary?: string
+  status?: PMProjectStatus
+  tags?: string[]
+  owner?: string
+}
+
+export type PMProjectUpdate = {
+  id: string
+  name?: string
+  summary?: string
+  status?: PMProjectStatus
+  tags?: string[]
+  links?: Array<{ label: string; url: string }>
+  owner?: string
+}
+
+export type PMTreeNodeCreate = {
+  id?: string
+  parentId?: string
+  title: string
+  description?: string
+  status?: 'draft' | 'ready' | 'in-progress' | 'done'
+  priority?: Priority
+  owner?: string
+  tags?: string[]
+  acceptanceCriteria?: string[]
+  dependsOn?: string[]
+  sources?: PMSource[]
+}
+
+export type PMTreeNodeUpdate = {
+  id: string
+  parentId?: string
+  title?: string
+  description?: string
+  status?: 'draft' | 'ready' | 'in-progress' | 'done'
+  priority?: Priority
+  owner?: string
+  tags?: string[]
+  acceptanceCriteria?: string[]
+  dependsOn?: string[]
+  sources?: PMSource[]
+}
+
+export type PMCardCreate = {
+  id?: string
+  featureId: string
+  title: string
+  lane?: BoardLane
+  priority?: Priority
+  owner?: string
+  description?: string
+}
+
+export type PMCardUpdate = {
+  id: string
+  featureId?: string
+  title?: string
+  lane?: BoardLane
+  priority?: Priority
+  owner?: string
+  description?: string
+}
