@@ -151,10 +151,10 @@ export function MissionControl({
       return instances.map((instance) => {
         const now = Date.now()
         const lastSeen = new Date(instance.lastSeenAt).getTime()
-        const ageMinutes = (now - lastSeen) / 60000
+        const ageMs = now - lastSeen
         
-        // Consider online if seen within last 2 minutes
-        const online = ageMinutes < 2 && instance.status === 'active'
+        // Consider online if seen within last 5 minutes (consistent with Connect page)
+        const online = ageMs < 5 * 60 * 1000 && instance.status === 'active'
         
         return {
           id: instance.id,
