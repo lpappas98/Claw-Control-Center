@@ -27,7 +27,7 @@ function FeedItem({
   )
 }
 
-type ProjectTab = 'Overview' | 'Tree' | 'Kanban'
+type ProjectTab = 'Overview' | 'Tree' | 'Kanban' | 'Settings'
 
 type ProjectLink = { label: string; url: string }
 
@@ -764,6 +764,136 @@ function KanbanBoard({
     </div>
   )
 }
+
+function SettingsView({ 
+  project, 
+  adapter, 
+  onProjectUpdated,
+  onProjectDeleted 
+}: { 
+  project: Project
+  adapter: Adapter
+  onProjectUpdated: () => void
+  onProjectDeleted: () => void
+}) {
+  const [name, setName] = useState(project.name)
+  const [saving, setSaving] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState(false)
+
+  const handleRename = async () => {
+    if (!name.trim() || name === project.name) return
+    
+    setSaving(true)
+    try {
+      await adapter.updatePMProject({ id: project.id, name: name.trim() })
+      onProjectUpdated()
+    } catch (err) {
+      console.error('Failed to rename project:', err)
+      alert('Failed to rename project')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleDelete = async () => {
+    if (!confirmDelete) {
+      setConfirmDelete(true)
+      return
+    }
+
+    setDeleting(true)
+    try {
+      await adapter.deletePMProject(project.id)
+      onProjectDeleted()
+    } catch (err) {
+      console.error('Failed to delete project:', err)
+      alert('Failed to delete project')
+      setDeleting(false)
+    }
+  }
+
+  return (
+    <div className="stack" style={{ gap: 20, padding: 20 }}>
+      <section className="panel" style={{ padding: 20 }}>
+        <h3 style={{ marginTop: 0 }}>Project Settings</h3>
+        
+        <div className="field" style={{ marginTop: 20 }}>
+          <label className="muted">Project Name</label>
+          <div style={{ display: 'flex', gap: 10 }}>
+            <input 
+              className="input" 
+              value={name} 
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Project name"
+            />
+            <button 
+              className="btn" 
+              onClick={handleRename}
+              disabled={saving || !name.trim() || name === project.name}
+            >
+              {saving ? 'Saving...' : 'Rename'}
+            </button>
+          </div>
+        </div>
+
+        <div className="field" style={{ marginTop: 30 }}>
+          <label className="muted">Project ID</label>
+          <input className="input" value={project.id} disabled style={{ opacity: 0.6 }} />
+          <div className="muted" style={{ fontSize: 12, marginTop: 6 }}>
+            Read-only identifier
+          </div>
+        </div>
+      </section>
+
+      <section className="panel" style={{ padding: 20, borderColor: '#dc2626' }}>
+        <h3 style={{ marginTop: 0, color: '#dc2626' }}>Danger Zone</h3>
+        
+        <div style={{ marginTop: 20 }}>
+          <p className="muted">
+            Deleting this project will remove all features, cards, and activity. This action cannot be undone.
+          </p>
+          
+          {confirmDelete ? (
+            <div style={{ marginTop: 20 }}>
+              <p style={{ fontWeight: 600, marginBottom: 12 }}>
+                Are you sure? This will permanently delete "{project.name}".
+              </p>
+              <div style={{ display: 'flex', gap: 10 }}>
+                <button 
+                  className="btn" 
+                  style={{ background: '#dc2626', borderColor: '#dc2626' }}
+                  onClick={handleDelete}
+                  disabled={deleting}
+                >
+                  {deleting ? 'Deleting...' : 'Yes, Delete Project'}
+                </button>
+                <button 
+                  className="btn ghost" 
+                  onClick={() => setConfirmDelete(false)}
+                  disabled={deleting}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button 
+              className="btn ghost" 
+              style={{ marginTop: 12, color: '#dc2626', borderColor: '#dc2626' }}
+              onClick={() => setConfirmDelete(true)}
+            >
+              Delete Project
+            </button>
+          )}
+        </div>
+      </section>
+    </div>
+  )
+}
+
+
+0
 
 function Overview({ project }: { project: Project }) {
   const topFeatures = useMemo(() => flattenTree(project.tree).slice(0, 6), [project.tree])
@@ -1889,6 +2019,12 @@ export function Projects({ adapter }: { adapter: Adapter }) {
               {tab === 'Overview' ? <Overview project={active} /> : null}
               {tab === 'Tree' ? <TreeView project={active} onOpen={(n) => setDrawer(n)} adapter={adapter} onTreeUpdated={loadProjects} /> : null}
               {tab === 'Kanban' ? <KanbanBoard project={active} onOpenFeature={(n) => setDrawer(n)} adapter={adapter} /> : null}
+              {tab === 'Settings' ? <SettingsView project={active} adapter={adapter} onProjectUpdated={loadProjects} onProjectDeleted={() => {
+                setProjects(prev => prev.filter(p => p.id !== active.id))
+                const remaining = projects.filter(p => p.id !== active.id)
+                setActiveId(remaining[0]?.id || '')
+                setTab('Overview')
+              }} /> : null}
             </div>
 
             <div className="projects-main-footer">
