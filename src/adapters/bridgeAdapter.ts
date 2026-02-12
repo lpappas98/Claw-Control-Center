@@ -263,17 +263,32 @@ export function bridgeAdapter(opts: BridgeAdapterOptions): Adapter {
         }
       }
 
-      const res = await fetch(`${base}/api/pm/projects/import`, {
-        method: 'POST',
-        body: formData,
-      })
+      // Create abort controller with 60s timeout
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 60000)
 
-      if (!res.ok) {
-        const text = await res.text().catch(() => '')
-        throw new Error(`Import failed: ${res.status} ${res.statusText}${text ? `\n${text}` : ''}`)
+      try {
+        const res = await fetch(`${base}/api/pm/projects/import`, {
+          method: 'POST',
+          body: formData,
+          signal: controller.signal,
+        })
+
+        clearTimeout(timeoutId)
+
+        if (!res.ok) {
+          const text = await res.text().catch(() => '')
+          throw new Error(`Import failed: ${res.status} ${res.statusText}${text ? `\n${text}` : ''}`)
+        }
+
+        return (await res.json()) as PMProject
+      } catch (err: any) {
+        clearTimeout(timeoutId)
+        if (err.name === 'AbortError') {
+          throw new Error('Import timed out after 60 seconds. Try a smaller repository.')
+        }
+        throw new Error(err.message || 'Import failed: Network error')
       }
-
-      return (await res.json()) as PMProject
     },
 
     exportPMProjectJSON(id: string) {
