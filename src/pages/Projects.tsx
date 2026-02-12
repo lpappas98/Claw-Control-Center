@@ -1375,8 +1375,11 @@ function NewProjectWizard({
             category: q.category,
             prompt: q.prompt,
             required: q.required ?? true,
-            answer: q.answer?.text ?? '',
-            answeredAt: q.answer?.at,
+            answer: q.answer ? {
+              text: q.answer.text,
+              at: q.answer.at,
+              author: q.answer.author
+            } : null,
           })),
         })
       }
