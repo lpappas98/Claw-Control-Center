@@ -36,3 +36,7 @@ memory/
 projects/
 skills/
 .clawhub/
+
+# Runtime bridge data
+agent-profiles.json
+active-sessions.json
