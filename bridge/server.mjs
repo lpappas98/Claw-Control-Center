@@ -1392,14 +1392,7 @@ app.post('/api/pm/projects/import', upload.any(), async (req, res) => {
       status: 'active',
       tags: analysis.tags || [],
       owner: 'imported',
-      tree: analysis.features.map((f, idx) => ({
-        id: `feat-${idx + 1}`,
-        title: f.title,
-        summary: f.summary,
-        status: f.status || 'planned',
-        priority: f.priority || 'p2',
-        children: []
-      })),
+      tree: analysis.features || [],
       cards: analysis.suggestedTasks.map((t, idx) => ({
         id: `card-${idx + 1}`,
         title: t.title,
