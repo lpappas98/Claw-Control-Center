@@ -22,6 +22,8 @@ type HomeTask = {
   // Blocker-specific fields (only populated when this is a blocker task)
   blockerDetails?: string
   blockerRemediation?: Blocker['remediation']
+  // Subtask count for epic tasks
+  subtaskCount?: number
 }
 
 function fmtAgo(iso?: string) {
@@ -252,7 +254,19 @@ export function MissionControl({
     // (Blockers are also shown in their own row.)
     const merged = [...workerTasks, ...seededTasks, ...blockerTasks]
 
-    return merged
+    // Calculate subtask counts for epic tasks
+    const subtaskCounts = new Map<string, number>()
+    persistedTasks.forEach((task) => {
+      if (task.parentId) {
+        subtaskCounts.set(task.parentId, (subtaskCounts.get(task.parentId) || 0) + 1)
+      }
+    })
+
+    // Add subtask counts to tasks
+    return merged.map((task) => ({
+      ...task,
+      subtaskCount: subtaskCounts.get(task.id) || 0,
+    }))
   }, [live.data?.workers, live.data?.blockers, persisted.data])
 
   const boardColumns: Array<{ key: BoardLane; title: string }> = [
@@ -536,7 +550,14 @@ export function MissionControl({
                       📁 {projectName}
                     </div>
                   )}
-                  <div className="home-task-title">{task.title}</div>
+                  <div className="home-task-title">
+                    {task.title}
+                    {task.subtaskCount && task.subtaskCount > 0 && (
+                      <span className="subtask-badge" title={`${task.subtaskCount} subtask${task.subtaskCount !== 1 ? 's' : ''}`}>
+                        {task.subtaskCount} task{task.subtaskCount !== 1 ? 's' : ''}
+                      </span>
+                    )}
+                  </div>
                   <div className={`worker-chip ${task.agent || assignedAgent ? 'assigned' : 'unassigned'}`}>
                     {assignedAgent 
                       ? `${assignedAgent.emoji} ${assignedAgent.name}` 
@@ -617,7 +638,14 @@ export function MissionControl({
                               📁 {projectName}
                             </div>
                           )}
-                          <div className="home-task-title">{task.title}</div>
+                          <div className="home-task-title">
+                            {task.title}
+                            {task.subtaskCount && task.subtaskCount > 0 && (
+                              <span className="subtask-badge" title={`${task.subtaskCount} subtask${task.subtaskCount !== 1 ? 's' : ''}`}>
+                                {task.subtaskCount} task{task.subtaskCount !== 1 ? 's' : ''}
+                              </span>
+                            )}
+                          </div>
                           <div className={`worker-chip ${task.agent || assignedAgent ? 'assigned' : 'unassigned'}`}>
                             {assignedAgent 
                               ? `${assignedAgent.emoji} ${assignedAgent.name}` 

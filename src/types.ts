@@ -167,6 +167,7 @@ export type Task = {
   acceptanceCriteria?: string[]
   projectId?: string
   assignedProfileId?: string
+  parentId?: string  // For epic/subtask relationships
   createdAt: string
   updatedAt: string
   statusHistory: TaskStatusHistoryEntry[]
@@ -183,6 +184,7 @@ export type TaskCreate = {
   acceptanceCriteria?: string[]
   projectId?: string
   assignedProfileId?: string
+  parentId?: string
 }
 
 export type TaskUpdate = {
@@ -196,6 +198,7 @@ export type TaskUpdate = {
   acceptanceCriteria?: string[]
   projectId?: string
   assignedProfileId?: string
+  parentId?: string
 }
 
 // ---- PM/PO Intake ----

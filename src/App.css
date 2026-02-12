@@ -597,6 +597,31 @@ button.home-task.clickable:focus {
   line-height: 1.3;
   font-weight: 700;
   color: #f2f4f8;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.subtask-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.5rem;
+  background: rgba(95, 109, 255, 0.15);
+  border: 1px solid rgba(95, 109, 255, 0.3);
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #a0aeff;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.subtask-badge:hover {
+  background: rgba(95, 109, 255, 0.25);
+  border-color: rgba(95, 109, 255, 0.5);
+  color: #c5ceff;
 }
 
 .priority-tag {

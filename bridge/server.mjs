@@ -1003,6 +1003,9 @@ app.post('/api/tasks', async (req, res) => {
     problem: typeof body.problem === 'string' ? body.problem : undefined,
     scope: typeof body.scope === 'string' ? body.scope : undefined,
     acceptanceCriteria: Array.isArray(body.acceptanceCriteria) ? body.acceptanceCriteria.filter((s) => typeof s === 'string') : undefined,
+    projectId: typeof body.projectId === 'string' ? body.projectId : undefined,
+    assignedProfileId: typeof body.assignedProfileId === 'string' ? body.assignedProfileId : undefined,
+    parentId: typeof body.parentId === 'string' ? body.parentId : undefined,
     createdAt: now,
     updatedAt: now,
     statusHistory: [{ at: now, to: lane, note: 'created' }],
@@ -1036,6 +1039,9 @@ app.put('/api/tasks/:id', async (req, res) => {
     acceptanceCriteria: Array.isArray(update.acceptanceCriteria)
       ? update.acceptanceCriteria.filter((s) => typeof s === 'string')
       : before.acceptanceCriteria,
+    projectId: typeof update.projectId === 'string' ? update.projectId : before.projectId,
+    assignedProfileId: typeof update.assignedProfileId === 'string' ? update.assignedProfileId : before.assignedProfileId,
+    parentId: typeof update.parentId === 'string' ? update.parentId : before.parentId,
     updatedAt: now,
     statusHistory:
       nextLane !== before.lane
@@ -1669,7 +1675,7 @@ app.post('/api/ai/next-question', async (req, res) => {
     // Call OpenClaw agent
     const { stdout, stderr } = await execFileAsync('openclaw', [
       'agent',
-      '--model', 'anthropic/claude-sonnet-4-5',
+      '--agent', 'main',
       '--thinking', 'low',
       '--local',
       '--message', prompt
