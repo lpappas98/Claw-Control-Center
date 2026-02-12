@@ -107,6 +107,35 @@ export type TaskStatusHistoryEntry = {
 }
 
 /**
+ * Agent profile definition - represents a permanent agent slot/role
+ */
+export type AgentProfile = {
+  id: string
+  userId: string
+  name: string
+  role: string
+  emoji?: string
+  model?: string
+  createdAt: string
+  updatedAt: string
+}
+
+export type AgentProfileCreate = {
+  name: string
+  role: string
+  emoji?: string
+  model?: string
+}
+
+export type AgentProfileUpdate = {
+  id: string
+  name?: string
+  role?: string
+  emoji?: string
+  model?: string
+}
+
+/**
  * Operator task details (TPO-level) persisted locally by the bridge.
  * These are used to seed/enrich the live board (e.g. queued work before assignment).
  */
@@ -119,6 +148,8 @@ export type Task = {
   problem?: string
   scope?: string
   acceptanceCriteria?: string[]
+  projectId?: string
+  assignedProfileId?: string
   createdAt: string
   updatedAt: string
   statusHistory: TaskStatusHistoryEntry[]
@@ -133,6 +164,8 @@ export type TaskCreate = {
   problem?: string
   scope?: string
   acceptanceCriteria?: string[]
+  projectId?: string
+  assignedProfileId?: string
 }
 
 export type TaskUpdate = {
@@ -144,6 +177,8 @@ export type TaskUpdate = {
   problem?: string
   scope?: string
   acceptanceCriteria?: string[]
+  projectId?: string
+  assignedProfileId?: string
 }
 
 // ---- PM/PO Intake ----

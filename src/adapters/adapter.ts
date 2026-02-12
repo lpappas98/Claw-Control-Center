@@ -1,5 +1,8 @@
 import type {
   ActivityEvent,
+  AgentProfile,
+  AgentProfileCreate,
+  AgentProfileUpdate,
   Blocker,
   ControlAction,
   ControlResult,
@@ -66,6 +69,13 @@ export type Adapter = {
   listTasks(): Promise<Task[]>
   createTask(create: TaskCreate): Promise<Task>
   updateTask(update: TaskUpdate): Promise<Task>
+
+  // Agent Profiles
+  listAgentProfiles(): Promise<AgentProfile[]>
+  getAgentProfile(id: string): Promise<AgentProfile>
+  createAgentProfile(create: AgentProfileCreate): Promise<AgentProfile>
+  updateAgentProfile(update: AgentProfileUpdate): Promise<AgentProfile>
+  deleteAgentProfile(id: string): Promise<{ ok: boolean }>
 
   // PM/PO intake projects (local single-user)
   listIntakeProjects(): Promise<IntakeProject[]>

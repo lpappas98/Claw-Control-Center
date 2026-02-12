@@ -797,6 +797,23 @@ export const mockAdapter: Adapter = {
     return pmProject
   },
 
+  // Agent Profiles (not implemented in mock adapter)
+  async listAgentProfiles() {
+    throw new Error('Agent profiles only available with Firestore adapter')
+  },
+  async getAgentProfile() {
+    throw new Error('Agent profiles only available with Firestore adapter')
+  },
+  async createAgentProfile() {
+    throw new Error('Agent profiles only available with Firestore adapter')
+  },
+  async updateAgentProfile() {
+    throw new Error('Agent profiles only available with Firestore adapter')
+  },
+  async deleteAgentProfile() {
+    throw new Error('Agent profiles only available with Firestore adapter')
+  },
+
   // OpenClaw Connections (not implemented in mock adapter)
   async generateConnectionToken() {
     throw new Error('Connection tokens only available with Firestore adapter')

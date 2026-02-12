@@ -15,6 +15,9 @@ import { db, auth } from '../lib/firebase'
 import type { Adapter } from './adapter'
 import type {
   ActivityEvent,
+  AgentProfile,
+  AgentProfileCreate,
+  AgentProfileUpdate,
   Blocker,
   ControlAction,
   ControlResult,
@@ -327,6 +330,69 @@ export const firestoreAdapter: Adapter = {
     }
     
     return task
+  },
+
+  // ─────────────────────────────────────────────────────────────
+  // Agent Profiles
+  // ─────────────────────────────────────────────────────────────
+
+  async listAgentProfiles(): Promise<AgentProfile[]> {
+    try {
+      const ref = getUserCollection('agentProfiles')
+      const q = query(ref, orderBy('createdAt', 'desc'))
+      const snap = await getDocs(q)
+      return snap.docs.map(d => convertTimestamps({ id: d.id, ...d.data() } as AgentProfile))
+    } catch {
+      return []
+    }
+  },
+
+  async getAgentProfile(id: string): Promise<AgentProfile> {
+    const snap = await getDoc(getUserDoc('agentProfiles', id))
+    if (!snap.exists()) throw new Error('Agent profile not found')
+    return convertTimestamps({ id: snap.id, ...snap.data() } as AgentProfile)
+  },
+
+  async createAgentProfile(create: AgentProfileCreate): Promise<AgentProfile> {
+    const userId = getUserId()
+    const id = makeId()
+    const now = new Date().toISOString()
+    
+    const profile: AgentProfile = {
+      id,
+      userId,
+      name: create.name,
+      role: create.role,
+      emoji: create.emoji,
+      model: create.model,
+      createdAt: now,
+      updatedAt: now,
+    }
+    
+    await setDoc(getUserDoc('agentProfiles', id), profile)
+    await logActivity('agent', `Agent profile created: ${profile.name}`)
+    return profile
+  },
+
+  async updateAgentProfile(update: AgentProfileUpdate): Promise<AgentProfile> {
+    const ref = getUserDoc('agentProfiles', update.id)
+    const now = new Date().toISOString()
+    
+    await updateDoc(ref, { ...update, updatedAt: now })
+    const snap = await getDoc(ref)
+    const profile = convertTimestamps({ id: snap.id, ...snap.data() } as AgentProfile)
+    
+    await logActivity('agent', `Agent profile updated: ${profile.name}`)
+    return profile
+  },
+
+  async deleteAgentProfile(id: string): Promise<{ ok: boolean }> {
+    const snap = await getDoc(getUserDoc('agentProfiles', id))
+    const profile = snap.data() as AgentProfile
+    
+    await deleteDoc(getUserDoc('agentProfiles', id))
+    await logActivity('agent', `Agent profile deleted: ${profile?.name || id}`)
+    return { ok: true }
   },
 
   // ─────────────────────────────────────────────────────────────
