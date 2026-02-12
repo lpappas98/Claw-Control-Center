@@ -74,7 +74,7 @@ import {
   upsertTreeNode,
 } from './pmProjectsStore.mjs'
 
-import { importProject } from './projectImporter.mjs'
+import { importProject } from './projectImporter_v2.mjs'
 import multer from 'multer'
 import {
   extractZipToTemp,
