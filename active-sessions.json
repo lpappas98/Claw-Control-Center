@@ -1,13 +1,1 @@
-[
-  {
-    "id": "session-df32a82b66ef-1770861253793",
-    "userId": "local-user",
-    "instanceId": "test-instance",
-    "sessionKey": "test-session-1",
-    "label": "test-agent",
-    "task": "Testing",
-    "status": "active",
-    "spawnedAt": "2026-02-12T01:54:13.793Z",
-    "lastSeenAt": "2026-02-12T01:54:13.793Z"
-  }
-]
+[]
