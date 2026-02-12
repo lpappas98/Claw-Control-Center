@@ -5,7 +5,8 @@ import { usePoll } from '../lib/usePoll'
 import { Badge } from '../components/Badge'
 import { TaskModal } from '../components/TaskModal'
 import { AgentProfileModal } from '../components/AgentProfileModal'
-import type { ActivityEvent, AgentProfile, ActiveSession, BoardLane, LiveSnapshot, Priority, SystemStatus, Task, WorkerHeartbeat } from '../types'
+import { CopyButton } from '../components/CopyButton'
+import type { ActivityEvent, AgentProfile, ActiveSession, BoardLane, LiveSnapshot, Priority, SystemStatus, Task, WorkerHeartbeat, Blocker } from '../types'
 
 type HomeTask = {
   id: string
@@ -16,6 +17,9 @@ type HomeTask = {
   agentEmoji?: string
   details?: Task
   detailsMatch?: 'id' | 'title'
+  // Blocker-specific fields (only populated when this is a blocker task)
+  blockerDetails?: string
+  blockerRemediation?: Blocker['remediation']
 }
 
 function fmtAgo(iso?: string) {
@@ -228,6 +232,8 @@ export function MissionControl({
       title: b.title,
       priority: inferPriority(b.title),
       lane: 'blocked',
+      blockerDetails: b.details,
+      blockerRemediation: b.remediation,
     }))
 
     // Prefer showing live worker cards first, then seeded queued/proposed cards, then blockers.
@@ -490,6 +496,7 @@ export function MissionControl({
               const canOpen = !!task.details
               const projectName = getProjectName(task.details?.projectId)
               const assignedAgent = getAssignedAgent(task.details?.assignedProfileId)
+              const isBlocker = !!task.blockerDetails || !!task.blockerRemediation
               
               const inner = (
                 <>
@@ -507,6 +514,35 @@ export function MissionControl({
                       ? `${task.agentEmoji ?? '🤖'} ${task.agent}` 
                       : 'Unassigned'}
                   </div>
+                  
+                  {/* Blocker-specific details and remediation */}
+                  {isBlocker && (
+                    <div className="blocker-info" style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--border)' }}>
+                      {task.blockerDetails && (
+                        <div style={{ fontSize: 12, marginBottom: 8, color: 'var(--text-muted)' }}>
+                          <strong>Issue:</strong> {task.blockerDetails}
+                        </div>
+                      )}
+                      {task.blockerRemediation && task.blockerRemediation.length > 0 && (
+                        <div style={{ fontSize: 12 }}>
+                          <strong style={{ display: 'block', marginBottom: 4 }}>How to fix:</strong>
+                          <div className="stack" style={{ gap: 6 }}>
+                            {task.blockerRemediation.map((step, idx) => (
+                              <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                                <span style={{ flex: '1 1 auto', minWidth: 120 }}>{step.label}</span>
+                                {step.command && (
+                                  <CopyButton 
+                                    text={step.command} 
+                                    label="Copy cmd"
+                                  />
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </>
               )
 
