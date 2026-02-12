@@ -100,6 +100,8 @@ const agentProfilesSaver = makeDebouncedSaver(() => saveAgentProfiles(AGENT_PROF
 let tasks = await loadTasks(TASKS_FILE)
 const tasksSaver = makeDebouncedSaver(() => saveTasks(TASKS_FILE, tasks))
 let tasksSaveTimer = null
+let rulesSaveTimer = null
+let agentProfilesSaveTimer = null
 
 let lastGatewayHealth = null
 let lastGatewaySummary = null
@@ -131,6 +133,12 @@ function scheduleActivitySave() {
 function scheduleRulesSave() {
   rulesSaver.trigger()
   ruleHistorySaver.trigger()
+  if (rulesSaveTimer) return
+  rulesSaveTimer = setTimeout(async () => {
+    rulesSaveTimer = null
+    await rulesSaver.flush()
+    await ruleHistorySaver.flush()
+  }, 750)
 }
 
 function scheduleTasksSave() {
@@ -144,6 +152,11 @@ function scheduleTasksSave() {
 
 function scheduleAgentProfilesSave() {
   agentProfilesSaver.trigger()
+  if (agentProfilesSaveTimer) return
+  agentProfilesSaveTimer = setTimeout(async () => {
+    agentProfilesSaveTimer = null
+    await agentProfilesSaver.flush()
+  }, 750)
 }
 
 function pushActivity(evt) {
