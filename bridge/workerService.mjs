@@ -10,6 +10,7 @@
 import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { spawn } from 'child_process';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -20,6 +21,17 @@ const VALID_SLOTS = ['pm', 'architect', 'dev-1', 'dev-2', 'qa'];
 // Heartbeat configuration
 const HEARTBEAT_INTERVAL_MS = 15000; // 15 seconds
 const HEARTBEAT_FILE = path.join(__dirname, '../.clawhub/worker-heartbeats.json');
+
+// Task polling configuration
+const TASK_POLL_INTERVAL_MS = 30000; // 30 seconds
+const TASK_API_BASE = 'http://localhost:8787/api';
+const MAX_BACKOFF_MS = 300000; // 5 minutes
+const INITIAL_BACKOFF_MS = 30000; // 30 seconds
+
+// Session monitoring configuration
+const SESSION_POLL_INTERVAL_MS = 15000; // 15 seconds
+const DEFAULT_TIMEOUT_MS = 30 * 60 * 1000; // 30 minutes
+const MAX_TIMEOUT_MS = 2 * 60 * 60 * 1000; // 2 hours
 
 // Worker version
 const WORKER_VERSION = '1.0.0';
@@ -56,7 +68,12 @@ class WorkerService {
     this.sessionId = null;
     this.startedAt = Date.now();
     this.heartbeatInterval = null;
+    this.pollInterval = null;
     this.isShuttingDown = false;
+    
+    // Task polling backoff state
+    this.backoffMs = INITIAL_BACKOFF_MS;
+    this.consecutiveFailures = 0;
 
     logger.info(`[${this.slot}] WorkerService initialized`);
   }
@@ -133,6 +150,101 @@ class WorkerService {
   }
 
   /**
+   * Poll for tasks assigned to this worker
+   */
+  async pollTasks() {
+    // Skip if already working
+    if (this.status !== 'idle') {
+      return;
+    }
+
+    try {
+      // Fetch all tasks from API
+      const response = await fetch(`${TASK_API_BASE}/tasks`);
+      if (!response.ok) {
+        throw new Error(`Task API returned ${response.status}`);
+      }
+
+      const tasks = await response.json();
+
+      // Filter for tasks assigned to this worker in "queued" lane
+      const eligibleTasks = tasks.filter(task => 
+        task.lane === 'queued' && task.owner === this.slot
+      );
+
+      if (eligibleTasks.length === 0) {
+        return; // No tasks available
+      }
+
+      // Sort by priority (P0=2, P1=1, P2=0), then by createdAt (FIFO)
+      const priorityMap = { 'P0': 2, 'P1': 1, 'P2': 0 };
+      eligibleTasks.sort((a, b) => {
+        const aPriority = priorityMap[a.priority] || 0;
+        const bPriority = priorityMap[b.priority] || 0;
+        
+        if (bPriority !== aPriority) {
+          return bPriority - aPriority; // Higher priority first
+        }
+        
+        // FIFO as tiebreaker
+        return a.createdAt - b.createdAt;
+      });
+
+      // Pick the first matching task
+      const task = eligibleTasks[0];
+      logger.info(`[${this.slot}] Found task: ${task.title}`);
+
+      // Assign the task
+      await this.assignTask(task);
+
+      // Reset backoff on successful poll
+      this.consecutiveFailures = 0;
+      this.backoffMs = INITIAL_BACKOFF_MS;
+
+    } catch (error) {
+      this.consecutiveFailures++;
+      const oldBackoff = this.backoffMs;
+      this.backoffMs = Math.min(this.backoffMs * 2, MAX_BACKOFF_MS);
+      
+      logger.error(
+        `[${this.slot}] Task polling failed (attempt ${this.consecutiveFailures}): ${error.message}. ` +
+        `Retrying in ${this.backoffMs / 1000}s (was ${oldBackoff / 1000}s)`
+      );
+    }
+  }
+
+  /**
+   * Assign a task to this worker
+   */
+  async assignTask(task) {
+    try {
+      // Update task lane to "development"
+      const updateResponse = await fetch(`${TASK_API_BASE}/tasks/${task.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ lane: 'development' })
+      });
+
+      if (!updateResponse.ok) {
+        throw new Error(`Failed to update task ${task.id}: ${updateResponse.status}`);
+      }
+
+      logger.info(`[${this.slot}] Assigned task ${task.id} to worker`);
+
+      // Update worker status to "working"
+      await this.updateStatus('working', {
+        task: task.id,
+        taskTitle: task.title,
+        sessionId: null // Session spawning will be added by Patch
+      });
+
+    } catch (error) {
+      logger.error(`[${this.slot}] Failed to assign task ${task.id}:`, error.message);
+      throw error;
+    }
+  }
+
+  /**
    * Start the worker service
    */
   async start() {
@@ -148,8 +260,21 @@ class WorkerService {
       });
     }, HEARTBEAT_INTERVAL_MS);
 
+    // Start task polling loop
+    this.pollInterval = setInterval(() => {
+      this.pollTasks().catch((error) => {
+        logger.error(`[${this.slot}] Task polling loop error:`, error.message);
+      });
+    }, TASK_POLL_INTERVAL_MS);
+
+    // Do initial poll immediately
+    this.pollTasks().catch((error) => {
+      logger.error(`[${this.slot}] Initial task poll failed:`, error.message);
+    });
+
     logger.info(`[${this.slot}] Worker service started (PID: ${process.pid})`);
     logger.info(`[${this.slot}] Heartbeat interval: ${HEARTBEAT_INTERVAL_MS}ms`);
+    logger.info(`[${this.slot}] Task poll interval: ${TASK_POLL_INTERVAL_MS}ms`);
   }
 
   /**
@@ -186,6 +311,12 @@ class WorkerService {
     if (this.heartbeatInterval) {
       clearInterval(this.heartbeatInterval);
       this.heartbeatInterval = null;
+    }
+
+    // Stop task polling loop
+    if (this.pollInterval) {
+      clearInterval(this.pollInterval);
+      this.pollInterval = null;
     }
 
     // Mark as offline
