@@ -194,7 +194,7 @@ async function walkDirectory(dir, baseDir = dir, maxDepth = 8) {
 }
 
 /**
- * Find and read README
+ * Find and read README (searches root + subdirectories)
  */
 async function findAndReadReadme(projectPath, files = []) {
   const readmePattern = /^readme\.md$/i
@@ -203,15 +203,26 @@ async function findAndReadReadme(projectPath, files = []) {
     files = await walkDirectory(projectPath)
   }
   
-  const readmePath = files.find(f => readmePattern.test(path.basename(f)))
+  // Find README files, prefer root-level
+  const readmeFiles = files.filter(f => readmePattern.test(path.basename(f)))
   
-  if (readmePath) {
+  // Sort by depth (prefer shallower)
+  readmeFiles.sort((a, b) => {
+    const depthA = a.split(path.sep).length
+    const depthB = b.split(path.sep).length
+    return depthA - depthB
+  })
+  
+  // Try to read the first (shallowest) README
+  for (const readmePath of readmeFiles) {
     try {
       const content = await fs.readFile(path.join(projectPath, readmePath), 'utf8')
+      console.log(`[ImporterV2] Found README at: ${readmePath}`)
       return content
     } catch {}
   }
   
+  console.log(`[ImporterV2] No README found`)
   return null
 }
 

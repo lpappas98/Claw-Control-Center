@@ -16,6 +16,12 @@ export async function analyzeRepositoryDeep(repoPath, readme) {
   const readmeFeatures = await parseReadmeHierarchy(readme)
   console.log(`📖 Extracted ${readmeFeatures.length} features from README`)
   
+  // Debug: log feature structure
+  for (const f of readmeFeatures) {
+    const itemCount = f.subFeatures.reduce((sum, sub) => sum + sub.items.length, 0)
+    console.log(`  - ${f.title}: ${f.subFeatures.length} sub-features, ${itemCount} items`)
+  }
+  
   // 2. Scan codebase for structure
   const codeStructure = await scanCodebase(repoPath)
   console.log(`💻 Found ${codeStructure.files.length} code files`)
@@ -50,11 +56,10 @@ async function parseReadmeHierarchy(content) {
   const lines = content.split('\n')
   const features = []
 
-  // Only start parsing after we hit a recognizable features section.
-  // Questra uses "## Core Features".
   let inFeaturesSection = false
   let currentFeature = null
   let currentSection = null
+  let currentIndent = 0
 
   for (let i = 0; i < lines.length; i++) {
     const rawLine = lines[i]
@@ -73,21 +78,17 @@ async function parseReadmeHierarchy(content) {
 
     if (!inFeaturesSection) continue
 
-    // ### Feature headers (treat all H3 inside features section as top-level features)
+    // ### Feature headers (H3-based format)
     const h3Match = line.match(/^###\s+(.+)/)
     if (h3Match) {
       if (currentFeature) features.push(currentFeature)
 
       let title = h3Match[1].trim()
-      // Remove leading emoji (multi-codepoint-safe) + punctuation
       title = title.replace(/^\p{Extended_Pictographic}+\s*/u, '')
-      // If the header contains an inline " - " list starter, keep only the section title
       title = title.split(' - ')[0].trim()
-      // Cleanup markdown wrappers
       title = title.replace(/^\*\*(.+?)\*\*:?$/, '$1')
-      title = title.replace(/\s+\*\*.*$/, '').trim() // drop trailing inline bold segments if present
+      title = title.replace(/\s+\*\*.*$/, '').trim()
 
-      // Description: take following paragraph lines
       const description = extractDescription(lines, i + 1)
 
       currentFeature = {
@@ -97,17 +98,17 @@ async function parseReadmeHierarchy(content) {
         codeFiles: []
       }
 
-      // Default sub-section to an implicit bucket so bullets immediately under the H3 become children
       currentFeature.subFeatures.push({
         title: 'Details',
         description: '',
         items: []
       })
       currentSection = currentFeature.subFeatures[0]
+      currentIndent = 0
       continue
     }
 
-    // #### Sub-headers become sub-features
+    // #### Sub-headers
     const h4Match = line.match(/^####\s+(.+)/)
     if (h4Match && currentFeature) {
       const subTitle = h4Match[1].replace(/^\*\*(.+?)\*\*:?$/, '$1').trim()
@@ -119,36 +120,81 @@ async function parseReadmeHierarchy(content) {
         items: []
       })
       currentSection = currentFeature.subFeatures[currentFeature.subFeatures.length - 1]
+      currentIndent = 0
       continue
     }
 
-    // Bullet points under features become items (support bold + non-bold bullets)
-    if (currentFeature && currentSection) {
-      const boldBullet = line.match(/^[\s]*[-*]\s+\*\*(.+?)\*\*:?\s*(.*)/)
-      if (boldBullet) {
-        currentSection.items.push({
-          title: boldBullet[1].trim(),
-          description: (boldBullet[2] || '').trim()
-        })
-        continue
+    // Top-level bold bullets become features (Questra format: - **Feature Name**: desc)
+    const topBoldBullet = line.match(/^[-*]\s+\*\*(.+?)\*\*:?\s*(.*)/)
+    if (topBoldBullet && !currentFeature) {
+      // This is a top-level feature bullet
+      if (currentFeature) features.push(currentFeature)
+
+      const title = topBoldBullet[1].trim()
+      const description = (topBoldBullet[2] || '').trim()
+
+      currentFeature = {
+        title,
+        description,
+        subFeatures: [],
+        codeFiles: []
       }
 
-      const plainBullet = line.match(/^[\s]*[-*]\s+(.+)/)
-      if (plainBullet) {
-        const text = plainBullet[1].trim()
-        // Split "Title: desc" when available
-        const idx = text.indexOf(':')
-        if (idx > 0 && idx < 80) {
-          currentSection.items.push({
-            title: text.slice(0, idx).trim(),
-            description: text.slice(idx + 1).trim()
-          })
-        } else {
-          currentSection.items.push({
-            title: text,
-            description: ''
-          })
+      currentFeature.subFeatures.push({
+        title: 'Details',
+        description: '',
+        items: []
+      })
+      currentSection = currentFeature.subFeatures[0]
+      currentIndent = 0
+      continue
+    }
+
+    // Nested bullets under features (indented)
+    const indent = line.match(/^(\s*)[-*]\s/)
+    if (indent && currentFeature) {
+      const indentLevel = indent[1].length
+      
+      // Only capture bullets that are more indented than the feature line
+      if (indentLevel > currentIndent) {
+        const bulletMatch = line.match(/^\s*[-*]\s+(.+)/)
+        if (bulletMatch) {
+          const text = bulletMatch[1].trim()
+          const colonIdx = text.indexOf(':')
+          
+          if (colonIdx > 0 && colonIdx < 80) {
+            currentSection.items.push({
+              title: text.slice(0, colonIdx).trim(),
+              description: text.slice(colonIdx + 1).trim()
+            })
+          } else {
+            currentSection.items.push({
+              title: text,
+              description: ''
+            })
+          }
         }
+      } else if (indentLevel === 0 && topBoldBullet) {
+        // New top-level bullet = new feature
+        if (currentFeature) features.push(currentFeature)
+
+        const title = topBoldBullet[1].trim()
+        const description = (topBoldBullet[2] || '').trim()
+
+        currentFeature = {
+          title,
+          description,
+          subFeatures: [],
+          codeFiles: []
+        }
+
+        currentFeature.subFeatures.push({
+          title: 'Details',
+          description: '',
+          items: []
+        })
+        currentSection = currentFeature.subFeatures[0]
+        currentIndent = 0
       }
     }
   }
@@ -359,7 +405,7 @@ function buildFeatureTree(features, codeStructure) {
     const node = {
       id: `feat-${i + 1}`,
       title: feature.title,
-      summary: feature.description || `${feature.title} module`,
+      summary: feature.description || `${feature.title} functionality`,
       status: 'planned',
       priority: i < 3 ? 'p1' : 'p2',
       codeFiles: feature.codeFiles,
@@ -370,31 +416,49 @@ function buildFeatureTree(features, codeStructure) {
     for (let j = 0; j < feature.subFeatures.length; j++) {
       const sub = feature.subFeatures[j]
       
-      const subNode = {
-        id: `feat-${i + 1}-${j + 1}`,
-        title: sub.title,
-        summary: sub.description || `${sub.title} component`,
-        status: 'planned',
-        priority: 'p2',
-        codeFiles: sub.codeFiles,
-        children: []
-      }
-      
-      // Add items as leaf nodes
-      for (let k = 0; k < sub.items.length; k++) {
-        const item = sub.items[k]
-        
-        subNode.children.push({
-          id: `feat-${i + 1}-${j + 1}-${k + 1}`,
-          title: item.title,
-          summary: item.description || '',
+      // Skip implicit "Details" section - convert items directly to children
+      if (sub.title === 'Details' && sub.items.length > 0) {
+        // Convert items directly to child nodes
+        for (let k = 0; k < sub.items.length; k++) {
+          const item = sub.items[k]
+          
+          node.children.push({
+            id: `feat-${i + 1}-${k + 1}`,
+            title: item.title,
+            summary: item.description || '',
+            status: 'planned',
+            priority: 'p2',
+            children: []
+          })
+        }
+      } else if (sub.items.length > 0) {
+        // Real sub-feature with items
+        const subNode = {
+          id: `feat-${i + 1}-${j + 1}`,
+          title: sub.title,
+          summary: sub.description || `${sub.title} component`,
           status: 'planned',
-          priority: 'p3',
+          priority: 'p2',
+          codeFiles: sub.codeFiles,
           children: []
-        })
+        }
+        
+        // Add items as leaf nodes
+        for (let k = 0; k < sub.items.length; k++) {
+          const item = sub.items[k]
+          
+          subNode.children.push({
+            id: `feat-${i + 1}-${j + 1}-${k + 1}`,
+            title: item.title,
+            summary: item.description || '',
+            status: 'planned',
+            priority: 'p3',
+            children: []
+          })
+        }
+        
+        node.children.push(subNode)
       }
-      
-      node.children.push(subNode)
     }
     
     tree.push(node)
