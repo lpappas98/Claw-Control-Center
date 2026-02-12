@@ -3,6 +3,7 @@ import type { Adapter } from '../adapters/adapter'
 import type { AgentProfile, BoardLane, Priority, Task } from '../types'
 import { CopyButton } from './CopyButton'
 import { usePoll } from '../lib/usePoll'
+import { getAgentName } from '../lib/agentUtils'
 
 const LANES: BoardLane[] = ['proposed', 'queued', 'development', 'review', 'blocked', 'done']
 const PRIORITIES: Priority[] = ['P0', 'P1', 'P2', 'P3']
@@ -205,7 +206,16 @@ export function TaskModal({
 
             <label className="field">
               <div className="muted">Owner</div>
-              <input value={draftOwner} onChange={(e) => setDraftOwner(e.target.value)} placeholder="optional" />
+              <input 
+                value={draftOwner} 
+                onChange={(e) => setDraftOwner(e.target.value)} 
+                placeholder="optional (e.g., dev-1, pm, architect)" 
+              />
+              {draftOwner && (
+                <div className="muted" style={{ fontSize: 11, marginTop: 4 }}>
+                  → {getAgentName(draftOwner)}
+                </div>
+              )}
             </label>
 
             <label className="field">

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { Adapter } from '../adapters/adapter'
 import type { AdapterConfig } from '../lib/adapterState'
 import { usePoll } from '../lib/usePoll'
+import { getAgentInfo } from '../lib/agentUtils'
 import { Badge } from '../components/Badge'
 import { TaskModal } from '../components/TaskModal'
 import { AgentProfileModal } from '../components/AgentProfileModal'
@@ -38,15 +39,6 @@ function inferPriority(title?: string): Priority {
   return 'P2'
 }
 
-function agentProfile(slot: string, fallback?: string) {
-  if (slot === 'pm') return { name: 'TARS', role: 'Project Manager', emoji: '🧠' }
-  if (slot === 'dev-1') return { name: 'Forge', role: 'Developer', emoji: '🛠️' }
-  if (slot === 'dev-2') return { name: 'Patch', role: 'Developer', emoji: '🧩' }
-  if (slot === 'architect') return { name: 'Blueprint', role: 'Architect', emoji: '🏗️' }
-  if (slot === 'qa') return { name: 'Sentinel', role: 'QA', emoji: '🛡️' }
-  return { name: fallback ?? slot, role: 'Agent', emoji: '🤖' }
-}
-
 function homeStatus(status: string) {
   return status === 'active' ? 'working' : 'sleeping'
 }
@@ -72,7 +64,7 @@ function activityActor(e: ActivityEvent): string | null {
   const slot = typeof meta.slot === 'string' ? meta.slot : typeof meta.workerSlot === 'string' ? meta.workerSlot : null
   const human = typeof meta.user === 'string' ? meta.user : typeof meta.human === 'string' ? meta.human : null
   if (slot) {
-    const profile = agentProfile(slot)
+    const profile = getAgentInfo(slot)
     return `${profile.emoji} ${profile.name}`
   }
   if (human) return human
@@ -173,7 +165,7 @@ export function MissionControl({
     
     // Only show actual workers - no placeholder slots
     return workers.map((w) => {
-      const profile = agentProfile(w.slot, w.label)
+      const profile = getAgentInfo(w.slot, w.label)
       return {
         id: w.slot,
         name: profile.name,
@@ -197,7 +189,7 @@ export function MissionControl({
     const workerTasks: HomeTask[] = (live.data?.workers ?? [])
       .filter((w) => !!w.task)
       .map((w, idx) => {
-        const profile = agentProfile(w.slot, w.label)
+        const profile = getAgentInfo(w.slot, w.label)
         const title = w.task ?? 'Untitled task'
         const matched = byTitle.get(title.trim())
         if (matched) usedPersistedIds.add(matched.id)
