@@ -80,15 +80,29 @@ class WorkerService {
 
   /**
    * Read current heartbeats from disk
+   * Handles both object and array formats for backward compatibility
    */
   async readHeartbeats() {
     try {
       const content = await fs.readFile(HEARTBEAT_FILE, 'utf8');
-      return JSON.parse(content);
+      const data = JSON.parse(content);
+      
+      // Normalize to array format if in object format
+      if (data.workers && !Array.isArray(data.workers)) {
+        // Convert object format {workers: {pm: {...}, architect: {...}}}
+        // to array format {workers: [{slot: pm, ...}, {slot: architect, ...}]}
+        const workersArray = Object.entries(data.workers).map(([slot, workerData]) => ({
+          slot,
+          ...workerData
+        }));
+        return { workers: workersArray };
+      }
+      
+      return data;
     } catch (error) {
       if (error.code === 'ENOENT') {
         // File doesn't exist yet, return empty structure
-        return { workers: {} };
+        return { workers: [] };
       }
       throw error;
     }
@@ -121,26 +135,40 @@ class WorkerService {
 
   /**
    * Update heartbeat for this worker
+   * Writes in array format: {workers: [{slot, status, ...}]}
    */
   async updateHeartbeat() {
     try {
       const heartbeats = await this.readHeartbeats();
 
-      heartbeats.workers = heartbeats.workers || {};
-      heartbeats.workers[this.slot] = {
+      // Ensure workers is an array (should be from readHeartbeats, but be defensive)
+      if (!Array.isArray(heartbeats.workers)) {
+        heartbeats.workers = [];
+      }
+      
+      // Find existing worker entry
+      const existingIndex = heartbeats.workers.findIndex(w => w.slot === this.slot);
+      const restartCount = existingIndex >= 0 ? heartbeats.workers[existingIndex]?.metadata?.restartCount || 0 : 0;
+      
+      // Remove existing entry
+      heartbeats.workers = heartbeats.workers.filter(w => w.slot !== this.slot);
+      
+      // Add updated entry in array format
+      heartbeats.workers.push({
         slot: this.slot,
         status: this.status,
         task: this.currentTask,
         taskTitle: this.taskTitle,
         sessionId: this.sessionId,
+        lastBeatAt: new Date().toISOString(),
         lastUpdate: Date.now(),
         startedAt: this.startedAt,
         metadata: {
           workerPid: process.pid,
           workerVersion: WORKER_VERSION,
-          restartCount: heartbeats.workers[this.slot]?.metadata?.restartCount || 0,
+          restartCount: restartCount,
         },
-      };
+      });
 
       await this.writeHeartbeat(heartbeats);
       logger.info(`[${this.slot}] Heartbeat updated: status=${this.status}, task=${this.currentTask || 'none'}`);
@@ -389,67 +417,63 @@ class WorkerService {
 
   /**
    * Spawn a Claude session for task execution
+   * 
+   * CRITICAL: Spawn detached so we don't wait for process exit.
+   * The openclaw agent process IS the session - it runs until work is done.
+   * We need to spawn it, get the sessionId, and monitor via API.
    */
   async spawnSession(task) {
     const sessionLabel = `${this.slot}-${task.id.split('-').pop()}`;
     const prompt = this.buildTaskPrompt(task);
+    const sessionId = `agent:main:subagent:${sessionLabel}`;
 
-    logger.info(`[${this.slot}] Spawning session for task ${task.id} (label: ${sessionLabel})`);
+    logger.info(`[${this.slot}] Spawning session for task ${task.id} (sessionId: ${sessionId})`);
 
     try {
       // Use openclaw agent command to spawn session
-      // We'll use agent subagent mode which creates a persistent session
       const args = [
         'agent',
-        '--session-id', `agent:main:subagent:${sessionLabel}`,
+        '--session-id', sessionId,
         '--message', prompt,
-        '--thinking', 'low',
-        '--json'
+        '--thinking', 'low'
       ];
 
-      return new Promise((resolve, reject) => {
-        const process = spawn('openclaw', args, {
-          cwd: task.workingDir || '/home/openclaw/.openclaw/workspace/',
-          stdio: ['ignore', 'pipe', 'pipe']
-        });
-
-        let stdout = '';
-        let stderr = '';
-
-        process.stdout.on('data', (data) => {
-          stdout += data.toString();
-        });
-
-        process.stderr.on('data', (data) => {
-          stderr += data.toString();
-        });
-
-        process.on('close', (code) => {
-          if (code !== 0) {
-            logger.error(`[${this.slot}] Session spawn failed with code ${code}`);
-            logger.error(`[${this.slot}] stderr: ${stderr}`);
-            reject(new Error(`Session spawn failed: ${stderr || 'Unknown error'}`));
-            return;
-          }
-
-          try {
-            // Parse JSON response to get session ID
-            const response = JSON.parse(stdout);
-            const sessionId = `agent:main:subagent:${sessionLabel}`;
-            
-            logger.info(`[${this.slot}] Session spawned successfully: ${sessionId}`);
-            resolve({ sessionId, response });
-          } catch (err) {
-            logger.error(`[${this.slot}] Failed to parse session spawn response: ${err.message}`);
-            reject(new Error(`Failed to parse session response: ${err.message}`));
-          }
-        });
-
-        process.on('error', (err) => {
-          logger.error(`[${this.slot}] Failed to spawn session: ${err.message}`);
-          reject(err);
-        });
+      // Spawn DETACHED - don't wait for process to exit!
+      // The process IS the session - it will run until work completes
+      const proc = spawn('openclaw', args, {
+        cwd: task.workingDir || '/home/openclaw/.openclaw/workspace/',
+        detached: true,
+        stdio: 'ignore'  // Fully detach - no pipes
       });
+
+      // Unref so Node doesn't keep parent alive waiting for child
+      proc.unref();
+
+      // Log spawn attempt
+      logger.info(`[${this.slot}] Session process spawned (PID: ${proc.pid}), monitoring via API`);
+
+      // Give the session a moment to start up before we try monitoring
+      // (OpenClaw needs time to register the session)
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      // Verify session actually started by checking sessions API
+      try {
+        const response = await fetch(`${TASK_API_BASE}/sessions`);
+        if (response.ok) {
+          const sessions = await response.json();
+          const session = sessions.find(s => s.id === sessionId || s.label?.includes(sessionLabel));
+          
+          if (session) {
+            logger.info(`[${this.slot}] Session verified active: ${sessionId}`);
+          } else {
+            logger.warn(`[${this.slot}] Session not yet visible in API, will monitor anyway`);
+          }
+        }
+      } catch (verifyError) {
+        logger.warn(`[${this.slot}] Could not verify session start: ${verifyError.message}`);
+      }
+
+      return { sessionId };
     } catch (error) {
       logger.error(`[${this.slot}] Session spawn error: ${error.message}`);
       throw error;
@@ -458,14 +482,21 @@ class WorkerService {
 
   /**
    * Monitor session status and detect completion
+   * 
+   * Monitors via OpenClaw sessions API, NOT by waiting for process exit.
+   * Sessions may complete quickly, so we check immediately and poll regularly.
    */
   async monitorSession(task, sessionId) {
     const startTime = Date.now();
     const timeout = task.timeoutMs || DEFAULT_TIMEOUT_MS;
     
-    logger.info(`[${this.slot}] Starting session monitoring (timeout: ${timeout}ms)`);
+    logger.info(`[${this.slot}] Starting session monitoring (timeout: ${timeout / 1000}s)`);
 
-    const checkInterval = setInterval(async () => {
+    // Track consecutive "not found" checks to handle race conditions
+    let notFoundCount = 0;
+    const MAX_NOT_FOUND = 3; // Give session time to register before assuming completion
+
+    const checkSession = async () => {
       // Update heartbeat to show liveness
       await this.updateHeartbeat();
 
@@ -478,44 +509,94 @@ class WorkerService {
         return;
       }
 
-      // Check session status via API
+      // Check session status via OpenClaw CLI (native session management)
       try {
-        const response = await fetch(`${TASK_API_BASE}/sessions`);
-        if (!response.ok) {
-          logger.warn(`[${this.slot}] Failed to fetch session status: ${response.statusText}`);
+        // Use openclaw sessions list to get current sessions
+        const { stdout, stderr, code } = await new Promise((resolve) => {
+          const proc = spawn('openclaw', ['sessions', 'list', '--json'], {
+            stdio: ['ignore', 'pipe', 'pipe']
+          });
+
+          let stdout = '';
+          let stderr = '';
+
+          proc.stdout.on('data', (data) => {
+            stdout += data.toString();
+          });
+
+          proc.stderr.on('data', (data) => {
+            stderr += data.toString();
+          });
+
+          proc.on('close', (code) => {
+            resolve({ stdout, stderr, code });
+          });
+
+          proc.on('error', (err) => {
+            resolve({ stdout: '', stderr: err.message, code: -1 });
+          });
+        });
+
+        if (code !== 0) {
+          logger.warn(`[${this.slot}] Failed to list sessions: ${stderr}`);
           return;
         }
 
-        const sessions = await response.json();
-        const session = sessions.find(s => s.id === sessionId || s.label === sessionId);
+        const sessionData = JSON.parse(stdout);
+        const sessions = sessionData.sessions || [];
+        
+        // Look for our session by key (sessionId)
+        const session = sessions.find(s => s.key === sessionId);
 
         if (!session) {
-          // Session not found - may have completed
-          logger.info(`[${this.slot}] Session not found in active sessions - assuming complete`);
-          clearInterval(checkInterval);
-          await this.completeTask(task.id, true, sessionId);
+          notFoundCount++;
+          
+          // Session not found - could be:
+          // 1. Still starting up (wait a bit)
+          // 2. Already completed and cleaned up
+          // 3. Failed to start
+          
+          if (notFoundCount >= MAX_NOT_FOUND) {
+            // After multiple checks, assume session completed
+            logger.info(`[${this.slot}] Session not found after ${notFoundCount} checks - assuming complete`);
+            clearInterval(checkInterval);
+            await this.completeTask(task.id, true, sessionId);
+          } else {
+            logger.info(`[${this.slot}] Session not found (${notFoundCount}/${MAX_NOT_FOUND}), will retry`);
+          }
           return;
         }
 
-        if (session.completed) {
+        // Session found - reset not-found counter
+        notFoundCount = 0;
+
+        // Check if session has been aborted or has errors
+        if (session.abortedLastRun) {
           clearInterval(checkInterval);
-          logger.info(`[${this.slot}] Session completed successfully`);
-          await this.completeTask(task.id, true, sessionId);
+          logger.error(`[${this.slot}] Session aborted`);
+          await this.completeTask(task.id, false, sessionId, 'Session aborted');
           return;
         }
 
-        if (session.error || session.status === 'failed') {
-          clearInterval(checkInterval);
-          logger.error(`[${this.slot}] Session failed: ${session.error || 'Unknown error'}`);
-          await this.completeTask(task.id, false, sessionId, session.error);
-          return;
-        }
+        // Session is still active - check age
+        const sessionAgeMs = session.ageMs || 0;
+        const sessionAgeS = Math.round(sessionAgeMs / 1000);
 
-        logger.info(`[${this.slot}] Session still running (elapsed: ${Math.round(elapsed / 1000)}s)`);
+        logger.info(`[${this.slot}] Session active (age: ${sessionAgeS}s, tokens: ${session.totalTokens || 0})`);
+        
+        // Session will disappear from list when it completes
+        // We continue monitoring until it's gone
+        
       } catch (error) {
         logger.error(`[${this.slot}] Error checking session status: ${error.message}`);
       }
-    }, SESSION_POLL_INTERVAL_MS);
+    };
+
+    // Do immediate check (don't wait for first interval)
+    await checkSession();
+
+    // Start polling interval
+    const checkInterval = setInterval(checkSession, SESSION_POLL_INTERVAL_MS);
 
     // Store interval handle so we can clean it up on shutdown
     this.sessionMonitorInterval = checkInterval;
@@ -535,7 +616,7 @@ class WorkerService {
         for (let i = 0; i < retries; i++) {
           try {
             const response = await fetch(`${TASK_API_BASE}/tasks/${taskId}`, {
-              method: 'PATCH',
+              method: 'PUT',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
                 lane: newLane,
