@@ -768,21 +768,24 @@ export const mockAdapter: Adapter = {
     await sleep(200)
     const intake = mockPMIntakes.get(projectId) ?? { ideas: [], analyses: [], questions: [], requirements: [] }
     const questions = [
-      { id: `q-${Date.now()}-1`, category: 'Goal', prompt: 'What problem are we solving?', required: true, answer: '' },
-      { id: `q-${Date.now()}-2`, category: 'Users', prompt: 'Who are the primary users?', required: true, answer: '' },
-      { id: `q-${Date.now()}-3`, category: 'Scope', prompt: 'What is out of scope?', required: true, answer: '' },
+      { id: `q-${Date.now()}-1`, category: 'Goal', prompt: 'What problem are we solving?', required: true, answer: null },
+      { id: `q-${Date.now()}-2`, category: 'Users', prompt: 'Who are the primary users?', required: true, answer: null },
+      { id: `q-${Date.now()}-3`, category: 'Scope', prompt: 'What is out of scope?', required: true, answer: null },
     ]
     intake.questions = questions
     mockPMIntakes.set(projectId, intake)
     return intake
   },
 
-  async answerPMQuestion(projectId: string, questionId: string, answer: string): Promise<PMIntake> {
+  async answerPMQuestion(projectId: string, questionId: string, answerText: string): Promise<PMIntake> {
     await sleep(100)
     const intake = mockPMIntakes.get(projectId) ?? { ideas: [], analyses: [], questions: [], requirements: [] }
     const idx = intake.questions.findIndex((q) => q.id === questionId)
     if (idx >= 0) {
-      intake.questions[idx] = { ...intake.questions[idx], answer, answeredAt: nowIso() }
+      intake.questions[idx] = { 
+        ...intake.questions[idx], 
+        answer: { text: answerText, at: nowIso(), author: 'human' as const }
+      }
     }
     mockPMIntakes.set(projectId, intake)
     return intake
@@ -827,8 +830,7 @@ export const mockAdapter: Adapter = {
         category: q.category,
         prompt: q.prompt,
         required: q.required,
-        answer: q.answer,
-        answeredAt: q.answer ? nowIso() : undefined,
+        answer: q.answer ? { text: q.answer, at: nowIso(), author: 'human' as const } : null,
       })),
       requirements: [],
     }

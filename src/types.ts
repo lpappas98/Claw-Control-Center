@@ -382,8 +382,11 @@ export type PMIntakeQuestion = {
   category: string
   prompt: string
   required: boolean
-  answer: string
-  answeredAt?: string
+  answer: {
+    text: string
+    at: string
+    author: 'human' | 'ai'
+  } | null
 }
 
 /** Intake requirement derived from answers */

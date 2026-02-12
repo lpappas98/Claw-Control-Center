@@ -1862,7 +1862,7 @@ function pmToProject(
       id: q.id,
       category: q.category,
       prompt: q.prompt,
-      answer: q.answer ? { text: q.answer, at: q.answeredAt ?? '', author: 'human' as const } : null,
+      answer: q.answer,
     })),
     requirements: intake.requirements.map(r => ({
       id: r.id,
