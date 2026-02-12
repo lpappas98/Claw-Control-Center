@@ -391,6 +391,10 @@ function TreeView({
   const [addingNode, setAddingNode] = useState(false)
   const [newNodeTitle, setNewNodeTitle] = useState('')
   const [definingFeature, setDefiningFeature] = useState<FeatureNode | null>(null)
+  
+  // Drill-down navigation state
+  const [viewMode, setViewMode] = useState<'drill-down' | 'map'>('drill-down')
+  const [navigationPath, setNavigationPath] = useState<string[]>([]) // Array of node IDs
 
   const handleAddNode = async () => {
     if (!newNodeTitle.trim() || !adapter) return
@@ -444,6 +448,39 @@ function TreeView({
 
   const all = useMemo(() => flattenTree(project.tree), [project.tree])
 
+  // Get current node based on navigation path
+  const currentNode = useMemo(() => {
+    if (navigationPath.length === 0) return null
+    
+    let node: FeatureNode | null = null
+    let currentLevel = project.tree
+    
+    for (const nodeId of navigationPath) {
+      node = currentLevel.find(n => n.id === nodeId) ?? null
+      if (!node) break
+      currentLevel = node.children ?? []
+    }
+    
+    return node
+  }, [project.tree, navigationPath])
+
+  // Get visible nodes based on drill-down depth
+  const visibleNodes = useMemo(() => {
+    if (viewMode === 'map') {
+      // Map view: show all nodes
+      return project.tree
+    }
+    
+    // Drill-down view: show current level
+    if (navigationPath.length === 0) {
+      // Root level
+      return project.tree
+    }
+    
+    // Current node's children
+    return currentNode?.children ?? []
+  }, [project.tree, navigationPath, currentNode, viewMode])
+
   const matches = useMemo(() => {
     const q = query.trim().toLowerCase()
     if (!q) return new Set<string>()
@@ -459,12 +496,61 @@ function TreeView({
     return !!n.children?.some(isVisible)
   }
 
-  const epics = useMemo(() => project.tree.filter(isVisible), [project.tree, query])
+  const epics = useMemo(() => visibleNodes.filter(isVisible), [visibleNodes, query])
+  
+  // Navigation helpers
+  const navigateToNode = (nodeId: string) => {
+    setNavigationPath([...navigationPath, nodeId])
+  }
+  
+  const navigateBack = () => {
+    if (navigationPath.length > 0) {
+      setNavigationPath(navigationPath.slice(0, -1))
+    }
+  }
+  
+  const navigateToRoot = () => {
+    setNavigationPath([])
+  }
+  
+  // Build breadcrumb
+  const breadcrumb = useMemo(() => {
+    const crumbs: Array<{ id: string; title: string }> = [{ id: '', title: project.name }]
+    
+    let currentLevel = project.tree
+    for (const nodeId of navigationPath) {
+      const node = currentLevel.find(n => n.id === nodeId)
+      if (!node) break
+      crumbs.push({ id: node.id, title: node.title })
+      currentLevel = node.children ?? []
+    }
+    
+    return crumbs
+  }, [project.tree, project.name, navigationPath])
 
   return (
     <div className="stack" style={{ gap: 12 }}>
       <div className="tree-toolbar">
         <input className="input" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search nodes…" />
+        
+        {/* View mode toggle */}
+        <div style={{ display: 'flex', gap: 4, border: '1px solid var(--border)', borderRadius: 4, padding: 2 }}>
+          <button 
+            className={`btn ghost ${viewMode === 'drill-down' ? 'active' : ''}`}
+            style={{ padding: '4px 12px', fontSize: 13 }}
+            onClick={() => setViewMode('drill-down')}
+          >
+            Drill-Down
+          </button>
+          <button 
+            className={`btn ghost ${viewMode === 'map' ? 'active' : ''}`}
+            style={{ padding: '4px 12px', fontSize: 13 }}
+            onClick={() => setViewMode('map')}
+          >
+            Map View
+          </button>
+        </div>
+        
         <label className="field inline" style={{ margin: 0 }}>
           <input type="checkbox" checked={showDeps} onChange={(e) => setShowDeps(e.target.checked)} />
           <span className="muted">Show dependencies</span>
@@ -493,12 +579,41 @@ function TreeView({
         )}
       </div>
 
+      {/* Breadcrumb navigation (drill-down mode only) */}
+      {viewMode === 'drill-down' && navigationPath.length > 0 && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', background: 'var(--panel-bg)', borderRadius: 6 }}>
+          <button className="btn ghost" style={{ padding: '4px 8px' }} onClick={navigateBack}>
+            ← Back
+          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14 }}>
+            {breadcrumb.map((crumb, idx) => (
+              <React.Fragment key={crumb.id || 'root'}>
+                {idx > 0 && <span className="muted">›</span>}
+                <button
+                  className="btn ghost"
+                  style={{ padding: '2px 8px', fontSize: 13 }}
+                  onClick={() => {
+                    if (idx === 0) navigateToRoot()
+                    else setNavigationPath(navigationPath.slice(0, idx))
+                  }}
+                >
+                  {crumb.title}
+                </button>
+              </React.Fragment>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="panel" style={{ padding: 14 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', alignItems: 'baseline' }}>
           <div>
-            <h3 style={{ margin: 0 }}>Tree</h3>
+            <h3 style={{ margin: 0 }}>{viewMode === 'drill-down' && currentNode ? currentNode.title : 'Tree'}</h3>
+            {viewMode === 'drill-down' && currentNode && currentNode.summary && (
+              <p className="muted" style={{ marginTop: 4, fontSize: 13 }}>{currentNode.summary}</p>
+            )}
           </div>
-          <div className="muted">{all.length} node(s)</div>
+          <div className="muted">{viewMode === 'map' ? `${all.length} total` : `${epics.length} node(s)`}</div>
         </div>
 
         {/* Initiative → Epics/Sections → Stories/Tasks */}
@@ -520,14 +635,29 @@ function TreeView({
                     <button
                       type="button"
                       className="tree-box-clickable"
-                      onClick={() => onOpen(e)}
-                      title="Open section/epic"
+                      onClick={() => {
+                        // In drill-down mode with children: navigate deeper
+                        if (viewMode === 'drill-down' && e.children && e.children.length > 0) {
+                          navigateToNode(e.id)
+                        } else {
+                          // Otherwise: open detail drawer
+                          onOpen(e)
+                        }
+                      }}
+                      title={viewMode === 'drill-down' && e.children && e.children.length > 0 ? 'Navigate into' : 'Open details'}
                     >
                       <div className="tree-box-top">
                         <span className={`dot ${nodeDotClass(e.status)}`} />
                         <PriorityPill p={e.priority} />
                       </div>
-                      <div className="tree-box-title">{e.title}</div>
+                      <div className="tree-box-title">
+                        {e.title}
+                        {viewMode === 'drill-down' && e.children && e.children.length > 0 && (
+                          <span className="muted" style={{ marginLeft: 6, fontSize: 12 }}>
+                            ({e.children.length})
+                          </span>
+                        )}
+                      </div>
                       {e.summary ? <div className="muted tree-box-summary">{e.summary}</div> : <div className="muted tree-box-summary">—</div>}
                     </button>
                     <div className="tree-box-actions">
