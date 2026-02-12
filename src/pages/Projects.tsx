@@ -1251,7 +1251,15 @@ function NewProjectWizard({
       }
     } catch (err) {
       console.error('Failed to get next question:', err)
-      alert('Failed to generate next question')
+      const errorMsg = err instanceof Error ? err.message : String(err)
+      if (errorMsg.includes('session file locked') || errorMsg.includes('timeout')) {
+        alert('OpenClaw is busy processing another request. Please try again in a moment.')
+      } else {
+        alert('Failed to generate next question. You can finish the conversation with the questions you\'ve answered.')
+      }
+      // Allow user to continue even if next question fails
+      setConversationDone(true)
+      setCurrentQuestion(null)
     } finally {
       setQuestionLoading(false)
     }
@@ -1292,10 +1300,30 @@ function NewProjectWizard({
       setSuggestion(result.suggestion)
     } catch (err) {
       console.error('Failed to get suggestion:', err)
-      setSuggestion('Unable to get suggestion at this time')
+      const errorMsg = err instanceof Error ? err.message : String(err)
+      if (errorMsg.includes('session file locked') || errorMsg.includes('timeout')) {
+        setSuggestion('OpenClaw is busy right now. Try again in a moment, or continue without a suggestion.')
+      } else {
+        setSuggestion('Unable to get suggestion at this time. Continue with your answer!')
+      }
     } finally {
       setSuggestionLoading(false)
     }
+  }
+
+  const goBackToPreviousQuestion = () => {
+    if (conversationHistory.length === 0) return
+    
+    // Remove last Q&A from history
+    const previousHistory = conversationHistory.slice(0, -1)
+    setConversationHistory(previousHistory)
+    
+    // Restore the last question as current
+    const lastQA = conversationHistory[conversationHistory.length - 1]
+    setCurrentQuestion(lastQA.question)
+    setCurrentAnswer(lastQA.answer === '[skipped]' ? '' : lastQA.answer)
+    setConversationDone(false)
+    setSuggestion(null)
   }
 
   const createProject = async () => {
@@ -1646,13 +1674,30 @@ function NewProjectWizard({
                     />
 
                     {suggestion && (
-                      <div className="callout" style={{ marginTop: 12, background: '#1a1f2e', borderLeft: '3px solid #4f8ff7' }}>
+                      <div className="callout" style={{ marginTop: 12, background: '#1a1f2e', borderLeft: '3px solid #4f8ff7', position: 'relative' }}>
                         <div style={{ fontSize: '0.85em', color: '#999', marginBottom: 4 }}>💡 Suggestion</div>
-                        <div style={{ fontSize: '0.95em' }}>{suggestion}</div>
+                        <div style={{ fontSize: '0.95em', userSelect: 'text', cursor: 'text' }}>{suggestion}</div>
+                        <button
+                          className="btn ghost"
+                          style={{ position: 'absolute', top: 8, right: 8, padding: '4px 8px', fontSize: '0.85em' }}
+                          onClick={() => navigator.clipboard.writeText(suggestion)}
+                        >
+                          Copy
+                        </button>
                       </div>
                     )}
 
                     <div className="stack-h" style={{ marginTop: 16, gap: 8 }}>
+                      {conversationHistory.length > 0 && (
+                        <button 
+                          className="btn ghost" 
+                          type="button" 
+                          onClick={goBackToPreviousQuestion}
+                          disabled={questionLoading}
+                        >
+                          ← Back
+                        </button>
+                      )}
                       <button 
                         className="btn ghost" 
                         type="button" 
@@ -2009,10 +2054,25 @@ export function Projects({ adapter }: { adapter: Adapter }) {
         <NewProjectWizard
           adapter={adapter}
           onClose={() => setShowNewProject(false)}
-          onCreate={(p) => {
-            setProjects((prev) => [p, ...prev])
-            setActiveId(p.id)
-            setTab('Overview')
+          onCreate={async (p) => {
+            // Reload projects from backend to ensure we have the latest
+            try {
+              const freshProjects = await adapter.listPMProjects()
+              const mapped = freshProjects.map(pmToProject)
+              setProjects(mapped)
+              
+              // Select the newly created project
+              const created = mapped.find(proj => proj.id === p.id)
+              if (created) {
+                setActiveId(created.id)
+                setTab('Overview')
+              }
+            } catch (err) {
+              console.error('Failed to reload projects:', err)
+              setProjects((prev) => [p, ...prev])
+              setActiveId(p.id)
+              setTab('Overview')
+            }
             setSidebarCollapsed(false)
             setShowNewProject(false)
           }}
