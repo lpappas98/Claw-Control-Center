@@ -833,4 +833,18 @@ export const mockAdapter: Adapter = {
   async disconnectInstance() {
     return { ok: true }
   },
+
+  // Active Sessions
+  async registerSession() {
+    throw new Error('Active sessions only available with Firestore adapter')
+  },
+  async updateSession() {
+    throw new Error('Active sessions only available with Firestore adapter')
+  },
+  async listActiveSessions() {
+    return []
+  },
+  async terminateSession() {
+    throw new Error('Active sessions only available with Firestore adapter')
+  },
 }

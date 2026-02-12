@@ -40,6 +40,9 @@ import type {
   ConnectionTokenCreate,
   ConnectionValidateRequest,
   ConnectionValidateResponse,
+  ActiveSession,
+  ActiveSessionCreate,
+  ActiveSessionUpdate,
 } from '../types'
 
 export type Adapter = {
@@ -133,4 +136,10 @@ export type Adapter = {
   listConnectedInstances(): Promise<ConnectedInstance[]>
   updateInstanceHeartbeat(instanceId: string): Promise<void>
   disconnectInstance(instanceId: string): Promise<{ ok: boolean }>
+
+  // Active Sessions (spawned sub-agents)
+  registerSession(create: ActiveSessionCreate): Promise<ActiveSession>
+  updateSession(update: ActiveSessionUpdate): Promise<ActiveSession>
+  listActiveSessions(instanceId?: string): Promise<ActiveSession[]>
+  terminateSession(sessionId: string): Promise<{ ok: boolean }>
 }

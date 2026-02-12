@@ -555,3 +555,42 @@ export type ConnectionValidateResponse = {
   instanceId?: string
   error?: string
 }
+
+/** Active sub-agent session spawned by an OpenClaw instance */
+export type ActiveSession = {
+  id: string
+  userId: string
+  instanceId: string
+  sessionKey: string
+  label?: string
+  agentId?: string
+  model?: string
+  task?: string
+  status: 'active' | 'idle' | 'terminated'
+  spawnedAt: string
+  lastSeenAt: string
+  metadata?: {
+    kind?: string
+    channel?: string
+    messageLimit?: number
+  }
+}
+
+export type ActiveSessionCreate = {
+  sessionKey: string
+  instanceId: string
+  label?: string
+  agentId?: string
+  model?: string
+  task?: string
+  status?: 'active' | 'idle' | 'terminated'
+  metadata?: ActiveSession['metadata']
+}
+
+export type ActiveSessionUpdate = {
+  id: string
+  label?: string
+  task?: string
+  status?: 'active' | 'idle' | 'terminated'
+  model?: string
+}

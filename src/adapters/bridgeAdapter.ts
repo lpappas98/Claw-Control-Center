@@ -398,5 +398,19 @@ export function bridgeAdapter(opts: BridgeAdapterOptions): Adapter {
     async disconnectInstance() {
       throw new Error('Connection management only available with Firestore adapter')
     },
+
+    // Active Sessions
+    async registerSession() {
+      throw new Error('Active sessions only available with Firestore adapter')
+    },
+    async updateSession() {
+      throw new Error('Active sessions only available with Firestore adapter')
+    },
+    async listActiveSessions() {
+      return []
+    },
+    async terminateSession() {
+      throw new Error('Active sessions only available with Firestore adapter')
+    },
   }
 }

@@ -57,6 +57,9 @@ import type {
   ConnectionTokenCreate,
   ConnectionValidateRequest,
   ConnectionValidateResponse,
+  ActiveSession,
+  ActiveSessionCreate,
+  ActiveSessionUpdate,
 } from '../types'
 
 // Helper to get current user ID or throw
@@ -955,6 +958,106 @@ export const firestoreAdapter: Adapter = {
   async disconnectInstance(_instanceId: string): Promise<{ ok: boolean }> {
     const userId = getUserId()
     await deleteDoc(doc(db, 'users', userId, 'connection', 'current'))
+    return { ok: true }
+  },
+
+  // ---- Active Sessions ----
+
+  async registerSession(create: ActiveSessionCreate): Promise<ActiveSession> {
+    const userId = getUserId()
+    const sessionId = makeId()
+    const now = new Date().toISOString()
+
+    const session: ActiveSession = {
+      id: sessionId,
+      userId,
+      instanceId: create.instanceId,
+      sessionKey: create.sessionKey,
+      label: create.label,
+      agentId: create.agentId,
+      model: create.model,
+      task: create.task,
+      status: create.status ?? 'active',
+      spawnedAt: now,
+      lastSeenAt: now,
+      metadata: create.metadata,
+    }
+
+    await setDoc(getUserDoc('activeSessions', sessionId), session)
+    await logActivity('session', `Session registered: ${create.label || create.sessionKey}`)
+    return session
+  },
+
+  async updateSession(update: ActiveSessionUpdate): Promise<ActiveSession> {
+    const docRef = getUserDoc('activeSessions', update.id)
+    const snap = await getDoc(docRef)
+    
+    if (!snap.exists()) {
+      throw new Error(`Session ${update.id} not found`)
+    }
+
+    const existing = convertTimestamps(snap.data()) as ActiveSession
+    const updated: ActiveSession = {
+      ...existing,
+      label: update.label ?? existing.label,
+      task: update.task ?? existing.task,
+      status: update.status ?? existing.status,
+      model: update.model ?? existing.model,
+      lastSeenAt: new Date().toISOString(),
+    }
+
+    await setDoc(docRef, updated)
+    await logActivity('session', `Session updated: ${updated.label || updated.sessionKey}`)
+    return updated
+  },
+
+  async listActiveSessions(instanceId?: string): Promise<ActiveSession[]> {
+    try {
+      const snapshot = await getDocs(getUserCollection('activeSessions'))
+      let sessions = snapshot.docs.map((doc) => convertTimestamps(doc.data()) as ActiveSession)
+      
+      // Filter by instance if provided
+      if (instanceId) {
+        sessions = sessions.filter(s => s.instanceId === instanceId)
+      }
+
+      // Filter out terminated sessions older than 1 hour
+      const oneHourAgo = Date.now() - 3600000
+      sessions = sessions.filter(s => {
+        if (s.status === 'terminated') {
+          return new Date(s.lastSeenAt).getTime() > oneHourAgo
+        }
+        return true
+      })
+
+      // Sort by lastSeenAt descending
+      sessions.sort((a, b) => new Date(b.lastSeenAt).getTime() - new Date(a.lastSeenAt).getTime())
+
+      return sessions
+    } catch (e) {
+      console.error('listActiveSessions error:', e)
+      return []
+    }
+  },
+
+  async terminateSession(sessionId: string): Promise<{ ok: boolean }> {
+    const docRef = getUserDoc('activeSessions', sessionId)
+    const snap = await getDoc(docRef)
+    
+    if (!snap.exists()) {
+      return { ok: false }
+    }
+
+    const session = convertTimestamps(snap.data()) as ActiveSession
+    
+    // Update status to terminated
+    await setDoc(docRef, {
+      ...session,
+      status: 'terminated',
+      lastSeenAt: new Date().toISOString(),
+    })
+
+    await logActivity('session', `Session terminated: ${session.label || session.sessionKey}`)
     return { ok: true }
   },
 }

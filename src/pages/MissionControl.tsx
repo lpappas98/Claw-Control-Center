@@ -5,7 +5,7 @@ import { usePoll } from '../lib/usePoll'
 import { Badge } from '../components/Badge'
 import { TaskModal } from '../components/TaskModal'
 import { AgentProfileModal } from '../components/AgentProfileModal'
-import type { ActivityEvent, AgentProfile, BoardLane, LiveSnapshot, Priority, SystemStatus, Task, WorkerHeartbeat, ConnectedInstance } from '../types'
+import type { ActivityEvent, AgentProfile, ActiveSession, BoardLane, LiveSnapshot, Priority, SystemStatus, Task, WorkerHeartbeat, ConnectedInstance } from '../types'
 
 type HomeTask = {
   id: string
@@ -154,6 +154,19 @@ export function MissionControl({
         return await adapter.listAgentProfiles()
       } catch (e) {
         console.warn('[home] listAgentProfiles failed', e)
+        return []
+      }
+    },
+    10000 // Refresh every 10s
+  )
+
+  // Load active sessions (spawned sub-agents)
+  const activeSessions = usePoll<ActiveSession[]>(
+    async () => {
+      try {
+        return await adapter.listActiveSessions()
+      } catch (e) {
+        console.warn('[home] listActiveSessions failed', e)
         return []
       }
     },
@@ -430,6 +443,67 @@ export function MissionControl({
               </div>
             </article>
           ))}
+
+          {/* Active Sessions (Spawned Sub-Agents) */}
+          {(activeSessions.data ?? []).filter(s => s.status !== 'terminated').map((session) => {
+            const now = Date.now()
+            const lastSeen = new Date(session.lastSeenAt).getTime()
+            const ageMs = now - lastSeen
+            const isActive = ageMs < 5 * 60 * 1000 && session.status === 'active'
+            
+            return (
+              <article className="agent-card" key={session.id} style={{ borderLeft: '3px solid var(--accent)' }}>
+                <div className="agent-head">
+                  <div>
+                    <div className="agent-name">
+                      🔄 {session.label || session.sessionKey}
+                    </div>
+                    <div className="agent-role muted">Sub-Agent Session</div>
+                  </div>
+                  <Badge kind={isActive ? 'active' : session.status} />
+                </div>
+                <div className="agent-online-row">
+                  <span className={`status-dot ${isActive ? 'online' : 'offline'}`} />
+                  <span className={isActive ? 'status-text-online' : 'status-text-offline'}>
+                    {isActive ? 'Active' : session.status === 'idle' ? 'Idle' : 'Inactive'}
+                  </span>
+                  {session.task && <span className="muted">· ⚡ {session.task}</span>}
+                </div>
+                {session.model && (
+                  <div className="muted" style={{ fontSize: 12 }}>
+                    Model: {session.model}
+                  </div>
+                )}
+                {session.agentId && (
+                  <div className="muted" style={{ fontSize: 12 }}>
+                    Agent: {session.agentId}
+                  </div>
+                )}
+                <div className="muted" style={{ fontSize: 12 }}>
+                  Last seen: {fmtAgo(session.lastSeenAt)}
+                </div>
+                <div style={{ marginTop: 8 }}>
+                  <button
+                    className="btn ghost"
+                    type="button"
+                    onClick={async () => {
+                      if (!confirm(`Terminate session "${session.label || session.sessionKey}"?`)) return
+                      try {
+                        await adapter.terminateSession(session.id)
+                        // Poll will refresh automatically
+                      } catch (e) {
+                        alert(`Failed to terminate: ${e instanceof Error ? e.message : String(e)}`)
+                      }
+                    }}
+                    title="Terminate session"
+                    style={{ fontSize: 12, padding: '2px 6px' }}
+                  >
+                    Terminate
+                  </button>
+                </div>
+              </article>
+            )
+          })}
 
           {/* Empty state for agent profiles when using Firestore */}
           {agents.length === 0 && (agentProfiles.data ?? []).length === 0 && adapter.name === 'firestore' && (
