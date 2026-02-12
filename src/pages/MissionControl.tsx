@@ -4,7 +4,8 @@ import type { AdapterConfig } from '../lib/adapterState'
 import { usePoll } from '../lib/usePoll'
 import { Badge } from '../components/Badge'
 import { TaskModal } from '../components/TaskModal'
-import type { ActivityEvent, BoardLane, LiveSnapshot, Priority, SystemStatus, Task, WorkerHeartbeat, ConnectedInstance } from '../types'
+import { AgentProfileModal } from '../components/AgentProfileModal'
+import type { ActivityEvent, AgentProfile, BoardLane, LiveSnapshot, Priority, SystemStatus, Task, WorkerHeartbeat, ConnectedInstance } from '../types'
 
 type HomeTask = {
   id: string
@@ -132,8 +133,23 @@ export function MissionControl({
     10000 // Refresh every 10s
   )
 
+  // Load agent profiles
+  const agentProfiles = usePoll<AgentProfile[]>(
+    async () => {
+      try {
+        return await adapter.listAgentProfiles()
+      } catch (e) {
+        console.warn('[home] listAgentProfiles failed', e)
+        return []
+      }
+    },
+    10000 // Refresh every 10s
+  )
+
   const [openTask, setOpenTask] = useState<Task | null>(null)
   const [creating, setCreating] = useState(false)
+  const [showProfileModal, setShowProfileModal] = useState(false)
+  const [editingProfile, setEditingProfile] = useState<AgentProfile | null>(null)
 
   useEffect(() => {
     if (!openTask) return
@@ -275,6 +291,25 @@ export function MissionControl({
   return (
     <main className="main-grid">
       <section className="panel span-4 agent-top-panel">
+        <div className="panel-header">
+          <div>
+            <h3>🤖 Agents</h3>
+          </div>
+          <div className="right stack-h">
+            <button
+              className="btn"
+              type="button"
+              onClick={() => {
+                setEditingProfile(null)
+                setShowProfileModal(true)
+              }}
+              title="Create a new agent profile"
+            >
+              + New Agent
+            </button>
+          </div>
+        </div>
+
         {live.error && (
           <div className="callout warn">
             <strong>Live snapshot error:</strong> {live.error.message}
@@ -315,6 +350,69 @@ export function MissionControl({
               <div className="muted">heartbeat: {fmtAgo(agent.lastBeatAt)}</div>
             </article>
           ))}
+
+          {/* Agent Profiles */}
+          {(agentProfiles.data ?? []).map((profile) => (
+            <article className="agent-card" key={profile.id}>
+              <div className="agent-head">
+                <div>
+                  <div className="agent-name">
+                    {profile.emoji || '🤖'} {profile.name}
+                  </div>
+                  <div className="agent-role muted">{profile.role}</div>
+                </div>
+                <div className="stack-h" style={{ gap: 4 }}>
+                  <button
+                    className="btn ghost"
+                    type="button"
+                    onClick={() => {
+                      setEditingProfile(profile)
+                      setShowProfileModal(true)
+                    }}
+                    title="Edit profile"
+                    style={{ fontSize: 12, padding: '2px 6px' }}
+                  >
+                    Edit
+                  </button>
+                  <button
+                    className="btn ghost"
+                    type="button"
+                    onClick={async () => {
+                      if (!confirm(`Delete agent profile "${profile.name}"?`)) return
+                      try {
+                        await adapter.deleteAgentProfile(profile.id)
+                        // Poll will refresh automatically
+                      } catch (e) {
+                        alert(`Failed to delete: ${e instanceof Error ? e.message : String(e)}`)
+                      }
+                    }}
+                    title="Delete profile"
+                    style={{ fontSize: 12, padding: '2px 6px' }}
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+              {profile.model && (
+                <div className="muted" style={{ fontSize: 12 }}>
+                  Model: {profile.model}
+                </div>
+              )}
+              <div className="muted" style={{ fontSize: 12 }}>
+                Created: {new Date(profile.createdAt).toLocaleDateString()}
+              </div>
+            </article>
+          ))}
+
+          {/* Empty state for agent profiles when using Firestore */}
+          {agents.length === 0 && (agentProfiles.data ?? []).length === 0 && adapter.name === 'firestore' && (
+            <div className="callout info" style={{ margin: '1rem' }}>
+              <strong>No agent profiles</strong>
+              <div style={{ marginTop: '0.5rem' }}>
+                Click <strong>+ New Agent</strong> above to create your first agent profile.
+              </div>
+            </div>
+          )}
         </div>
       </section>
 
@@ -469,6 +567,20 @@ export function MissionControl({
           task={openTask}
           onClose={() => setOpenTask(null)}
           onSaved={(t) => setOpenTask(t)}
+        />
+      )}
+
+      {showProfileModal && (
+        <AgentProfileModal
+          adapter={adapter}
+          profile={editingProfile}
+          onClose={() => {
+            setShowProfileModal(false)
+            setEditingProfile(null)
+          }}
+          onSaved={() => {
+            // Poll will refresh automatically
+          }}
         />
       )}
     </main>
