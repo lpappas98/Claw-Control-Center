@@ -13,7 +13,7 @@ export type AdapterConfig =
 export function loadAdapterConfig(): AdapterConfig {
   try {
     const raw = localStorage.getItem(KEY)
-    if (!raw) return { kind: 'firestore' } // Default to Firestore
+    if (!raw) return { kind: 'bridge', baseUrl: 'http://localhost:8787' } // Default to local bridge
     const parsed = JSON.parse(raw) as AdapterConfig
     if (parsed.kind === 'firestore') {
       return { kind: 'firestore' }
@@ -25,9 +25,9 @@ export function loadAdapterConfig(): AdapterConfig {
       }
       return parsed
     }
-    return { kind: 'firestore' }
+    return { kind: 'bridge', baseUrl: 'http://localhost:8787' }
   } catch {
-    return { kind: 'firestore' }
+    return { kind: 'bridge', baseUrl: 'http://localhost:8787' }
   }
 }
 
