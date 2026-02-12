@@ -384,6 +384,9 @@ export function MissionControl({
             const ageMs = now - lastSeen
             const isActive = ageMs < 5 * 60 * 1000 && session.status === 'active'
             
+            // Badge status should match the actual state, not the stored status
+            const badgeKind = isActive ? 'active' : 'offline'
+            
             return (
               <article className="agent-card" key={session.id} style={{ borderLeft: '3px solid var(--accent)' }}>
                 <div className="agent-head">
@@ -393,7 +396,7 @@ export function MissionControl({
                     </div>
                     <div className="agent-role muted">Sub-Agent Session</div>
                   </div>
-                  <Badge kind={isActive ? 'active' : session.status} />
+                  <Badge kind={badgeKind} />
                 </div>
                 <div className="agent-online-row">
                   <span className={`status-dot ${isActive ? 'online' : 'offline'}`} />
