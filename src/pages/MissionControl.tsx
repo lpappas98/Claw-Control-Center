@@ -450,13 +450,6 @@ export function MissionControl({
             <h3>Task Board</h3>
           </div>
           <div className="right stack-h">
-            <div className="muted" style={{ fontSize: 12, textAlign: 'right' }}>
-              {persisted.refreshing
-                ? 'refreshing…'
-                : persisted.lastSuccessAt
-                  ? `last ok: ${new Date(persisted.lastSuccessAt).toLocaleTimeString()}`
-                  : ''}
-            </div>
             <button
               className="btn"
               type="button"
