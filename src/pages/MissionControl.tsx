@@ -5,7 +5,7 @@ import { usePoll } from '../lib/usePoll'
 import { Badge } from '../components/Badge'
 import { TaskModal } from '../components/TaskModal'
 import { AgentProfileModal } from '../components/AgentProfileModal'
-import type { ActivityEvent, AgentProfile, ActiveSession, BoardLane, LiveSnapshot, Priority, SystemStatus, Task, WorkerHeartbeat, ConnectedInstance } from '../types'
+import type { ActivityEvent, AgentProfile, ActiveSession, BoardLane, LiveSnapshot, Priority, SystemStatus, Task, WorkerHeartbeat } from '../types'
 
 type HomeTask = {
   id: string
@@ -46,14 +46,6 @@ function agentProfile(slot: string, fallback?: string) {
 function homeStatus(status: string) {
   return status === 'active' ? 'working' : 'sleeping'
 }
-
-const PINNED_SLOTS: Array<{ slot: string; name: string; role: string; emoji: string }> = [
-  { slot: 'pm', name: 'TARS', role: 'Project Manager', emoji: '🧠' },
-  { slot: 'architect', name: 'Blueprint', role: 'Architect', emoji: '🏗️' },
-  { slot: 'qa', name: 'Sentinel', role: 'QA', emoji: '🛡️' },
-  { slot: 'dev-1', name: 'Forge', role: 'Developer', emoji: '🛠️' },
-  { slot: 'dev-2', name: 'Patch', role: 'Developer', emoji: '🧩' },
-]
 
 function unknownSystemStatus(now: string): SystemStatus {
   return {
@@ -121,19 +113,6 @@ export function MissionControl({
   const live = usePoll(liveFn, 5000)
   const activity = usePoll<ActivityEvent[]>(() => adapter.listActivity(40), 7000)
   const persisted = usePoll<Task[]>(() => adapter.listTasks(), 8000)
-  
-  // Load connected instances
-  const connectedInstances = usePoll<ConnectedInstance[]>(
-    async () => {
-      try {
-        return await adapter.listConnectedInstances()
-      } catch {
-        return []
-      }
-    },
-    10000 // Refresh every 10s
-  )
-
   // Load PM projects for project names
   const pmProjects = usePoll<{ id: string; name: string }[]>(
     async () => {
@@ -187,43 +166,23 @@ export function MissionControl({
 
   const agents = useMemo(() => {
     const workers = live.data?.workers ?? []
-    const bySlot = new Map(workers.map((w) => [w.slot, w]))
-
-    const pinned = PINNED_SLOTS.map((def) => {
-      const w = bySlot.get(def.slot)
+    
+    // Only show actual workers - no placeholder slots
+    return workers.map((w) => {
+      const profile = agentProfile(w.slot, w.label)
       return {
-        id: def.slot,
-        name: def.name,
-        emoji: def.emoji,
-        role: def.role,
-        status: w ? homeStatus(w.status) : 'sleeping',
-        rawStatus: w?.status ?? 'offline',
-        online: !!w && w.status !== 'offline',
-        task: w?.task ?? (w ? 'No active task' : 'Waiting for next task'),
-        lastBeatAt: w?.lastBeatAt,
+        id: w.slot,
+        name: profile.name,
+        emoji: profile.emoji,
+        role: profile.role,
+        status: homeStatus(w.status),
+        rawStatus: w.status,
+        online: w.status !== 'offline',
+        task: w.task ?? 'No active task',
+        lastBeatAt: w.lastBeatAt,
       }
     })
-
-    const pinnedSet = new Set(PINNED_SLOTS.map((s) => s.slot))
-    const extras = workers
-      .filter((w) => !pinnedSet.has(w.slot))
-      .map((w) => {
-        const profile = agentProfile(w.slot, w.label)
-        return {
-          id: w.slot,
-          name: profile.name,
-          emoji: profile.emoji,
-          role: profile.role,
-          status: homeStatus(w.status),
-          rawStatus: w.status,
-          online: w.status !== 'offline',
-          task: w.task ?? 'No active task',
-          lastBeatAt: w.lastBeatAt,
-        }
-      })
-
-    return [...pinned, ...extras]
-  }, [live.data?.workers, connectedInstances.data, adapter.name])
+  }, [live.data?.workers])
 
   const tasks = useMemo<HomeTask[]>(() => {
     const persistedTasks = persisted.data ?? []

@@ -11,18 +11,25 @@ export type AdapterConfig =
 export function loadAdapterConfig(): AdapterConfig {
   try {
     const raw = localStorage.getItem(KEY)
-    if (!raw) return { kind: 'bridge', baseUrl: 'http://localhost:8787' }
+    const host = typeof window !== 'undefined' ? window.location.hostname : 'localhost'
+    const defaultUrl = `http://${host}:8787`
+    
+    if (!raw) return { kind: 'bridge', baseUrl: defaultUrl }
+    
     const parsed = JSON.parse(raw) as AdapterConfig
     if (parsed.kind === 'bridge' && typeof parsed.baseUrl === 'string') {
-      const host = typeof window !== 'undefined' ? window.location.hostname : 'localhost'
-      if (host && host !== 'localhost' && /localhost:8787/.test(parsed.baseUrl)) {
-        return { kind: 'bridge', baseUrl: `http://${host}:8787` }
+      // Auto-fix localhost URLs when accessed from another device
+      if (host !== 'localhost' && /localhost:8787/.test(parsed.baseUrl)) {
+        const fixed = { kind: 'bridge' as const, baseUrl: `http://${host}:8787` }
+        saveAdapterConfig(fixed) // Persist the fix
+        return fixed
       }
       return parsed
     }
-    return { kind: 'bridge', baseUrl: 'http://localhost:8787' }
+    return { kind: 'bridge', baseUrl: defaultUrl }
   } catch {
-    return { kind: 'bridge', baseUrl: 'http://localhost:8787' }
+    const host = typeof window !== 'undefined' ? window.location.hostname : 'localhost'
+    return { kind: 'bridge', baseUrl: `http://${host}:8787` }
   }
 }
 
