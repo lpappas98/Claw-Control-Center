@@ -362,21 +362,35 @@ export function bridgeAdapter(opts: BridgeAdapterOptions): Adapter {
       })
     },
 
-    // Agent Profiles (not implemented in bridge adapter)
-    async listAgentProfiles() {
-      throw new Error('Agent profiles only available with Firestore adapter')
+    // Agent Profiles
+    listAgentProfiles() {
+      return fetchJson<import('../types').AgentProfile[]>(`${base}/api/agent-profiles`)
     },
-    async getAgentProfile() {
-      throw new Error('Agent profiles only available with Firestore adapter')
+    
+    getAgentProfile(id: string) {
+      return fetchJson<import('../types').AgentProfile>(`${base}/api/agent-profiles/${encodeURIComponent(id)}`)
     },
-    async createAgentProfile() {
-      throw new Error('Agent profiles only available with Firestore adapter')
+    
+    createAgentProfile(data: import('../types').AgentProfileCreate) {
+      return fetchJson<import('../types').AgentProfile>(`${base}/api/agent-profiles`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(data),
+      })
     },
-    async updateAgentProfile() {
-      throw new Error('Agent profiles only available with Firestore adapter')
+    
+    updateAgentProfile(data: import('../types').AgentProfileUpdate) {
+      return fetchJson<import('../types').AgentProfile>(`${base}/api/agent-profiles/${encodeURIComponent(data.id)}`, {
+        method: 'PATCH',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(data),
+      })
     },
-    async deleteAgentProfile() {
-      throw new Error('Agent profiles only available with Firestore adapter')
+    
+    deleteAgentProfile(id: string) {
+      return fetchJson<{ ok: boolean }>(`${base}/api/agent-profiles/${encodeURIComponent(id)}`, {
+        method: 'DELETE',
+      })
     },
 
     // OpenClaw Connections (not implemented in bridge adapter)
