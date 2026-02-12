@@ -378,11 +378,13 @@ function TreeView({
   onOpen,
   adapter,
   onTreeUpdated,
+  onOpenSettings,
 }: { 
   project: Project
   onOpen: (n: FeatureNode) => void
   adapter?: Adapter
   onTreeUpdated?: () => void
+  onOpenSettings?: () => void
 }) {
   const [query, setQuery] = useState('')
   const [showDeps, setShowDeps] = useState(false)
@@ -502,7 +504,7 @@ function TreeView({
         {/* Initiative → Epics/Sections → Stories/Tasks */}
         <div className="tree-org" style={{ marginTop: 14 }}>
           <div className="tree-org-root">
-            <button type="button" className="tree-box root" onClick={() => alert('(wireframe) Project settings')} title="Project">
+            <button type="button" className="tree-box root" onClick={() => onOpenSettings?.()} title="Project settings">
               <div className="tree-box-title">{project.name}</div>
               <div className="muted" style={{ fontSize: 12 }}>initiative</div>
             </button>
@@ -2028,7 +2030,7 @@ export function Projects({ adapter }: { adapter: Adapter }) {
 
             <div className="projects-main-body">
               {tab === 'Overview' ? <Overview project={active} /> : null}
-              {tab === 'Tree' ? <TreeView project={active} onOpen={(n) => setDrawer(n)} adapter={adapter} onTreeUpdated={loadProjects} /> : null}
+              {tab === 'Tree' ? <TreeView project={active} onOpen={(n) => setDrawer(n)} adapter={adapter} onTreeUpdated={loadProjects} onOpenSettings={() => setTab('Settings')} /> : null}
               {tab === 'Kanban' ? <KanbanBoard project={active} onOpenFeature={(n) => setDrawer(n)} adapter={adapter} /> : null}
               {tab === 'Settings' ? <SettingsView project={active} adapter={adapter} onProjectUpdated={loadProjects} onProjectDeleted={() => {
                 setProjects(prev => prev.filter(p => p.id !== active.id))
