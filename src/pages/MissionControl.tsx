@@ -122,13 +122,14 @@ export function MissionControl({
   const activity = usePoll<ActivityEvent[]>(() => adapter.listActivity(40), 7000)
   const persisted = usePoll<Task[]>(() => adapter.listTasks(), 8000)
   
-  // Load connected instances when using Firestore adapter
+  // Load connected instances
   const connectedInstances = usePoll<ConnectedInstance[]>(
     async () => {
-      if (adapter.name === 'firestore') {
-        return adapter.listConnectedInstances()
+      try {
+        return await adapter.listConnectedInstances()
+      } catch {
+        return []
       }
-      return []
     },
     10000 // Refresh every 10s
   )
@@ -186,33 +187,6 @@ export function MissionControl({
 
   const agents = useMemo(() => {
     const workers = live.data?.workers ?? []
-    const instances = connectedInstances.data ?? []
-    
-    // If using Firestore adapter, ONLY show connected instances (no hardcoded fallback)
-    if (adapter.name === 'firestore') {
-      return instances.map((instance) => {
-        const now = Date.now()
-        const lastSeen = new Date(instance.lastSeenAt).getTime()
-        const ageMs = now - lastSeen
-        
-        // Consider online if seen within last 5 minutes (consistent with Connect page)
-        const online = ageMs < 5 * 60 * 1000 && instance.status === 'active'
-        
-        return {
-          id: instance.id,
-          name: instance.name,
-          emoji: '🤖', // Could be customizable per instance later
-          role: 'OpenClaw Instance',
-          status: online ? 'working' : 'sleeping',
-          rawStatus: online ? 'active' : 'offline',
-          online,
-          task: online ? 'Connected' : 'Waiting for next task',
-          lastBeatAt: instance.lastSeenAt,
-        }
-      })
-    }
-    
-    // For bridge/mock adapters: fall back to hardcoded slots + workers (legacy behavior)
     const bySlot = new Map(workers.map((w) => [w.slot, w]))
 
     const pinned = PINNED_SLOTS.map((def) => {
@@ -362,11 +336,11 @@ export function MissionControl({
         )}
 
         <div className="agent-strip compact">
-          {agents.length === 0 && adapter.name === 'firestore' && (
+          {agents.length === 0 && (
             <div className="callout info" style={{ margin: '1rem' }}>
-              <strong>No connected instances</strong>
+              <strong>No workers detected</strong>
               <div style={{ marginTop: '0.5rem' }}>
-                Go to the <strong>Connect</strong> tab to generate a connection code and link your OpenClaw instance.
+                Workers will appear here when your OpenClaw instance is running with active heartbeats.
               </div>
             </div>
           )}
@@ -505,8 +479,8 @@ export function MissionControl({
             )
           })}
 
-          {/* Empty state for agent profiles when using Firestore */}
-          {agents.length === 0 && (agentProfiles.data ?? []).length === 0 && adapter.name === 'firestore' && (
+          {/* Empty state for agent profiles */}
+          {agents.length === 0 && (agentProfiles.data ?? []).length === 0 && (
             <div className="callout info" style={{ margin: '1rem' }}>
               <strong>No agent profiles</strong>
               <div style={{ marginTop: '0.5rem' }}>

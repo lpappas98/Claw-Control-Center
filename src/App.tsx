@@ -1,13 +1,11 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import './App.css'
 import { MissionControl } from './pages/MissionControl'
 import { Projects } from './pages/Projects'
 import { Activity } from './pages/Activity'
 import { Rules } from './pages/Rules'
 import { Config } from './pages/Config'
-import { Login } from './pages/Login'
 import { Connect } from './pages/Connect'
-import { AuthProvider, useAuth } from './lib/AuthContext'
 import { loadAdapterConfig, saveAdapterConfig, toAdapter, type AdapterConfig } from './lib/adapterState'
 
 type NavTab = 'Mission Control' | 'Projects' | 'Activity' | 'Rules' | 'Config' | 'Connect' | 'Docs'
@@ -34,19 +32,9 @@ function saveNavTab(tab: NavTab) {
   }
 }
 
-function AppContent() {
-  const { user, profile, loading, signOut } = useAuth()
+export default function App() {
   const [tab, setTab] = useState<NavTab>(() => loadNavTab())
   const [cfg, setCfg] = useState<AdapterConfig>(() => loadAdapterConfig())
-
-  // Auto-switch to Firestore adapter when user logs in
-  useEffect(() => {
-    if (user && cfg.kind !== 'firestore') {
-      const newCfg: AdapterConfig = { kind: 'firestore' }
-      setCfg(newCfg)
-      saveAdapterConfig(newCfg)
-    }
-  }, [user, cfg.kind])
 
   const adapter = useMemo(() => toAdapter(cfg), [cfg])
 
@@ -54,25 +42,6 @@ function AppContent() {
     setCfg(next)
     saveAdapterConfig(next)
   }, [])
-
-  // Show loading state
-  if (loading) {
-    return (
-      <div className="app-shell">
-        <div className="login-page">
-          <div className="login-card" style={{ textAlign: 'center', padding: '3rem' }}>
-            <div className="login-logo">🔧</div>
-            <p className="muted">Loading...</p>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  // Show login if not authenticated
-  if (!user) {
-    return <Login />
-  }
 
   return (
     <div className="app-shell">
@@ -97,23 +66,6 @@ function AppContent() {
             </button>
           ))}
         </nav>
-
-        <div className="top-actions">
-          <div className="user-menu">
-            {profile?.photoURL && (
-              <img src={profile.photoURL} alt="" className="user-avatar" />
-            )}
-            <span className="user-name">{profile?.displayName || user.email}</span>
-            <button
-              className="btn ghost"
-              onClick={signOut}
-              type="button"
-              title="Sign out"
-            >
-              Sign out
-            </button>
-          </div>
-        </div>
       </header>
 
       {tab === 'Mission Control' && <MissionControl adapter={adapter} cfg={cfg} onCfg={updateCfg} />}
@@ -136,13 +88,5 @@ function AppContent() {
         </main>
       )}
     </div>
-  )
-}
-
-export default function App() {
-  return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
   )
 }
