@@ -91,6 +91,11 @@ export function Config({ adapter }: { adapter: Adapter }) {
 
   const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set())
 
+  // Filter state
+  const [filterSeverity, setFilterSeverity] = useState<string>('all')
+  const [filterCategory, setFilterCategory] = useState<string>('all')
+  const [filterSearch, setFilterSearch] = useState<string>('')
+
   async function refreshModels() {
     setModelLoading(true)
     setModelError(null)
@@ -265,12 +270,45 @@ export function Config({ adapter }: { adapter: Adapter }) {
     draftCategory !== (selected.category ?? '')
   )
 
-  // Group rules by category
+  // Filter rules based on all active filters (AND logic)
+  const filteredRules = useMemo(() => {
+    let filtered = rules ?? []
+    
+    // Apply severity filter
+    if (filterSeverity !== 'all') {
+      filtered = filtered.filter(rule => rule.severity === filterSeverity)
+    }
+    
+    // Apply category filter
+    if (filterCategory !== 'all') {
+      if (filterCategory === 'uncategorized') {
+        filtered = filtered.filter(rule => !rule.category)
+      } else {
+        filtered = filtered.filter(rule => rule.category === filterCategory)
+      }
+    }
+    
+    // Apply search filter (title, description, content)
+    if (filterSearch.trim()) {
+      const search = filterSearch.toLowerCase()
+      filtered = filtered.filter(rule => {
+        return (
+          rule.title.toLowerCase().includes(search) ||
+          (rule.description ?? '').toLowerCase().includes(search) ||
+          rule.content.toLowerCase().includes(search)
+        )
+      })
+    }
+    
+    return filtered
+  }, [rules, filterSeverity, filterCategory, filterSearch])
+
+  // Group filtered rules by category
   const rulesByCategory = useMemo(() => {
     const grouped: Record<string, Rule[]> = {}
     const uncategorized: Rule[] = []
     
-    ;(rules ?? []).forEach((rule) => {
+    filteredRules.forEach((rule) => {
       if (rule.category) {
         if (!grouped[rule.category]) {
           grouped[rule.category] = []
@@ -282,7 +320,7 @@ export function Config({ adapter }: { adapter: Adapter }) {
     })
     
     return { grouped, uncategorized }
-  }, [rules])
+  }, [filteredRules])
 
   function toggleCategory(category: string) {
     setCollapsedCategories(prev => {
@@ -459,6 +497,64 @@ export function Config({ adapter }: { adapter: Adapter }) {
                 </div>
               )}
 
+              {/* Filter Controls */}
+              <div className="stack" style={{ marginBottom: '1rem', padding: '1rem', backgroundColor: 'var(--bg-secondary)', borderRadius: '4px' }}>
+                <div className="muted" style={{ marginBottom: '0.5rem' }}>
+                  <strong>Filter Rules</strong>
+                </div>
+                <div className="stack-h" style={{ gap: '1rem' }}>
+                  <label className="field" style={{ flex: 1 }}>
+                    <div className="muted">Severity</div>
+                    <select value={filterSeverity} onChange={(e) => setFilterSeverity(e.target.value)}>
+                      <option value="all">All</option>
+                      <option value="critical">Critical</option>
+                      <option value="required">Required</option>
+                      <option value="standard">Standard</option>
+                      <option value="guidance">Guidance</option>
+                    </select>
+                  </label>
+
+                  <label className="field" style={{ flex: 1 }}>
+                    <div className="muted">Category</div>
+                    <select value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)}>
+                      <option value="all">All categories</option>
+                      {CATEGORIES.map(cat => (
+                        <option key={cat} value={cat}>{cat}</option>
+                      ))}
+                      <option value="uncategorized">Uncategorized</option>
+                    </select>
+                  </label>
+
+                  <label className="field" style={{ flex: 2 }}>
+                    <div className="muted">Search</div>
+                    <input 
+                      type="text"
+                      value={filterSearch} 
+                      onChange={(e) => setFilterSearch(e.target.value)}
+                      placeholder="Search title, description, or content..."
+                    />
+                  </label>
+                </div>
+                {(filterSeverity !== 'all' || filterCategory !== 'all' || filterSearch.trim()) && (
+                  <div className="muted" style={{ fontSize: '12px', marginTop: '0.5rem' }}>
+                    Showing {filteredRules.length} of {rules?.length ?? 0} rules
+                    {filterSeverity !== 'all' || filterCategory !== 'all' || filterSearch.trim() ? (
+                      <button 
+                        className="btn ghost" 
+                        style={{ marginLeft: '0.5rem', padding: '2px 8px', fontSize: '12px' }}
+                        onClick={() => {
+                          setFilterSeverity('all')
+                          setFilterCategory('all')
+                          setFilterSearch('')
+                        }}
+                      >
+                        Clear filters
+                      </button>
+                    ) : null}
+                  </div>
+                )}
+              </div>
+
               {/* Categorized Rules */}
               {Object.entries(rulesByCategory.grouped).map(([category, categoryRules]) => (
                 <div key={category} style={{ marginBottom: '1rem' }}>
@@ -574,6 +670,9 @@ export function Config({ adapter }: { adapter: Adapter }) {
               )}
 
               {!rulesLoading && (rules?.length ?? 0) === 0 && <div className="muted">No rules configured.</div>}
+              {!rulesLoading && (rules?.length ?? 0) > 0 && filteredRules.length === 0 && (
+                <div className="muted">No rules match the current filters.</div>
+              )}
             </section>
 
             <section className="panel span-2" style={{ gridColumn: 'span 2' }}>
