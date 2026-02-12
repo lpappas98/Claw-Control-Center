@@ -2058,7 +2058,14 @@ export function Projects({ adapter }: { adapter: Adapter }) {
             // Reload projects from backend to ensure we have the latest
             try {
               const freshProjects = await adapter.listPMProjects()
-              const mapped = freshProjects.map(pmToProject)
+              const mapped = await Promise.all(freshProjects.map(async (pm) => {
+                const [tree, cards, intake] = await Promise.all([
+                  adapter.getPMTree(pm.id),
+                  adapter.listPMCards(pm.id),
+                  adapter.getPMIntake(pm.id),
+                ])
+                return pmToProject(pm, tree, cards, intake)
+              }))
               setProjects(mapped)
               
               // Select the newly created project
