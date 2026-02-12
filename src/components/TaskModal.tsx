@@ -46,8 +46,8 @@ export function TaskModal({
   const [draftProjectId, setDraftProjectId] = useState(task.projectId ?? '')
   const [draftAssignedProfileId, setDraftAssignedProfileId] = useState(task.assignedProfileId ?? '')
 
-  // Load PM projects and agent profiles for dropdowns (prefixed with _ until dropdowns added)
-  const _pmProjects = usePoll<{ id: string; name: string }[]>(
+  // Load PM projects and agent profiles for dropdowns
+  const pmProjects = usePoll<{ id: string; name: string }[]>(
     async () => {
       try {
         const projects = await adapter.listPMProjects()
