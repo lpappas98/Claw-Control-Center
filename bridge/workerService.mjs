@@ -231,12 +231,8 @@ class WorkerService {
 
       logger.info(`[${this.slot}] Assigned task ${task.id} to worker`);
 
-      // Update worker status to "working"
-      await this.updateStatus('working', {
-        task: task.id,
-        taskTitle: task.title,
-        sessionId: null // Session spawning will be added by Patch
-      });
+      // Execute the task (spawn session and monitor)
+      await this.executeTask(task);
 
     } catch (error) {
       logger.error(`[${this.slot}] Failed to assign task ${task.id}:`, error.message);
@@ -307,6 +303,13 @@ class WorkerService {
     this.isShuttingDown = true;
     logger.info(`[${this.slot}] Initiating graceful shutdown...`);
 
+    // Stop session monitor if running
+    if (this.sessionMonitorInterval) {
+      clearInterval(this.sessionMonitorInterval);
+      this.sessionMonitorInterval = null;
+      logger.info(`[${this.slot}] Stopped session monitor`);
+    }
+
     // Stop heartbeat loop
     if (this.heartbeatInterval) {
       clearInterval(this.heartbeatInterval);
@@ -336,6 +339,286 @@ class WorkerService {
     logger.info(`[${this.slot}] Configuration reload requested`);
     // Future: reload config files, update settings, etc.
     logger.info(`[${this.slot}] Configuration reload complete`);
+  }
+
+  /**
+   * Build prompt for Claude from task data
+   */
+  buildTaskPrompt(task) {
+    const parts = [
+      `You are ${this.slot} for the Operator Hub team.`,
+      ``,
+      `**Task**: ${task.title}`,
+      ``,
+    ];
+
+    if (task.problem) {
+      parts.push(`**Problem**: ${task.problem}`, ``);
+    }
+
+    if (task.scope) {
+      parts.push(`**Scope**: ${task.scope}`, ``);
+    }
+
+    if (task.acceptanceCriteria && task.acceptanceCriteria.length > 0) {
+      parts.push(`**Acceptance Criteria**:`);
+      task.acceptanceCriteria.forEach(criterion => {
+        parts.push(`- ${criterion}`);
+      });
+      parts.push(``);
+    }
+
+    if (task.workingDir) {
+      parts.push(`**Working directory**: ${task.workingDir}`, ``);
+    }
+
+    parts.push(
+      `**Task ID**: ${task.id}`,
+      ``,
+      `**Steps**:`,
+      `1. Complete the task as described`,
+      `2. Test your work`,
+      `3. Git add, commit`,
+      `4. Update task to "review"`,
+      `5. Report completion`,
+      ``
+    );
+
+    return parts.join('\n');
+  }
+
+  /**
+   * Spawn a Claude session for task execution
+   */
+  async spawnSession(task) {
+    const sessionLabel = `${this.slot}-${task.id.split('-').pop()}`;
+    const prompt = this.buildTaskPrompt(task);
+
+    logger.info(`[${this.slot}] Spawning session for task ${task.id} (label: ${sessionLabel})`);
+
+    try {
+      // Use openclaw agent command to spawn session
+      // We'll use agent subagent mode which creates a persistent session
+      const args = [
+        'agent',
+        '--session-id', `agent:main:subagent:${sessionLabel}`,
+        '--message', prompt,
+        '--thinking', 'low',
+        '--json'
+      ];
+
+      return new Promise((resolve, reject) => {
+        const process = spawn('openclaw', args, {
+          cwd: task.workingDir || '/home/openclaw/.openclaw/workspace/',
+          stdio: ['ignore', 'pipe', 'pipe']
+        });
+
+        let stdout = '';
+        let stderr = '';
+
+        process.stdout.on('data', (data) => {
+          stdout += data.toString();
+        });
+
+        process.stderr.on('data', (data) => {
+          stderr += data.toString();
+        });
+
+        process.on('close', (code) => {
+          if (code !== 0) {
+            logger.error(`[${this.slot}] Session spawn failed with code ${code}`);
+            logger.error(`[${this.slot}] stderr: ${stderr}`);
+            reject(new Error(`Session spawn failed: ${stderr || 'Unknown error'}`));
+            return;
+          }
+
+          try {
+            // Parse JSON response to get session ID
+            const response = JSON.parse(stdout);
+            const sessionId = `agent:main:subagent:${sessionLabel}`;
+            
+            logger.info(`[${this.slot}] Session spawned successfully: ${sessionId}`);
+            resolve({ sessionId, response });
+          } catch (err) {
+            logger.error(`[${this.slot}] Failed to parse session spawn response: ${err.message}`);
+            reject(new Error(`Failed to parse session response: ${err.message}`));
+          }
+        });
+
+        process.on('error', (err) => {
+          logger.error(`[${this.slot}] Failed to spawn session: ${err.message}`);
+          reject(err);
+        });
+      });
+    } catch (error) {
+      logger.error(`[${this.slot}] Session spawn error: ${error.message}`);
+      throw error;
+    }
+  }
+
+  /**
+   * Monitor session status and detect completion
+   */
+  async monitorSession(task, sessionId) {
+    const startTime = Date.now();
+    const timeout = task.timeoutMs || DEFAULT_TIMEOUT_MS;
+    
+    logger.info(`[${this.slot}] Starting session monitoring (timeout: ${timeout}ms)`);
+
+    const checkInterval = setInterval(async () => {
+      // Update heartbeat to show liveness
+      await this.updateHeartbeat();
+
+      // Check for timeout
+      const elapsed = Date.now() - startTime;
+      if (elapsed > timeout) {
+        clearInterval(checkInterval);
+        logger.error(`[${this.slot}] Session timeout exceeded (${elapsed}ms > ${timeout}ms)`);
+        await this.completeTask(task.id, false, sessionId, 'Session timeout exceeded');
+        return;
+      }
+
+      // Check session status via API
+      try {
+        const response = await fetch(`${TASK_API_BASE}/sessions`);
+        if (!response.ok) {
+          logger.warn(`[${this.slot}] Failed to fetch session status: ${response.statusText}`);
+          return;
+        }
+
+        const sessions = await response.json();
+        const session = sessions.find(s => s.id === sessionId || s.label === sessionId);
+
+        if (!session) {
+          // Session not found - may have completed
+          logger.info(`[${this.slot}] Session not found in active sessions - assuming complete`);
+          clearInterval(checkInterval);
+          await this.completeTask(task.id, true, sessionId);
+          return;
+        }
+
+        if (session.completed) {
+          clearInterval(checkInterval);
+          logger.info(`[${this.slot}] Session completed successfully`);
+          await this.completeTask(task.id, true, sessionId);
+          return;
+        }
+
+        if (session.error || session.status === 'failed') {
+          clearInterval(checkInterval);
+          logger.error(`[${this.slot}] Session failed: ${session.error || 'Unknown error'}`);
+          await this.completeTask(task.id, false, sessionId, session.error);
+          return;
+        }
+
+        logger.info(`[${this.slot}] Session still running (elapsed: ${Math.round(elapsed / 1000)}s)`);
+      } catch (error) {
+        logger.error(`[${this.slot}] Error checking session status: ${error.message}`);
+      }
+    }, SESSION_POLL_INTERVAL_MS);
+
+    // Store interval handle so we can clean it up on shutdown
+    this.sessionMonitorInterval = checkInterval;
+  }
+
+  /**
+   * Complete task and update status
+   */
+  async completeTask(taskId, success, sessionId, errorMessage = null) {
+    const newLane = success ? 'review' : 'blocked';
+    
+    logger.info(`[${this.slot}] Completing task ${taskId}: ${success ? 'SUCCESS' : 'FAILED'} (lane: ${newLane})`);
+
+    try {
+      // Update task status via API with retry
+      const updateTask = async (retries = 3) => {
+        for (let i = 0; i < retries; i++) {
+          try {
+            const response = await fetch(`${TASK_API_BASE}/tasks/${taskId}`, {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                lane: newLane,
+                metadata: {
+                  completedAt: Date.now(),
+                  completedBy: this.slot,
+                  sessionId: sessionId,
+                  success: success,
+                  ...(errorMessage && { error: errorMessage })
+                }
+              })
+            });
+
+            if (response.ok) {
+              logger.info(`[${this.slot}] Task ${taskId} updated to ${newLane}`);
+              return true;
+            }
+
+            logger.warn(`[${this.slot}] Task update attempt ${i + 1} failed: ${response.statusText}`);
+            
+            if (i < retries - 1) {
+              await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, i)));
+            }
+          } catch (error) {
+            logger.error(`[${this.slot}] Task update attempt ${i + 1} error: ${error.message}`);
+            if (i < retries - 1) {
+              await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, i)));
+            }
+          }
+        }
+        return false;
+      };
+
+      await updateTask();
+
+      // Clear session monitor if it exists
+      if (this.sessionMonitorInterval) {
+        clearInterval(this.sessionMonitorInterval);
+        this.sessionMonitorInterval = null;
+      }
+
+      // Reset worker to idle state
+      await this.updateStatus('idle', {
+        task: null,
+        taskTitle: null,
+        sessionId: null
+      });
+
+      logger.info(`[${this.slot}] Worker returned to idle state`);
+    } catch (error) {
+      logger.error(`[${this.slot}] Error completing task: ${error.message}`);
+    }
+  }
+
+  /**
+   * Handle task assignment and execution
+   */
+  async executeTask(task) {
+    try {
+      // Update status to working
+      await this.updateStatus('working', {
+        task: task.id,
+        taskTitle: task.title,
+        sessionId: null
+      });
+
+      // Spawn session
+      const { sessionId } = await this.spawnSession(task);
+
+      // Update heartbeat with session ID
+      await this.updateStatus('working', {
+        task: task.id,
+        taskTitle: task.title,
+        sessionId: sessionId
+      });
+
+      // Start monitoring
+      await this.monitorSession(task, sessionId);
+
+    } catch (error) {
+      logger.error(`[${this.slot}] Task execution failed: ${error.message}`);
+      await this.completeTask(task.id, false, null, error.message);
+    }
   }
 }
 
