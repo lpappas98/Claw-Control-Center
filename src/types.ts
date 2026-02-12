@@ -237,6 +237,8 @@ export type Rule = {
   enabled: boolean
   /** Freeform rule body (prompt, policy text, etc.). */
   content: string
+  severity?: 'critical' | 'required' | 'standard' | 'guidance'
+  category?: string
   updatedAt: string
 }
 
