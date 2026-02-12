@@ -1397,6 +1397,30 @@ app.post('/api/pm/projects/:id/intake/questions/generate-ai', async (req, res) =
   }
 })
 
+// Standalone AI question generation (no project required)
+app.post('/api/ai/generate-questions', async (req, res) => {
+  try {
+    const ideaText = req.body?.idea?.trim()
+    if (!ideaText) return res.status(400).json({ error: 'idea text required' })
+
+    const questionCount = req.body?.questionCount || 10
+    const type = req.body?.type || 'project'
+    const featureContext = req.body?.featureContext || ''
+
+    const questions = await generateAIQuestions({ 
+      idea: ideaText,
+      type,
+      featureContext,
+      questionCount
+    })
+    
+    res.json({ questions })
+  } catch (err) {
+    console.error('[AI Questions Standalone] Error:', err)
+    res.status(500).json({ error: 'Failed to generate AI questions', message: err?.message })
+  }
+})
+
 app.post('/api/pm/projects/:id/intake/questions/:qid/answer', async (req, res) => {
   try {
     const p = await loadPmProject(PM_PROJECTS_DIR, req.params.id)

@@ -1021,6 +1021,7 @@ function NewProjectWizard({
 
   const [analysis, setAnalysis] = useState<ProjectIntake['analysis'][number] | null>(null)
   const [questions, setQuestions] = useState<IntakeQuestion[]>([])
+  const [analysisLoading, setAnalysisLoading] = useState(false)
 
   const nowIso = () => new Date().toISOString()
   const id = () => Math.random().toString(16).slice(2, 10)
@@ -1215,19 +1216,37 @@ function NewProjectWizard({
     if (!projectName.trim()) setProjectName('New project')
   }
 
-  const runAnalysis = () => {
-    const c = classify(ideaText)
-    const a = {
-      id: `ana-${id()}`,
-      at: nowIso(),
-      type: c.type,
-      tags: c.tags,
-      risks: c.risks,
-      summary: `(mock) Detected ${c.type} project. Generated questions are tailored to your description.`,
-    } as const
-    setAnalysis(a)
-    setQuestions(generateQuestions(a.type))
-    setMode('analysis')
+  const runAnalysis = async () => {
+    setAnalysisLoading(true)
+    try {
+      const c = classify(ideaText)
+      const a = {
+        id: `ana-${id()}`,
+        at: nowIso(),
+        type: c.type,
+        tags: c.tags,
+        risks: c.risks,
+        summary: `Detected ${c.type} project. AI-generated questions tailored to your description.`,
+      } as const
+      setAnalysis(a)
+      
+      // Generate questions via AI
+      const aiQuestions = await adapter.generateAIQuestions(ideaText, 10)
+      setQuestions(aiQuestions.map(q => ({
+        id: q.id,
+        category: q.category,
+        prompt: q.prompt,
+        required: q.required,
+        answer: null,
+      })))
+      
+      setMode('analysis')
+    } catch (error) {
+      console.error('Analysis failed:', error)
+      alert('Failed to generate questions. Please try again.')
+    } finally {
+      setAnalysisLoading(false)
+    }
   }
 
   const createProject = async () => {
@@ -1487,9 +1506,9 @@ function NewProjectWizard({
                 </div>
 
                 <div className="wizard-actions">
-                  <button className="btn ghost" type="button" onClick={() => setMode('choose')}>Back</button>
-                  <button className="btn" type="button" disabled={!canContinueIdea} onClick={runAnalysis}>
-                    Analyze →
+                  <button className="btn ghost" type="button" onClick={() => setMode('choose')} disabled={analysisLoading}>Back</button>
+                  <button className="btn" type="button" disabled={!canContinueIdea || analysisLoading} onClick={runAnalysis}>
+                    {analysisLoading ? 'Analyzing...' : 'Analyze →'}
                   </button>
                 </div>
               </div>
@@ -1499,7 +1518,7 @@ function NewProjectWizard({
           {mode === 'analysis' ? (
             <div className="stack">
               <div className="panel" style={{ padding: 14 }}>
-                <h4 style={{ marginTop: 0 }}>Analysis (mock)</h4>
+                <h4 style={{ marginTop: 0 }}>Analysis</h4>
                 <div className="grid-3">
                   <div className="stat-card">
                     <div className="stat-title">Type</div>
@@ -1536,7 +1555,7 @@ function NewProjectWizard({
             <div className="stack">
               <div className="panel" style={{ padding: 14 }}>
                 <h4 style={{ marginTop: 0 }}>Clarifying questions</h4>
-                <div className="muted">These are generated based on your idea (mocked for now). Answers are stored and referenced later.</div>
+                <div className="muted">These are AI-generated based on your idea. Answers are stored and referenced later.</div>
 
                 <div className="table-like" style={{ marginTop: 12 }}>
                   {questions.map((q) => (

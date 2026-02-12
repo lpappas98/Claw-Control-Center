@@ -387,6 +387,18 @@ export const mockAdapter: Adapter = {
     return next
   },
 
+  async generateAIQuestions(idea: string, questionCount?: number) {
+    await sleep(1500) // Simulate AI generation time
+    const count = questionCount || 10
+    return Array.from({ length: Math.min(count, 10) }).map((_, i) => ({
+      id: `q-${i + 1}`,
+      category: ['Goal', 'Users', 'Workflow', 'Scope', 'Data'][i % 5],
+      prompt: `Mock question ${i + 1} based on your idea`,
+      required: i < 5,
+      answer: '',
+    }))
+  },
+
   async listIntakeProjects() {
     await sleep(120)
     return mockIntakeProjects.slice().sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))

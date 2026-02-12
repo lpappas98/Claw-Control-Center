@@ -151,6 +151,16 @@ export function bridgeAdapter(opts: BridgeAdapterOptions): Adapter {
       })
     },
 
+    // ---- AI question generation (standalone) ----
+    async generateAIQuestions(idea: string, questionCount?: number) {
+      const result = await fetchJson<{questions: Array<{id: string, category: string, prompt: string, required: boolean, answer: string}>}>(`${base}/api/ai/generate-questions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idea, questionCount }),
+      })
+      return result.questions
+    },
+
     // ---- Intake projects ----
     listIntakeProjects() {
       return fetchJson<import('../types').IntakeProject[]>(`${base}/api/intake/projects`)

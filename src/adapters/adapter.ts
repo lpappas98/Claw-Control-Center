@@ -87,6 +87,9 @@ export type Adapter = {
   getWorkerMetadata(slot: string): Promise<WorkerMetadata | null>
   updateWorkerMetadata(update: WorkerMetadataUpdate): Promise<WorkerMetadata>
 
+  // AI question generation (standalone)
+  generateAIQuestions(idea: string, questionCount?: number): Promise<Array<{id: string, category: string, prompt: string, required: boolean, answer: string}>>
+
   // PM/PO intake projects (local single-user)
   listIntakeProjects(): Promise<IntakeProject[]>
   getIntakeProject(id: string): Promise<IntakeProject>
