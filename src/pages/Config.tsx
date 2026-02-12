@@ -293,8 +293,7 @@ export function Config({ adapter }: { adapter: Adapter }) {
                 <div>
                   <h3>Rules</h3>
                   <p className="muted">
-                    View, add, delete, toggle, and edit operator rules. 
-                    <strong style={{ color: 'var(--warn)' }}> Note:</strong> Rules are stored but not yet integrated with AI decision-making.
+                    View, add, delete, toggle, and edit operator rules. Rules are read by the PM agent and enforced automatically.
                   </p>
                 </div>
                 <div className="right stack-h">
