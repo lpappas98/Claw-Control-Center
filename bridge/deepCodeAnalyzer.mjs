@@ -95,7 +95,8 @@ async function parseReadmeHierarchy(content) {
         title,
         description,
         subFeatures: [],
-        codeFiles: []
+        codeFiles: [],
+        isH3Feature: true  // Mark that this came from a ### header
       }
 
       currentFeature.subFeatures.push({
@@ -150,31 +151,41 @@ async function parseReadmeHierarchy(content) {
       continue
     }
 
-    // Nested bullets under features (indented)
+    // Bullets under features (any indent level >= current)
     const indent = line.match(/^(\s*)[-*]\s/)
     if (indent && currentFeature) {
       const indentLevel = indent[1].length
       
-      // Only capture bullets that are more indented than the feature line
-      if (indentLevel > currentIndent) {
+      // Capture bullets at same or deeper indent
+      if (indentLevel >= currentIndent) {
         const bulletMatch = line.match(/^\s*[-*]\s+(.+)/)
         if (bulletMatch) {
           const text = bulletMatch[1].trim()
-          const colonIdx = text.indexOf(':')
           
-          if (colonIdx > 0 && colonIdx < 80) {
-            currentSection.items.push({
-              title: text.slice(0, colonIdx).trim(),
-              description: text.slice(colonIdx + 1).trim()
-            })
-          } else {
-            currentSection.items.push({
-              title: text,
-              description: ''
-            })
+          // If current feature is from ### header, bold bullets at root are items, not new features
+          const isBoldAtRoot = indentLevel === 0 && text.match(/^\*\*(.+?)\*\*/)
+          const shouldAddAsItem = !isBoldAtRoot || currentFeature.isH3Feature
+          
+          if (shouldAddAsItem) {
+            const colonIdx = text.indexOf(':')
+            
+            if (colonIdx > 0 && colonIdx < 80) {
+              currentSection.items.push({
+                title: text.slice(0, colonIdx).trim().replace(/^\*\*(.+?)\*\*$/, '$1'),
+                description: text.slice(colonIdx + 1).trim()
+              })
+            } else {
+              currentSection.items.push({
+                title: text.replace(/^\*\*(.+?)\*\*$/, '$1'),
+                description: ''
+              })
+            }
+            continue  // Added item, don't fall through to new feature logic
           }
         }
-      } else if (indentLevel === 0 && topBoldBullet) {
+      }
+      
+      if (indentLevel === 0 && topBoldBullet) {
         // New top-level bullet = new feature
         if (currentFeature) features.push(currentFeature)
 
