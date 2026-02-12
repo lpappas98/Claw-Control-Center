@@ -161,7 +161,6 @@ export function MissionControl({
   )
 
   const [openTask, setOpenTask] = useState<Task | null>(null)
-  const [creating, setCreating] = useState(false)
   const [showProfileModal, setShowProfileModal] = useState(false)
   const [editingProfile, setEditingProfile] = useState<AgentProfile | null>(null)
 
@@ -453,21 +452,22 @@ export function MissionControl({
             <button
               className="btn"
               type="button"
-              disabled={creating}
-              onClick={async () => {
-                const title = prompt('New task title')
-                if (!title || !title.trim()) return
-                setCreating(true)
-                try {
-                  const next = await adapter.createTask({ title: title.trim() })
-                  setOpenTask(next)
-                } finally {
-                  setCreating(false)
+              onClick={() => {
+                // Create a blank task to open in create mode
+                const blankTask: Task = {
+                  id: '',
+                  title: '',
+                  lane: 'proposed',
+                  priority: 'P2',
+                  createdAt: new Date().toISOString(),
+                  updatedAt: new Date().toISOString(),
+                  statusHistory: [],
                 }
+                setOpenTask(blankTask)
               }}
-              title="Create a persisted task and open details"
+              title="Create a new task"
             >
-              {creating ? 'Creating…' : 'New task'}
+              New task
             </button>
           </div>
         </div>

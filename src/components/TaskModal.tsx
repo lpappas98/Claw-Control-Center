@@ -84,16 +84,21 @@ export function TaskModal({
     setDraftAssignedProfileId(task.assignedProfileId ?? '')
   }, [task])
 
-  const dirty =
-    draftTitle !== task.title ||
-    draftLane !== task.lane ||
-    draftPriority !== task.priority ||
-    draftOwner !== (task.owner ?? '') ||
-    draftProblem !== (task.problem ?? '') ||
-    draftScope !== (task.scope ?? '') ||
-    draftAcceptanceRaw.trim() !== (task.acceptanceCriteria ?? []).join('\n').trim() ||
-    draftProjectId !== (task.projectId ?? '') ||
-    draftAssignedProfileId !== (task.assignedProfileId ?? '')
+  const isCreateMode = !task.id
+  
+  const dirty = isCreateMode
+    ? draftTitle.trim().length > 0 // In create mode, just need a title
+    : (
+        draftTitle !== task.title ||
+        draftLane !== task.lane ||
+        draftPriority !== task.priority ||
+        draftOwner !== (task.owner ?? '') ||
+        draftProblem !== (task.problem ?? '') ||
+        draftScope !== (task.scope ?? '') ||
+        draftAcceptanceRaw.trim() !== (task.acceptanceCriteria ?? []).join('\n').trim() ||
+        draftProjectId !== (task.projectId ?? '') ||
+        draftAssignedProfileId !== (task.assignedProfileId ?? '')
+      )
 
   const acceptanceCriteria = useMemo(() => normalizeLines(draftAcceptanceRaw), [draftAcceptanceRaw])
 
@@ -101,19 +106,36 @@ export function TaskModal({
     setBusy(true)
     setError(null)
     try {
-      const updated = await adapter.updateTask({
-        id: task.id,
-        title: draftTitle.trim() || task.title,
-        lane: draftLane,
-        priority: draftPriority,
-        owner: draftOwner.trim() || undefined,
-        problem: draftProblem.trim() || undefined,
-        scope: draftScope.trim() || undefined,
-        acceptanceCriteria,
-        projectId: draftProjectId || undefined,
-        assignedProfileId: draftAssignedProfileId || undefined,
-      })
-      onSaved(updated)
+      if (isCreateMode) {
+        // Create new task
+        const created = await adapter.createTask({
+          title: draftTitle.trim(),
+          lane: draftLane,
+          priority: draftPriority,
+          owner: draftOwner.trim() || undefined,
+          problem: draftProblem.trim() || undefined,
+          scope: draftScope.trim() || undefined,
+          acceptanceCriteria,
+          projectId: draftProjectId || undefined,
+          assignedProfileId: draftAssignedProfileId || undefined,
+        })
+        onSaved(created)
+      } else {
+        // Update existing task
+        const updated = await adapter.updateTask({
+          id: task.id,
+          title: draftTitle.trim() || task.title,
+          lane: draftLane,
+          priority: draftPriority,
+          owner: draftOwner.trim() || undefined,
+          problem: draftProblem.trim() || undefined,
+          scope: draftScope.trim() || undefined,
+          acceptanceCriteria,
+          projectId: draftProjectId || undefined,
+          assignedProfileId: draftAssignedProfileId || undefined,
+        })
+        onSaved(updated)
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e))
     } finally {
@@ -127,13 +149,19 @@ export function TaskModal({
         onMouseDown={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <div style={{ minWidth: 0 }}>
-            <div className="muted" style={{ fontSize: 12 }}>
-              task <code>{task.id}</code>
-            </div>
-            <h3 style={{ margin: '6px 0 0' }}>{task.title}</h3>
+            {isCreateMode ? (
+              <h3 style={{ margin: 0 }}>New Task</h3>
+            ) : (
+              <>
+                <div className="muted" style={{ fontSize: 12 }}>
+                  task <code>{task.id}</code>
+                </div>
+                <h3 style={{ margin: '6px 0 0' }}>{task.title}</h3>
+              </>
+            )}
           </div>
           <div className="stack-h">
-            <CopyButton label="Copy JSON" text={JSON.stringify(task, null, 2)} />
+            {!isCreateMode && <CopyButton label="Copy JSON" text={JSON.stringify(task, null, 2)} />}
             <button className="btn ghost" type="button" onClick={onClose}>
               Close
             </button>
@@ -249,12 +277,14 @@ export function TaskModal({
         </div>
 
         <div className="modal-footer">
-          <div className="muted" style={{ fontSize: 12 }}>
-            Saving lane changes will append a history entry.
-          </div>
+          {!isCreateMode && (
+            <div className="muted" style={{ fontSize: 12 }}>
+              Saving lane changes will append a history entry.
+            </div>
+          )}
           <div className="stack-h">
             <button className="btn" type="button" onClick={save} disabled={busy || !dirty}>
-              {busy ? 'Saving…' : dirty ? 'Save changes' : 'Saved'}
+              {busy ? (isCreateMode ? 'Creating…' : 'Saving…') : isCreateMode ? 'Create Task' : dirty ? 'Save changes' : 'Saved'}
             </button>
           </div>
         </div>
