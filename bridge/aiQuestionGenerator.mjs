@@ -21,6 +21,7 @@ export async function generateAIQuestions({ idea, type = 'project', featureConte
     // Spawn OpenClaw agent session to act as product owner
     const { stdout, stderr } = await execFileAsync('openclaw', [
       'agent',
+      '--agent', 'main',
       '--thinking', 'low',
       '--local',
       '--message', prompt

@@ -1014,7 +1014,7 @@ app.post('/api/intake/projects/:id/generate-questions', async (req, res) => {
   if (idx < 0) return res.status(404).send('intake project not found')
 
   const p = intakeProjects[idx]
-  const questions = generateClarifyingQuestions({ idea: p.idea })
+  const questions = await generateClarifyingQuestions({ idea: p.idea })
   const now = new Date().toISOString()
   const next = { ...p, questions, status: 'questions', updatedAt: now }
 
@@ -1353,7 +1353,7 @@ app.post('/api/pm/projects/:id/intake/questions/generate', async (req, res) => {
       p.summary ||
       ''
 
-    const generated = generateClarifyingQuestions({ idea: ideaText })
+    const generated = await generateClarifyingQuestions({ idea: ideaText })
     const questions = generated.map((q) => ({ id: q.id, category: q.category, prompt: q.prompt, answer: null }))
 
     const next = { ...p.intake, questions }

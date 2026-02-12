@@ -1,5 +1,6 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
+import { generateAIQuestions } from './aiQuestionGenerator.mjs'
 
 function cap(list, max) {
   if (!Array.isArray(list)) return []
@@ -68,7 +69,24 @@ function guessDomainTags(idea) {
   return [...tags]
 }
 
-export function generateClarifyingQuestions({ idea }) {
+export async function generateClarifyingQuestions({ idea }) {
+  // Use AI-powered question generation
+  try {
+    const questions = await generateAIQuestions({ 
+      idea, 
+      type: 'project',
+      questionCount: 10 
+    })
+    return questions
+  } catch (error) {
+    console.error('[intakeProjects] AI question generation failed, using fallback:', error.message)
+    // Fallback to template questions if AI fails
+    return generateFallbackQuestions({ idea })
+  }
+}
+
+// Fallback for when AI generation fails
+function generateFallbackQuestions({ idea }) {
   const tags = guessDomainTags(idea)
 
   /** @type {Array<{ id: string, category: string, prompt: string, required?: boolean }>} */
