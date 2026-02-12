@@ -1537,33 +1537,35 @@ function NewProjectWizard({
                   <button
                     className="btn"
                     type="button"
-                    disabled={!projectName.trim() || (!fileCount && !gitUrl.trim())}
-                    onClick={() => {
-                      const createdAt = nowIso()
-                      onCreate({
-                        id: `p-${id()}`,
-                        name: projectName.trim(),
-                        summary: projectDesc.trim() || (gitUrl.trim() ? `(mock) Imported from ${gitUrl.trim()}` : '(mock) Imported from local folder'),
-                        status: 'active',
-                        tags: [gitUrl.trim() ? 'git' : 'folder', 'imported'],
-                        owner: 'Logan',
-                        updatedAt: createdAt,
-                        links: gitUrl.trim() ? [{ label: 'Repo', url: gitUrl.trim() }] : [],
-                        intake: {
-                          idea: [{ id: 'idea-1', at: createdAt, author: 'human', text: gitUrl.trim() ? `(import) ${gitUrl.trim()}` : '(import) Local folder import.' }],
-                          analysis: [],
-                          questions: [],
-                          requirements: [],
-                        },
-                        tree: [
-                          { id: 'sec-repo', title: 'Imported project', summary: 'Next: analyze repo + generate questions.', status: 'planned', priority: 'p0', children: [] },
-                        ],
-                        cards: [{ id: `c-${id()}`, title: 'Run import analysis + generate questions', priority: 'p0', column: 'todo', owner: 'TARS', featureId: 'sec-repo' }],
-                        activity: [{ id: `a-${id()}`, at: createdAt, actor: 'Logan', text: 'Created project from import' }],
-                      })
+                    disabled={!projectName.trim() || (!fileCount && !gitUrl.trim()) || analysisLoading}
+                    onClick={async () => {
+                      setAnalysisLoading(true)
+                      try {
+                        const imported = await adapter.importProject({
+                          name: projectName.trim(),
+                          description: projectDesc.trim(),
+                          gitUrl: gitUrl.trim() || undefined,
+                          files: files.length > 0 ? files : undefined,
+                        })
+                        
+                        // Load full project data
+                        const [tree, cards, intake] = await Promise.all([
+                          adapter.getPMTree(imported.id),
+                          adapter.listPMCards(imported.id),
+                          adapter.getPMIntake(imported.id),
+                        ])
+                        
+                        const project = pmToProject(imported, tree, cards, intake)
+                        onCreate(project)
+                      } catch (err) {
+                        console.error('Import failed:', err)
+                        alert(`Import failed: ${err instanceof Error ? err.message : 'Unknown error'}`)
+                      } finally {
+                        setAnalysisLoading(false)
+                      }
                     }}
                   >
-                    Create
+                    {analysisLoading ? 'Importing...' : 'Create'}
                   </button>
                 </div>
               </div>

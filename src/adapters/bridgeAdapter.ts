@@ -250,6 +250,32 @@ export function bridgeAdapter(opts: BridgeAdapterOptions): Adapter {
       return fetchJson<{ ok: boolean }>(`${base}/api/pm/projects/${encodeURIComponent(id)}`, { method: 'DELETE' })
     },
 
+    async importProject(data: { name: string; description?: string; gitUrl?: string; files?: File[] }) {
+      const formData = new FormData()
+      formData.append('name', data.name)
+      if (data.description) formData.append('description', data.description)
+      if (data.gitUrl) formData.append('gitUrl', data.gitUrl)
+      
+      // Add files if provided
+      if (data.files && data.files.length > 0) {
+        for (const file of data.files) {
+          formData.append('files', file, file.webkitRelativePath || file.name)
+        }
+      }
+
+      const res = await fetch(`${base}/api/pm/projects/import`, {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (!res.ok) {
+        const text = await res.text().catch(() => '')
+        throw new Error(`Import failed: ${res.status} ${res.statusText}${text ? `\n${text}` : ''}`)
+      }
+
+      return (await res.json()) as PMProject
+    },
+
     exportPMProjectJSON(id: string) {
       return fetchJson<object>(`${base}/api/pm/projects/${encodeURIComponent(id)}/export.json`)
     },

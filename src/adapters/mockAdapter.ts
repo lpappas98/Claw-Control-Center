@@ -838,6 +838,18 @@ export const mockAdapter: Adapter = {
     return pmProject
   },
 
+  async importProject(data: { name: string; description?: string; gitUrl?: string; files?: File[] }): Promise<PMProject> {
+    await sleep(150)
+    // Mock implementation - just create a project with import metadata
+    const pmProject = await this.createPMProject({
+      name: data.name,
+      summary: data.description || (data.gitUrl ? `Imported from ${data.gitUrl}` : 'Imported from files'),
+      status: 'active',
+      tags: ['imported', data.gitUrl ? 'github' : 'upload'],
+    })
+    return pmProject
+  },
+
   // Agent Profiles (not implemented in mock adapter)
   async listAgentProfiles() {
     throw new Error('Agent profiles only available with Firestore adapter')

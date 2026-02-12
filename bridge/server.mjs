@@ -74,7 +74,26 @@ import {
   upsertTreeNode,
 } from './pmProjectsStore.mjs'
 
+import { importProject } from './projectImporter.mjs'
+import multer from 'multer'
+import {
+  extractZipToTemp,
+  processUploadedFiles,
+  convertFilesToImportFormat,
+  cleanupTemp,
+  validateProject
+} from './fileUploadHandler.mjs'
+
 const execFileAsync = promisify(execFile)
+
+// Configure multer for file uploads
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 100 * 1024 * 1024, // 100MB per file
+    files: 1000 // Max 1000 files
+  }
+})
 
 const app = express()
 app.use(cors())
@@ -1281,6 +1300,177 @@ app.post('/api/pm/projects', async (req, res) => {
     res.json(created)
   } catch (err) {
     res.status(400).send(err?.message ?? 'invalid project')
+  }
+})
+
+// ---- PM Projects Import ----
+app.post('/api/pm/projects/import', upload.any(), async (req, res) => {
+  let tempDir = null
+  
+  try {
+    const name = req.body?.name || req.body?.projectName
+    const description = req.body?.description || ''
+    const gitUrl = req.body?.gitUrl || ''
+    const uploadedFiles = req.files || []
+
+    // Validate input
+    if (!name || typeof name !== 'string') {
+      return res.status(400).json({ error: 'Project name is required' })
+    }
+
+    console.log(`[Import] Starting import for project: ${name}`)
+    console.log(`[Import] Upload type: ${gitUrl ? 'GitHub' : `${uploadedFiles.length} files`}`)
+
+    let projectPath = null
+    let analysis = null
+
+    // Handle different import methods
+    if (gitUrl) {
+      // GitHub import - use existing flow
+      console.log(`[Import] Importing from GitHub: ${gitUrl}`)
+      const result = await importProject({ name, description, gitUrl })
+      projectPath = result.projectPath
+      tempDir = projectPath
+      analysis = result.analysis
+    } 
+    else if (uploadedFiles.length > 0) {
+      // File upload import
+      console.log(`[Import] Processing ${uploadedFiles.length} uploaded files`)
+      
+      // Check if it's a single ZIP file
+      const zipFile = uploadedFiles.find(f => 
+        (f.originalname || '').toLowerCase().endsWith('.zip')
+      )
+      
+      if (zipFile && uploadedFiles.length === 1) {
+        // Extract ZIP
+        console.log(`[Import] Extracting ZIP file: ${zipFile.originalname}`)
+        const extracted = await extractZipToTemp(zipFile.buffer, name)
+        tempDir = extracted.tempDir
+        projectPath = extracted.tempDir
+        
+        console.log(`[Import] Extracted ${extracted.files.length} files from ZIP`)
+        
+        // Analyze the extracted project
+        const result = await importProject({ 
+          name, 
+          description, 
+          existingPath: projectPath 
+        })
+        analysis = result.analysis
+      } 
+      else {
+        // Process individual files or folder structure
+        console.log(`[Import] Processing individual files`)
+        const processed = await processUploadedFiles(uploadedFiles, name)
+        tempDir = processed.tempDir
+        projectPath = processed.tempDir
+        
+        console.log(`[Import] Processed ${processed.files.length} files`)
+        
+        // Analyze the processed files
+        const result = await importProject({ 
+          name, 
+          description, 
+          existingPath: projectPath 
+        })
+        analysis = result.analysis
+      }
+    }
+    else {
+      return res.status(400).json({ 
+        error: 'Either gitUrl or files must be provided' 
+      })
+    }
+
+    console.log(`[Import] Analysis complete: ${JSON.stringify(analysis, null, 2)}`)
+
+    // Step 2: Generate PM artifacts from analysis
+    const projectData = {
+      name,
+      summary: analysis.summary || description || '',
+      status: 'active',
+      tags: analysis.tags || [],
+      owner: 'imported',
+      tree: analysis.features.map((f, idx) => ({
+        id: `feat-${idx + 1}`,
+        title: f.title,
+        summary: f.summary,
+        status: f.status || 'planned',
+        priority: f.priority || 'p2',
+        children: []
+      })),
+      cards: analysis.suggestedTasks.map((t, idx) => ({
+        id: `card-${idx + 1}`,
+        title: t.title,
+        description: t.description,
+        column: 'todo',
+        priority: t.priority || 'p2',
+        tags: [],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      })),
+      intake: {
+        brief: description || analysis.summary || '',
+        questions: [],
+        answers: {}
+      }
+    }
+
+    // Step 3: Create PM project
+    const created = await createPmProject(PM_PROJECTS_DIR, projectData)
+
+    // Step 4: Add analysis metadata to response
+    const response = {
+      ...created,
+      importMetadata: {
+        source: gitUrl ? 'github' : 'upload',
+        gitUrl: gitUrl || undefined,
+        filesCount: uploadedFiles.length || undefined,
+        analyzedAt: new Date().toISOString(),
+        analysis: {
+          techStack: analysis.techStack,
+          complexity: analysis.complexity,
+          estimatedSize: analysis.estimatedSize
+        }
+      }
+    }
+
+    // Cleanup temp directory
+    if (tempDir) {
+      await cleanupTemp(tempDir)
+    }
+
+    console.log(`[Import] Project created successfully: ${created.id}`)
+    res.json(response)
+
+  } catch (err) {
+    console.error('[Import] Error:', err)
+    
+    // Cleanup on error
+    if (tempDir) {
+      await cleanupTemp(tempDir)
+    }
+    
+    // Return appropriate error status
+    if (err.message?.includes('not appear to be a valid project')) {
+      return res.status(422).json({ 
+        error: 'Invalid project', 
+        message: err.message 
+      })
+    }
+    
+    if (err.message?.includes('too many files') || err.message?.includes('exceeds maximum')) {
+      return res.status(413).json({ 
+        error: 'Payload too large', 
+        message: err.message 
+      })
+    }
+    
+    res.status(500).json({ 
+      error: 'Import failed', 
+      message: err?.message ?? 'Unknown error during import' 
+    })
   }
 })
 

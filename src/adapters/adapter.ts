@@ -109,6 +109,7 @@ export type Adapter = {
   createPMProject(create: PMProjectCreate): Promise<PMProject>
   updatePMProject(update: PMProjectUpdate): Promise<PMProject>
   deletePMProject(id: string): Promise<{ ok: boolean }>
+  importProject(data: { name: string; description?: string; gitUrl?: string; files?: File[] }): Promise<PMProject>
   exportPMProjectJSON(id: string): Promise<object>
   exportPMProjectMarkdown(id: string): Promise<string>
 
