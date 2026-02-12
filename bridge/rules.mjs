@@ -31,6 +31,7 @@ export async function loadRules(rulesFile) {
         description: 'Seed rule created by the local bridge.',
         enabled: true,
         content: 'Describe the operator rule here.',
+        severity: 'standard',
         updatedAt: nowIso(),
       },
     ]
@@ -39,7 +40,12 @@ export async function loadRules(rulesFile) {
   const raw = await fs.readFile(rulesFile, 'utf8')
   const parsed = JSON.parse(raw)
   const list = Array.isArray(parsed) ? parsed : []
-  return list
+  
+  // Ensure backward compatibility: add default severity to existing rules that don't have it
+  return list.map(rule => ({
+    ...rule,
+    severity: rule.severity ?? 'standard'
+  }))
 }
 
 /**

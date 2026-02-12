@@ -652,12 +652,19 @@ app.post('/api/rules', async (req, res) => {
   if (!title) return res.status(400).send('title required')
 
   const id = ensureUniqueRuleId(typeof body.id === 'string' ? body.id : title)
+  
+  // Default severity to "standard" if not provided
+  const severity = typeof body.severity === 'string' ? body.severity : 'standard'
+  const category = typeof body.category === 'string' ? body.category : undefined
+  
   const next = {
     id,
     title,
     description: typeof body.description === 'string' ? body.description : undefined,
     enabled: body.enabled === undefined ? true : !!body.enabled,
     content,
+    severity,
+    category,
     updatedAt: new Date().toISOString(),
   }
 
@@ -668,7 +675,7 @@ app.post('/api/rules', async (req, res) => {
     ruleId: next.id,
     action: 'create',
     summary: 'Created rule',
-    after: { title: next.title, description: next.description, content: next.content, enabled: next.enabled },
+    after: { title: next.title, description: next.description, content: next.content, enabled: next.enabled, severity: next.severity, category: next.category },
     source: 'bridge',
   })
 
@@ -716,6 +723,8 @@ app.put('/api/rules/:id', async (req, res) => {
     title: typeof update.title === 'string' ? update.title : before.title,
     description: typeof update.description === 'string' ? update.description : before.description,
     content: typeof update.content === 'string' ? update.content : before.content,
+    severity: typeof update.severity === 'string' ? update.severity : before.severity ?? 'standard',
+    category: typeof update.category === 'string' ? update.category : before.category,
     updatedAt: new Date().toISOString(),
   }
 
@@ -726,8 +735,8 @@ app.put('/api/rules/:id', async (req, res) => {
     ruleId: next.id,
     action: 'update',
     summary: 'Updated rule',
-    before: { title: before.title, description: before.description, content: before.content },
-    after: { title: next.title, description: next.description, content: next.content },
+    before: { title: before.title, description: before.description, content: before.content, severity: before.severity, category: before.category },
+    after: { title: next.title, description: next.description, content: next.content, severity: next.severity, category: next.category },
     source: 'bridge',
   })
 
