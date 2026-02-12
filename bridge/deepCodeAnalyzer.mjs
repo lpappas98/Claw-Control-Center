@@ -124,7 +124,7 @@ async function parseReadmeHierarchy(content) {
       continue
     }
 
-    // Top-level bold bullets become features (Questra format: - **Feature Name**: desc)
+    // Top-level bold bullets become features (common README pattern: - **Feature Name**: desc)
     const topBoldBullet = line.match(/^[-*]\s+\*\*(.+?)\*\*:?\s*(.*)/)
     if (topBoldBullet && !currentFeature) {
       // This is a top-level feature bullet
