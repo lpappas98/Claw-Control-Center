@@ -1798,21 +1798,32 @@ function pmToProject(
     featureIntake: featureIntakes?.get(n.id),
   })
 
-  // Build tree hierarchy from flat nodes
-  const nodeMap = new Map<string, PMTreeNode>()
-  for (const n of tree) nodeMap.set(n.id, n)
+  // Build tree hierarchy
+  // Handle two formats:
+  // 1. Flat tree with parentId references (from DB)
+  // 2. Hierarchical tree with children arrays (from import)
   
-  const rootNodes = tree.filter(n => !n.parentId)
-  const buildChildren = (parentId: string): PMTreeNode[] => 
-    tree.filter(n => n.parentId === parentId).map(n => ({
+  let treeWithChildren: PMTreeNode[]
+  
+  const hasParentIds = tree.some(n => n.parentId != null)
+  
+  if (hasParentIds) {
+    // Format 1: Flat tree - rebuild hierarchy using parentId
+    const rootNodes = tree.filter(n => !n.parentId)
+    const buildChildren = (parentId: string): PMTreeNode[] => 
+      tree.filter(n => n.parentId === parentId).map(n => ({
+        ...n,
+        children: buildChildren(n.id)
+      }))
+    
+    treeWithChildren = rootNodes.map(n => ({
       ...n,
       children: buildChildren(n.id)
     }))
-  
-  const treeWithChildren = rootNodes.map(n => ({
-    ...n,
-    children: buildChildren(n.id)
-  }))
+  } else {
+    // Format 2: Already hierarchical - use as-is
+    treeWithChildren = tree
+  }
 
   // Convert cards
   const convertCard = (c: PMCard): KanbanCard => ({
