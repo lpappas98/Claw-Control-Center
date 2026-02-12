@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --host",
     "bridge": "node bridge/server.mjs",
     "beats": "node bridge/slot-heartbeats.mjs",
     "test": "node --test bridge/*.test.mjs",
