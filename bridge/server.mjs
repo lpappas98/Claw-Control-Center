@@ -44,6 +44,8 @@ import {
   toMarkdownBrief,
 } from './intakeProjects.mjs'
 
+import { generateAIQuestions } from './aiQuestionGenerator.mjs'
+
 import {
   appendActivity as appendPmActivity,
   createKanbanCard,
@@ -1021,6 +1023,33 @@ app.post('/api/intake/projects/:id/generate-questions', async (req, res) => {
   res.json(next)
 })
 
+// AI-powered question generation for project intake
+app.post('/api/intake/projects/:id/generate-questions-ai', async (req, res) => {
+  const id = req.params.id
+  const idx = intakeProjects.findIndex((p) => p.id === id)
+  if (idx < 0) return res.status(404).send('intake project not found')
+
+  const p = intakeProjects[idx]
+  const { questionCount } = req.body || {}
+  
+  try {
+    const questions = await generateAIQuestions({ 
+      idea: p.idea, 
+      type: 'project',
+      questionCount 
+    })
+    const now = new Date().toISOString()
+    const next = { ...p, questions, status: 'questions', updatedAt: now }
+
+    intakeProjects = [...intakeProjects.slice(0, idx), next, ...intakeProjects.slice(idx + 1)]
+    intakeProjectsSaver.trigger()
+    res.json(next)
+  } catch (error) {
+    console.error('[AI Questions] Error:', error)
+    res.status(500).json({ error: 'Failed to generate AI questions', message: error.message })
+  }
+})
+
 app.post('/api/intake/projects/:id/generate-scope', async (req, res) => {
   const id = req.params.id
   const idx = intakeProjects.findIndex((p) => p.id === id)
@@ -1335,6 +1364,39 @@ app.post('/api/pm/projects/:id/intake/questions/generate', async (req, res) => {
   }
 })
 
+// AI-powered question generation for PM projects
+app.post('/api/pm/projects/:id/intake/questions/generate-ai', async (req, res) => {
+  try {
+    const p = await loadPmProject(PM_PROJECTS_DIR, req.params.id)
+    if (!p) return res.status(404).send('project not found')
+
+    const ideaText =
+      (typeof req.body?.idea === 'string' && req.body.idea.trim()) ||
+      p.intake?.idea?.[0]?.text ||
+      p.summary ||
+      ''
+    
+    const questionCount = req.body?.questionCount
+    const type = req.body?.type || 'project'
+    const featureContext = req.body?.featureContext || ''
+
+    const generated = await generateAIQuestions({ 
+      idea: ideaText,
+      type,
+      featureContext,
+      questionCount
+    })
+    const questions = generated.map((q) => ({ id: q.id, category: q.category, prompt: q.prompt, answer: null }))
+
+    const next = { ...p.intake, questions }
+    const saved = await replaceIntake(PM_PROJECTS_DIR, req.params.id, next)
+    res.json(saved)
+  } catch (err) {
+    console.error('[AI Questions PM] Error:', err)
+    res.status(500).json({ error: 'Failed to generate AI questions', message: err?.message })
+  }
+})
+
 app.post('/api/pm/projects/:id/intake/questions/:qid/answer', async (req, res) => {
   try {
     const p = await loadPmProject(PM_PROJECTS_DIR, req.params.id)
@@ -1378,6 +1440,89 @@ app.post('/api/pm/projects/:id/intake/requirements', async (req, res) => {
     res.json(saved)
   } catch (err) {
     res.status(400).send(err?.message ?? 'invalid request')
+  }
+})
+
+// Feature-level AI question generation
+app.post('/api/pm/projects/:id/features/:featureId/questions/generate', async (req, res) => {
+  try {
+    const projectId = req.params.id
+    const featureId = req.params.featureId
+    
+    // Load project
+    const p = await loadPmProject(PM_PROJECTS_DIR, projectId)
+    if (!p) return res.status(404).send('project not found')
+    
+    // Find feature in tree
+    const findNode = (nodes, nodeId) => {
+      for (const n of nodes ?? []) {
+        if (n.id === nodeId) return n
+        if (n.children?.length) {
+          const found = findNode(n.children, nodeId)
+          if (found) return found
+        }
+      }
+      return null
+    }
+    
+    const feature = findNode(p.tree, featureId)
+    if (!feature) return res.status(404).send('feature not found')
+    
+    // Get existing intake or initialize
+    const existingIntake = await getFeatureIntake(PM_PROJECTS_DIR, projectId, featureId)
+    
+    // Build feature context from project
+    const projectContext = [
+      `Project: ${p.name}`,
+      p.summary ? `Summary: ${p.summary}` : '',
+      p.intake?.idea?.[0]?.text ? `Project Idea: ${p.intake.idea[0].text}` : '',
+    ].filter(Boolean).join('\n')
+    
+    // Build feature description
+    const featureIdea = feature.title || feature.name || 'Unnamed feature'
+    const featureDescription = feature.description || feature.acceptanceCriteria || ''
+    const fullFeatureIdea = featureDescription 
+      ? `${featureIdea}\n\n${featureDescription}`
+      : featureIdea
+    
+    // Generate questions using AI
+    const questionCount = req.body?.questionCount || 5
+    const generated = await generateAIQuestions({ 
+      idea: fullFeatureIdea,
+      type: 'feature',
+      featureContext: projectContext,
+      questionCount
+    })
+    
+    // Format questions
+    const questions = generated.map((q) => ({ 
+      id: q.id, 
+      category: q.category, 
+      prompt: q.prompt, 
+      answer: null 
+    }))
+    
+    // Update feature intake
+    const updatedIntake = {
+      ...(existingIntake || {}),
+      questions,
+      updatedAt: new Date().toISOString()
+    }
+    
+    const saved = await setFeatureIntake(PM_PROJECTS_DIR, projectId, featureId, updatedIntake)
+    
+    res.json({
+      featureId,
+      intake: saved,
+      questionsGenerated: questions.length
+    })
+    
+  } catch (err) {
+    console.error('[Feature AI Questions] Error:', err)
+    res.status(500).json({ 
+      error: 'Failed to generate feature questions', 
+      message: err?.message 
+    })
   }
 })
 
