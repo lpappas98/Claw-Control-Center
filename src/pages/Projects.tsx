@@ -2021,7 +2021,7 @@ export function Projects({ adapter }: { adapter: Adapter }) {
                     Show projects
                   </button>
                 ) : null}
-                <button className="btn ghost" type="button" onClick={() => alert('(wireframe) Share/project settings')}>
+                <button className="btn ghost" type="button" onClick={() => setTab('Settings')}>
                   Settings
                 </button>
                 {/* Quick add removed */}
