@@ -399,6 +399,33 @@ export const mockAdapter: Adapter = {
     }))
   },
 
+  async nextQuestion(idea: string, conversationHistory: Array<{question: string, answer: string}>) {
+    await sleep(1000)
+    const count = conversationHistory.length
+    if (count >= 6) {
+      return { isDone: true }
+    }
+    const questions = [
+      'What specific problem are you trying to solve?',
+      'Who is the primary user or customer?',
+      'What makes this different from existing solutions?',
+      'What does success look like?',
+      'What are the key constraints or requirements?',
+      'What features are must-have for v1?'
+    ]
+    return {
+      question: questions[count] || 'Any other important details?',
+      context: 'Mock conversational question'
+    }
+  },
+
+  async questionSuggestion(question: string, context?: string, partialAnswer?: string) {
+    await sleep(500)
+    return {
+      suggestion: 'Consider focusing on the specific user persona and their workflow. What problem are they trying to solve?'
+    }
+  },
+
   async listIntakeProjects() {
     await sleep(120)
     return mockIntakeProjects.slice().sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))

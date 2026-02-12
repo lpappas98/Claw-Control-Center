@@ -256,7 +256,8 @@ You have asked ${session.questionCount} questions so far (min: ${session.minQues
 `;
   } else {
     prompt += `\nBased on the project idea and answers so far, generate the NEXT SINGLE QUESTION that will:
-- Build on what you've learned (avoid repetition)
+- Build on what you've learned (avoid repetition; do not repeat a previous question verbatim)
+- If a prior answer seems to miss the point, ask a clarifying follow-up but rephrase it and be more specific
 - Uncover critical requirements not yet discussed
 - Be specific and actionable
 - Help define scope, constraints, or success criteria

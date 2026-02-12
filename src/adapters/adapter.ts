@@ -89,6 +89,10 @@ export type Adapter = {
 
   // AI question generation (standalone)
   generateAIQuestions(idea: string, questionCount?: number): Promise<Array<{id: string, category: string, prompt: string, required: boolean, answer: string}>>
+  
+  // Conversational questioning (one-at-a-time)
+  nextQuestion(idea: string, conversationHistory: Array<{question: string, answer: string}>): Promise<{question?: string, isDone?: boolean, context?: string}>
+  questionSuggestion(question: string, context?: string, partialAnswer?: string): Promise<{suggestion: string}>
 
   // PM/PO intake projects (local single-user)
   listIntakeProjects(): Promise<IntakeProject[]>

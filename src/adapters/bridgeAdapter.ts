@@ -161,6 +161,23 @@ export function bridgeAdapter(opts: BridgeAdapterOptions): Adapter {
       return result.questions
     },
 
+    // ---- Conversational questioning ----
+    async nextQuestion(idea: string, conversationHistory: Array<{question: string, answer: string}>) {
+      return fetchJson<{question?: string, isDone?: boolean, context?: string}>(`${base}/api/ai/next-question`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idea, conversationHistory }),
+      })
+    },
+
+    async questionSuggestion(question: string, context?: string, partialAnswer?: string) {
+      return fetchJson<{suggestion: string}>(`${base}/api/ai/question-suggestion`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question, context, partialAnswer }),
+      })
+    },
+
     // ---- Intake projects ----
     listIntakeProjects() {
       return fetchJson<import('../types').IntakeProject[]>(`${base}/api/intake/projects`)

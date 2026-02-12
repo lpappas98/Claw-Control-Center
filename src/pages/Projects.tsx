@@ -1022,6 +1022,15 @@ function NewProjectWizard({
   const [analysis, setAnalysis] = useState<ProjectIntake['analysis'][number] | null>(null)
   const [questions, setQuestions] = useState<IntakeQuestion[]>([])
   const [analysisLoading, setAnalysisLoading] = useState(false)
+  
+  // Conversational questioning state
+  const [currentQuestion, setCurrentQuestion] = useState<string | null>(null)
+  const [currentAnswer, setCurrentAnswer] = useState('')
+  const [conversationHistory, setConversationHistory] = useState<Array<{question: string, answer: string}>>([])
+  const [questionLoading, setQuestionLoading] = useState(false)
+  const [conversationDone, setConversationDone] = useState(false)
+  const [suggestion, setSuggestion] = useState<string | null>(null)
+  const [suggestionLoading, setSuggestionLoading] = useState(false)
 
   const nowIso = () => new Date().toISOString()
   const id = () => Math.random().toString(16).slice(2, 10)
@@ -1226,36 +1235,122 @@ function NewProjectWizard({
         type: c.type,
         tags: c.tags,
         risks: c.risks,
-        summary: `Detected ${c.type} project. AI-generated questions tailored to your description.`,
+        summary: `Detected ${c.type} project. AI will ask strategic questions to understand your idea.`,
       } as const
       setAnalysis(a)
       
-      // Generate questions via AI
-      const aiQuestions = await adapter.generateAIQuestions(ideaText, 10)
-      setQuestions(aiQuestions.map(q => ({
-        id: q.id,
-        category: q.category,
-        prompt: q.prompt,
-        required: q.required,
-        answer: null,
-      })))
+      // Reset conversational state
+      setConversationHistory([])
+      setConversationDone(false)
       
-      setMode('analysis')
+      // Get first question
+      setQuestionLoading(true)
+      try {
+        const result = await adapter.nextQuestion(ideaText, [])
+        if (result.question) {
+          setCurrentQuestion(result.question)
+        }
+      } catch (err) {
+        console.error('Failed to get first question:', err)
+        alert('Failed to generate first question')
+      } finally {
+        setQuestionLoading(false)
+      }
+      
+      setMode('questions')
     } catch (error) {
       console.error('Analysis failed:', error)
-      alert('Failed to generate questions. Please try again.')
+      alert('Failed to start conversation. Please try again.')
     } finally {
       setAnalysisLoading(false)
+    }
+  }
+
+  const submitAnswer = async () => {
+    if (!currentQuestion || !currentAnswer.trim()) return
+    
+    const newHistory = [...conversationHistory, { question: currentQuestion, answer: currentAnswer.trim() }]
+    setConversationHistory(newHistory)
+    setCurrentAnswer('')
+    setSuggestion(null)
+    
+    // Get next question
+    setQuestionLoading(true)
+    try {
+      const result = await adapter.nextQuestion(ideaText, newHistory)
+      if (result.isDone) {
+        setConversationDone(true)
+        setCurrentQuestion(null)
+      } else if (result.question) {
+        setCurrentQuestion(result.question)
+      }
+    } catch (err) {
+      console.error('Failed to get next question:', err)
+      alert('Failed to generate next question')
+    } finally {
+      setQuestionLoading(false)
+    }
+  }
+
+  const skipQuestion = async () => {
+    if (!currentQuestion) return
+    
+    const newHistory = [...conversationHistory, { question: currentQuestion, answer: '[skipped]' }]
+    setConversationHistory(newHistory)
+    setCurrentAnswer('')
+    setSuggestion(null)
+    
+    // Get next question
+    setQuestionLoading(true)
+    try {
+      const result = await adapter.nextQuestion(ideaText, newHistory)
+      if (result.isDone) {
+        setConversationDone(true)
+        setCurrentQuestion(null)
+      } else if (result.question) {
+        setCurrentQuestion(result.question)
+      }
+    } catch (err) {
+      console.error('Failed to get next question:', err)
+      alert('Failed to generate next question')
+    } finally {
+      setQuestionLoading(false)
+    }
+  }
+
+  const getQuestionSuggestion = async () => {
+    if (!currentQuestion) return
+    
+    setSuggestionLoading(true)
+    try {
+      const result = await adapter.questionSuggestion(currentQuestion, ideaText, currentAnswer)
+      setSuggestion(result.suggestion)
+    } catch (err) {
+      console.error('Failed to get suggestion:', err)
+      setSuggestion('Unable to get suggestion at this time')
+    } finally {
+      setSuggestionLoading(false)
     }
   }
 
   const createProject = async () => {
     const createdAt = nowIso()
 
+    // Convert conversation history to questions format
+    const questionsFromConversation = conversationHistory
+      .filter(qa => qa.answer !== '[skipped]')
+      .map((qa, idx) => ({
+        id: `q-${idx + 1}`,
+        category: 'Strategic',
+        prompt: qa.question,
+        required: true,
+        answer: { text: qa.answer, at: createdAt, author: 'human' as const }
+      }))
+
     const intake: ProjectIntake = {
       idea: [{ id: 'idea-1', at: createdAt, author: 'human', text: ideaText.trim() }],
       analysis: analysis ? [analysis] : [],
-      questions,
+      questions: questionsFromConversation,
       requirements: [],
     }
 
@@ -1278,11 +1373,11 @@ function NewProjectWizard({
       }
 
       // Set questions if any
-      if (questions.length) {
+      if (questionsFromConversation.length) {
         const pmIntake = await adapter.getPMIntake(pmProject.id)
         await adapter.setPMIntake(pmProject.id, {
           ...pmIntake,
-          questions: questions.map(q => ({
+          questions: questionsFromConversation.map(q => ({
             id: q.id,
             category: q.category,
             prompt: q.prompt,
@@ -1554,40 +1649,103 @@ function NewProjectWizard({
           {mode === 'questions' ? (
             <div className="stack">
               <div className="panel" style={{ padding: 14 }}>
-                <h4 style={{ marginTop: 0 }}>Clarifying questions</h4>
-                <div className="muted">These are AI-generated based on your idea. Answers are stored and referenced later.</div>
-
-                <div className="table-like" style={{ marginTop: 12 }}>
-                  {questions.map((q) => (
-                    <div key={q.id} className="row" style={{ margin: 0 }}>
-                      <div className="row-main">
-                        <div className="row-title">
-                          <strong>{q.prompt}</strong>
-                          <span className="pill">{q.category}</span>
-                          <span className="muted"><code>{q.id}</code></span>
-                        </div>
-                        <textarea
-                          className="input"
-                          rows={3}
-                          value={q.answer?.text ?? ''}
-                          onChange={(e) =>
-                            setQuestions((prev) =>
-                              prev.map((x) => (x.id === q.id ? { ...x, answer: { text: e.target.value, at: nowIso(), author: 'human' } } : x)),
-                            )
-                          }
-                          placeholder="Your answer…"
-                          style={{ width: '100%', marginTop: 8, resize: 'vertical' }}
-                        />
-                      </div>
-                    </div>
-                  ))}
+                <h4 style={{ marginTop: 0 }}>Strategic Questions</h4>
+                <div className="muted">
+                  Question {conversationHistory.length + 1} of ~8 · {conversationHistory.length} answered
                 </div>
 
-                <div className="stack-h" style={{ marginTop: 14, justifyContent: 'flex-end' }}>
-                  <button className="btn ghost" type="button" onClick={() => setMode('analysis')}>Back</button>
-                  <button className="btn" type="button" onClick={() => setMode('review')}>
-                    Review →
+                {conversationDone ? (
+                  <div className="callout" style={{ marginTop: 12 }}>
+                    <strong>✓ Conversation Complete</strong>
+                    <p className="muted" style={{ marginTop: 6 }}>
+                      Great! I have enough context to understand your project. Review your answers below and create the project.
+                    </p>
+                  </div>
+                ) : questionLoading ? (
+                  <div style={{ padding: '40px 0', textAlign: 'center' }}>
+                    <div className="muted">Analyzing your answers...</div>
+                  </div>
+                ) : currentQuestion ? (
+                  <div style={{ marginTop: 20 }}>
+                    <div style={{ fontSize: '1.1em', fontWeight: 500, marginBottom: 12 }}>
+                      {currentQuestion}
+                    </div>
+                    
+                    <textarea
+                      className="input"
+                      rows={6}
+                      value={currentAnswer}
+                      onChange={(e) => setCurrentAnswer(e.target.value)}
+                      placeholder="Your answer..."
+                      style={{ width: '100%', fontSize: '1em', resize: 'vertical' }}
+                    />
+
+                    {suggestion && (
+                      <div className="callout" style={{ marginTop: 12, background: '#1a1f2e', borderLeft: '3px solid #4f8ff7' }}>
+                        <div style={{ fontSize: '0.85em', color: '#999', marginBottom: 4 }}>💡 Suggestion</div>
+                        <div style={{ fontSize: '0.95em' }}>{suggestion}</div>
+                      </div>
+                    )}
+
+                    <div className="stack-h" style={{ marginTop: 16, gap: 8 }}>
+                      <button 
+                        className="btn ghost" 
+                        type="button" 
+                        onClick={skipQuestion}
+                        disabled={questionLoading}
+                      >
+                        Skip
+                      </button>
+                      <button 
+                        className="btn ghost" 
+                        type="button" 
+                        onClick={getQuestionSuggestion}
+                        disabled={suggestionLoading || questionLoading}
+                      >
+                        {suggestionLoading ? 'Thinking...' : 'What do you think?'}
+                      </button>
+                      <div style={{ flex: 1 }} />
+                      <button 
+                        className="btn" 
+                        type="button" 
+                        onClick={submitAnswer}
+                        disabled={!currentAnswer.trim() || questionLoading}
+                      >
+                        Submit Answer
+                      </button>
+                    </div>
+                  </div>
+                ) : null}
+
+                {conversationHistory.length > 0 && (
+                  <div style={{ marginTop: 24, paddingTop: 24, borderTop: '1px solid #2a2f3e' }}>
+                    <div style={{ fontSize: '0.9em', fontWeight: 500, marginBottom: 12, color: '#999' }}>
+                      Previous Answers
+                    </div>
+                    {conversationHistory.map((qa, idx) => (
+                      <div key={idx} style={{ marginBottom: 16, fontSize: '0.9em' }}>
+                        <div style={{ color: '#999', marginBottom: 4 }}>Q{idx + 1}: {qa.question}</div>
+                        <div style={{ paddingLeft: 12, borderLeft: '2px solid #2a2f3e' }}>
+                          {qa.answer === '[skipped]' ? (
+                            <span style={{ fontStyle: 'italic', color: '#666' }}>(skipped)</span>
+                          ) : (
+                            qa.answer
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <div className="stack-h" style={{ marginTop: 20, paddingTop: 20, borderTop: '1px solid #2a2f3e', justifyContent: 'flex-end' }}>
+                  <button className="btn ghost" type="button" onClick={() => setMode('idea')}>
+                    Back to Idea
                   </button>
+                  {conversationDone && (
+                    <button className="btn" type="button" onClick={createProject}>
+                      Create Project
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
