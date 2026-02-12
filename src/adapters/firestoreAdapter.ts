@@ -363,10 +363,14 @@ export const firestoreAdapter: Adapter = {
       userId,
       name: create.name,
       role: create.role,
-      emoji: create.emoji,
-      model: create.model,
+      emoji: create.emoji || '🤖',
       createdAt: now,
       updatedAt: now,
+    }
+    
+    // Only include model if it has a value (Firestore doesn't accept undefined)
+    if (create.model) {
+      profile.model = create.model
     }
     
     await setDoc(getUserDoc('agentProfiles', id), profile)
@@ -378,7 +382,14 @@ export const firestoreAdapter: Adapter = {
     const ref = getUserDoc('agentProfiles', update.id)
     const now = new Date().toISOString()
     
-    await updateDoc(ref, { ...update, updatedAt: now })
+    // Filter out undefined values (Firestore doesn't accept them)
+    const updateData: Record<string, unknown> = { updatedAt: now }
+    if (update.name !== undefined) updateData.name = update.name
+    if (update.role !== undefined) updateData.role = update.role
+    if (update.emoji !== undefined) updateData.emoji = update.emoji
+    if (update.model !== undefined) updateData.model = update.model
+    
+    await updateDoc(ref, updateData)
     const snap = await getDoc(ref)
     const profile = convertTimestamps({ id: snap.id, ...snap.data() } as AgentProfile)
     
