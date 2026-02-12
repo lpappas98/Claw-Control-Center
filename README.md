@@ -90,8 +90,27 @@ if (result.success) {
 }
 ```
 
+## Operator Hub Workers
+
+The Operator Hub uses autonomous worker processes to execute tasks. See **[WORKERS.md](WORKERS.md)** for detailed documentation.
+
+**Quick Start:**
+```bash
+npm run workers         # Start all 5 workers
+npm run workers:stop    # Stop all workers
+npm run workers:logs    # View all worker logs
+```
+
+Workers:
+- **pm** - Project Manager
+- **architect** - System Architect
+- **dev-1** - Developer 1
+- **dev-2** - Developer 2
+- **qa** - Quality Assurance
+
 ## Documentation
 
+- **[Worker Management](WORKERS.md)** - Worker startup, monitoring, and troubleshooting
 - **[Operator Guide](docs/OPERATOR_GUIDE.md)** - How to use the Control Center
 - **[Operator Manual](docs/OPERATOR_MANUAL.md)** - Step-by-step instructions
 - **[Operators Overview](docs/OPERATORS.md)** - What operators can do
