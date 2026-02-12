@@ -228,15 +228,15 @@ function FeatureDrawer({
                 <div className="stack">
                   <div className="field">
                     <label className="muted">Problem</label>
-                    <textarea className="input" rows={3} defaultValue={`What problem does this solve for users?`} />
+                    <textarea className="input" rows={3} placeholder="What problem does this solve for users?" />
                   </div>
                   <div className="field">
                     <label className="muted">Solution</label>
-                    <textarea className="input" rows={3} defaultValue={`What does 'done' look like?`} />
+                    <textarea className="input" rows={3} placeholder="What does 'done' look like?" />
                   </div>
                   <div className="field">
                     <label className="muted">Non-goals</label>
-                    <textarea className="input" rows={2} defaultValue={`What are we explicitly not doing?`} />
+                    <textarea className="input" rows={2} placeholder="What are we explicitly not doing?" />
                   </div>
                 </div>
               </div>

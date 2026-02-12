@@ -256,8 +256,14 @@ function extractFeaturesFromReadme(content) {
     if (inFeatureSection && /^[-*]\s+(.+)/.test(line)) {
       const match = line.match(/^[-*]\s+(.+)/)
       if (match) {
+        // Clean up markdown formatting and colons
+        let title = match[1].trim()
+        title = title.replace(/^\*\*(.+?)\*\*:?$/, '$1') // Remove **text**: or **text**
+        title = title.replace(/^`(.+?)`$/, '$1') // Remove `text`
+        title = title.replace(/:$/, '') // Remove trailing colon
+        
         features.push({
-          title: match[1].trim(),
+          title: title.trim(),
           summary: '',
           status: 'planned',
           priority: 'p2'
@@ -298,43 +304,82 @@ function extractSummaryFromReadme(content) {
 function generateDefaultFeatures(files, techStack) {
   const features = []
 
-  // Core setup feature
-  features.push({
-    title: 'Project Setup',
-    summary: 'Initial project configuration and dependencies',
-    status: 'planned',
-    priority: 'p1'
-  })
+  // Extract features from folder structure
+  const topLevelDirs = new Set()
+  for (const file of files) {
+    const parts = file.split('/')
+    if (parts.length > 1 && !parts[0].startsWith('.')) {
+      topLevelDirs.add(parts[0])
+    }
+  }
 
-  // Add tech-specific features
-  if (techStack.includes('React') || techStack.includes('TypeScript')) {
+  // Map common folder names to features
+  const folderFeatureMap = {
+    'src': { title: 'Source Code', summary: 'Core application source code', priority: 'p1' },
+    'components': { title: 'UI Components', summary: 'Reusable UI components', priority: 'p1' },
+    'pages': { title: 'Pages/Routes', summary: 'Application pages and routing', priority: 'p1' },
+    'api': { title: 'API Layer', summary: 'API endpoints and services', priority: 'p1' },
+    'services': { title: 'Services', summary: 'Business logic and services', priority: 'p1' },
+    'auth': { title: 'Authentication', summary: 'User authentication and authorization', priority: 'p1' },
+    'database': { title: 'Database', summary: 'Database schema and queries', priority: 'p1' },
+    'db': { title: 'Database', summary: 'Database layer', priority: 'p1' },
+    'models': { title: 'Data Models', summary: 'Data models and schemas', priority: 'p2' },
+    'utils': { title: 'Utilities', summary: 'Utility functions and helpers', priority: 'p2' },
+    'lib': { title: 'Libraries', summary: 'Shared libraries and tools', priority: 'p2' },
+    'config': { title: 'Configuration', summary: 'App configuration', priority: 'p2' },
+    'tests': { title: 'Testing', summary: 'Test suites', priority: 'p2' },
+    'docs': { title: 'Documentation', summary: 'Project documentation', priority: 'p2' },
+  }
+
+  // Create features from folders
+  for (const dir of Array.from(topLevelDirs).slice(0, 8)) {
+    const mapped = folderFeatureMap[dir.toLowerCase()]
+    if (mapped) {
+      features.push({
+        title: mapped.title,
+        summary: mapped.summary,
+        status: 'planned',
+        priority: mapped.priority
+      })
+    } else if (!['node_modules', 'dist', 'build', '.git'].includes(dir)) {
+      features.push({
+        title: dir.charAt(0).toUpperCase() + dir.slice(1),
+        summary: `${dir} module`,
+        status: 'planned',
+        priority: 'p2'
+      })
+    }
+  }
+
+  // Add tech-stack specific features if none found
+  if (features.length === 0) {
     features.push({
-      title: 'Frontend Development',
-      summary: 'Build and configure frontend components',
+      title: 'Project Setup',
+      summary: 'Initial project configuration and dependencies',
       status: 'planned',
       priority: 'p1'
     })
+
+    if (techStack.includes('React') || techStack.includes('TypeScript')) {
+      features.push({
+        title: 'Frontend Development',
+        summary: 'Build and configure frontend components',
+        status: 'planned',
+        priority: 'p1'
+      })
+    }
+
+    if (techStack.includes('Node.js')) {
+      features.push({
+        title: 'Backend API',
+        summary: 'Develop backend services and API endpoints',
+        status: 'planned',
+        priority: 'p1'
+      })
+    }
   }
 
-  if (techStack.includes('Node.js')) {
-    features.push({
-      title: 'Backend API',
-      summary: 'Develop backend services and API endpoints',
-      status: 'planned',
-      priority: 'p1'
-    })
-  }
-
-  if (techStack.includes('Docker')) {
-    features.push({
-      title: 'Deployment',
-      summary: 'Configure deployment and infrastructure',
-      status: 'planned',
-      priority: 'p2'
-    })
-  }
-
-  return features
+  return features.slice(0, 15)
 }
 
 /**
