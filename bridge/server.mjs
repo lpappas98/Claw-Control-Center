@@ -45,6 +45,13 @@ import {
 } from './intakeProjects.mjs'
 
 import { generateAIQuestions } from './aiQuestionGenerator.mjs'
+import {
+  startConversation,
+  submitAnswer,
+  skipQuestion,
+  getSuggestions,
+  getSession
+} from './conversationalIntake.mjs'
 
 import {
   appendActivity as appendPmActivity,
@@ -205,6 +212,106 @@ function getTaskTitle(task) {
   if (typeof task === 'string') return task.trim()
   if (task === undefined || task === null) return ''
   return String(task).trim()
+}
+
+/**
+ * Build prompt for AI question suggestion
+ */
+function buildQuestionSuggestionPrompt({ question, partialAnswer, context }) {
+  const parts = [
+    'You are a product owner helping someone answer a requirements question. Give a brief, actionable suggestion (1-2 sentences max).',
+    '',
+    'QUESTION:',
+    question,
+  ]
+  
+  if (context) {
+    parts.push('', 'PROJECT CONTEXT:', context)
+  }
+  
+  if (partialAnswer) {
+    parts.push('', 'CURRENT ANSWER:', partialAnswer)
+  }
+  
+  parts.push(
+    '',
+    'YOUR TASK:',
+    'Provide a brief suggestion that could be:',
+    '- A helpful example to illustrate the answer',
+    '- A challenge or edge case to consider',
+    '- An alternative approach they might not have thought of',
+    '- A best practice from similar projects',
+    '',
+    'Keep it short and specific. Output ONLY the suggestion text, no preamble.'
+  )
+  
+  return parts.join('\n')
+}
+
+function buildAdaptiveQuestionPrompt({ idea, conversationHistory }) {
+  const parts = [
+    'You are an experienced product owner helping clarify project requirements through strategic questioning.',
+    '',
+    'PROJECT IDEA:',
+    idea,
+    '',
+  ]
+  
+  if (conversationHistory && conversationHistory.length > 0) {
+    parts.push('CONVERSATION SO FAR:')
+    conversationHistory.forEach((qa, idx) => {
+      parts.push(`\nQ${idx + 1}: ${qa.question}`)
+      parts.push(`A${idx + 1}: ${qa.answer}`)
+    })
+    parts.push('')
+  }
+  
+  const questionCount = conversationHistory?.length || 0
+  const minQuestions = 5
+  const targetQuestions = 8
+  const maxQuestions = 15
+  
+  parts.push('YOUR TASK:')
+  
+  if (questionCount >= maxQuestions) {
+    parts.push('You have asked the maximum number of questions. Output exactly: {"isDone": true}')
+  } else if (questionCount >= minQuestions) {
+    parts.push(
+      `You have asked ${questionCount} questions. Based on the answers received:`,
+      '- If you have sufficient information about: problem, users, competition, and value proposition → Output: {"isDone": true}',
+      '- If critical gaps remain → Ask ONE more strategic question',
+      ''
+    )
+  } else {
+    parts.push(
+      `You have asked ${questionCount} questions (target: ${targetQuestions}, max: ${maxQuestions}).`,
+      'Ask ONE strategic question to uncover critical requirements.',
+      ''
+    )
+  }
+  
+  parts.push(
+    'STRATEGIC FOCUS AREAS:',
+    '- Problem: What specific pain point or need?',
+    '- Users: Who exactly is this for? Primary persona?',
+    '- Competition: What alternatives exist? Why build this?',
+    '- Value Prop: What unique value or differentiation?',
+    '- Scope: What is MVP vs future? Key constraints?',
+    '',
+    'RULES:',
+    '- DO NOT ask about topics already thoroughly covered',
+    '- DO NOT repeat similar questions',
+    '- Focus on uncovering assumptions and critical unknowns',
+    '- Prioritize strategic questions over implementation details',
+    '',
+    'OUTPUT FORMAT (choose ONE):',
+    '1. If done: {"isDone": true}',
+    '2. If more questions needed: {"question": "Your strategic question here?"}',
+    '',
+    'Output ONLY the JSON, no other text.'
+  )
+  
+  return parts.join('\n')
 }
 
 function recordTaskLifecycle(workers, nowMs = Date.now()) {
@@ -1050,6 +1157,90 @@ app.post('/api/intake/projects/:id/generate-questions-ai', async (req, res) => {
   }
 })
 
+// Conversational Intake Endpoints
+app.post('/api/intake/projects/:id/conversation/start', async (req, res) => {
+  const id = req.params.id
+  const idx = intakeProjects.findIndex((p) => p.id === id)
+  if (idx < 0) return res.status(404).send('intake project not found')
+
+  const p = intakeProjects[idx]
+  const { projectType } = req.body || {}
+  
+  try {
+    const session = await startConversation(id, p.idea, projectType || 'project')
+    res.json(session)
+  } catch (error) {
+    console.error('[Conversation] Start error:', error)
+    res.status(500).json({ error: 'Failed to start conversation', message: error.message })
+  }
+})
+
+app.post('/api/intake/projects/:id/conversation/answer', async (req, res) => {
+  const id = req.params.id
+  const { question, answer } = req.body || {}
+  
+  if (!question || !answer) {
+    return res.status(400).json({ error: 'Missing question or answer' })
+  }
+  
+  try {
+    const result = await submitAnswer(id, question, answer)
+    res.json(result)
+  } catch (error) {
+    console.error('[Conversation] Answer error:', error)
+    res.status(500).json({ error: 'Failed to submit answer', message: error.message })
+  }
+})
+
+app.post('/api/intake/projects/:id/conversation/skip', async (req, res) => {
+  const id = req.params.id
+  const { question } = req.body || {}
+  
+  if (!question) {
+    return res.status(400).json({ error: 'Missing question' })
+  }
+  
+  try {
+    const result = await skipQuestion(id, question)
+    res.json(result)
+  } catch (error) {
+    console.error('[Conversation] Skip error:', error)
+    res.status(500).json({ error: 'Failed to skip question', message: error.message })
+  }
+})
+
+app.post('/api/intake/projects/:id/conversation/suggestions', async (req, res) => {
+  const id = req.params.id
+  const { question } = req.body || {}
+  
+  if (!question) {
+    return res.status(400).json({ error: 'Missing question' })
+  }
+  
+  try {
+    const suggestions = await getSuggestions(id, question)
+    res.json(suggestions)
+  } catch (error) {
+    console.error('[Conversation] Suggestions error:', error)
+    res.status(500).json({ error: 'Failed to get suggestions', message: error.message })
+  }
+})
+
+app.get('/api/intake/projects/:id/conversation', async (req, res) => {
+  const id = req.params.id
+  
+  try {
+    const session = await getSession(id)
+    res.json(session)
+  } catch (error) {
+    if (error.message === 'Session not found') {
+      return res.status(404).json({ error: 'Session not found' })
+    }
+    console.error('[Conversation] Get session error:', error)
+    res.status(500).json({ error: 'Failed to get session', message: error.message })
+  }
+})
+
 app.post('/api/intake/projects/:id/generate-scope', async (req, res) => {
   const id = req.params.id
   const idx = intakeProjects.findIndex((p) => p.id === id)
@@ -1418,6 +1609,122 @@ app.post('/api/ai/generate-questions', async (req, res) => {
   } catch (err) {
     console.error('[AI Questions Standalone] Error:', err)
     res.status(500).json({ error: 'Failed to generate AI questions', message: err?.message })
+  }
+})
+
+// AI suggestion for answering a specific question
+app.post('/api/ai/question-suggestion', async (req, res) => {
+  try {
+    const question = req.body?.question?.trim()
+    const partialAnswer = req.body?.partialAnswer?.trim() || ''
+    const context = req.body?.context?.trim() || ''
+    
+    if (!question) return res.status(400).json({ error: 'question required' })
+
+    const prompt = buildQuestionSuggestionPrompt({ question, partialAnswer, context })
+    
+    const { stdout, stderr } = await execFileAsync('openclaw', [
+      'agent',
+      '--agent', 'main',
+      '--thinking', 'off',
+      '--local',
+      '--message', prompt
+    ], {
+      timeout: 10000, // 10 second timeout
+      maxBuffer: 1024 * 1024 // 1MB buffer
+    })
+    
+    // Extract suggestion from response
+    const suggestion = stdout.trim()
+    
+    if (!suggestion || suggestion.length === 0) {
+      return res.status(500).json({ error: 'No suggestion generated' })
+    }
+    
+    res.json({ suggestion })
+    
+  } catch (err) {
+    console.error('[AI Question Suggestion] Error:', err)
+    res.status(500).json({ error: 'Failed to generate suggestion', message: err?.message })
+  }
+})
+
+// Adaptive questioning - generates next question based on conversation history
+app.post('/api/ai/next-question', async (req, res) => {
+  try {
+    const idea = req.body?.idea?.trim()
+    const conversationHistory = req.body?.conversationHistory || []
+    
+    if (!idea) {
+      return res.status(400).json({ error: 'idea text required' })
+    }
+    
+    if (!Array.isArray(conversationHistory)) {
+      return res.status(400).json({ error: 'conversationHistory must be an array' })
+    }
+    
+    // Build adaptive questioning prompt with conversation context
+    const prompt = buildAdaptiveQuestionPrompt({ idea, conversationHistory })
+    
+    // Call OpenClaw agent
+    const { stdout, stderr } = await execFileAsync('openclaw', [
+      'agent',
+      '--model', 'anthropic/claude-sonnet-4-5',
+      '--thinking', 'low',
+      '--local',
+      '--message', prompt
+    ], {
+      timeout: 30000, // 30 second timeout
+      maxBuffer: 2 * 1024 * 1024 // 2MB buffer
+    })
+    
+    // Parse JSON response
+    const responseText = stdout.trim()
+    
+    // Try to extract JSON from response (may have preamble/postamble)
+    let jsonMatch = responseText.match(/\{[\s\S]*?\}/)
+    
+    if (!jsonMatch) {
+      console.error('[AI Next Question] No JSON found in response:', responseText)
+      return res.status(500).json({ 
+        error: 'Failed to parse response',
+        details: 'AI did not return valid JSON'
+      })
+    }
+    
+    let parsed
+    try {
+      parsed = JSON.parse(jsonMatch[0])
+    } catch (parseErr) {
+      console.error('[AI Next Question] JSON parse error:', parseErr, 'Response:', responseText)
+      return res.status(500).json({ 
+        error: 'Failed to parse response',
+        details: 'Invalid JSON in AI response'
+      })
+    }
+    
+    // Validate response structure
+    if (parsed.isDone === true) {
+      return res.json({ isDone: true })
+    }
+    
+    if (typeof parsed.question === 'string' && parsed.question.trim()) {
+      return res.json({ question: parsed.question.trim() })
+    }
+    
+    // Invalid response structure
+    console.error('[AI Next Question] Invalid response structure:', parsed)
+    return res.status(500).json({ 
+      error: 'Invalid response structure',
+      details: 'Expected {isDone: true} or {question: string}'
+    })
+    
+  } catch (err) {
+    console.error('[AI Next Question] Error:', err)
+    res.status(500).json({ 
+      error: 'Failed to generate next question', 
+      message: err?.message 
+    })
   }
 })
 
