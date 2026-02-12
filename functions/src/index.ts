@@ -502,6 +502,205 @@ export const logActivity = functions.https.onRequest(async (req, res) => {
 })
 
 // ─────────────────────────────────────────────────────────────
+// Agent Profiles Endpoints
+// ─────────────────────────────────────────────────────────────
+
+/**
+ * GET /agentProfiles
+ * Get all agent profiles for the connected user
+ */
+export const listAgentProfiles = functions.https.onRequest(async (req, res) => {
+  if (handleCors(req, res)) return
+  
+  if (req.method !== 'GET') {
+    res.status(405).json({ error: 'Method not allowed' })
+    return
+  }
+  
+  try {
+    const instanceId = req.headers['x-instance-id'] as string
+    const auth = await validateInstance(instanceId)
+    if (!auth) {
+      res.status(401).json({ error: 'Invalid or disconnected instance' })
+      return
+    }
+    
+    const profilesSnap = await db
+      .collection('users')
+      .doc(auth.userId)
+      .collection('agentProfiles')
+      .orderBy('updatedAt', 'desc')
+      .get()
+    
+    const profiles = profilesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+    res.status(200).json({ profiles })
+  } catch (error) {
+    console.error('List agent profiles error:', error)
+    res.status(500).json({ error: String(error) })
+  }
+})
+
+/**
+ * POST /agentProfiles
+ * Create a new agent profile
+ */
+export const createAgentProfile = functions.https.onRequest(async (req, res) => {
+  if (handleCors(req, res)) return
+  
+  if (req.method !== 'POST') {
+    res.status(405).json({ error: 'Method not allowed' })
+    return
+  }
+
+  try {
+    const instanceId = req.headers['x-instance-id'] as string
+
+    const auth = await validateInstance(instanceId)
+    if (!auth) {
+      res.status(401).json({ error: 'Invalid or disconnected instance' })
+      return
+    }
+
+    const { name, role, emoji, systemPrompt, description } = req.body
+
+    if (!name || !role) {
+      res.status(400).json({ error: 'Missing required fields: name and role' })
+      return
+    }
+
+    const now = new Date().toISOString()
+    const profileId = `profile-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`
+
+    const profile = {
+      id: profileId,
+      name,
+      role,
+      emoji: emoji || '🤖',
+      systemPrompt: systemPrompt || null,
+      description: description || null,
+      createdAt: now,
+      updatedAt: now,
+    }
+
+    await db
+      .collection('users')
+      .doc(auth.userId)
+      .collection('agentProfiles')
+      .doc(profileId)
+      .set(profile)
+
+    res.status(201).json({ profile })
+  } catch (error) {
+    console.error('Create agent profile error:', error)
+    res.status(500).json({ error: String(error) })
+  }
+})
+
+/**
+ * PATCH /updateAgentProfile
+ * Update an existing agent profile
+ */
+export const updateAgentProfile = functions.https.onRequest(async (req, res) => {
+  if (handleCors(req, res)) return
+  
+  if (req.method !== 'PATCH' && req.method !== 'POST') {
+    res.status(405).json({ error: 'Method not allowed' })
+    return
+  }
+
+  try {
+    const instanceId = req.headers['x-instance-id'] as string
+
+    const auth = await validateInstance(instanceId)
+    if (!auth) {
+      res.status(401).json({ error: 'Invalid or disconnected instance' })
+      return
+    }
+
+    const { profileId, ...updates } = req.body
+
+    if (!profileId) {
+      res.status(400).json({ error: 'Missing profileId' })
+      return
+    }
+
+    const profileRef = db
+      .collection('users')
+      .doc(auth.userId)
+      .collection('agentProfiles')
+      .doc(profileId)
+
+    const profileDoc = await profileRef.get()
+    if (!profileDoc.exists) {
+      res.status(404).json({ error: 'Agent profile not found' })
+      return
+    }
+
+    const now = new Date().toISOString()
+    updates.updatedAt = now
+
+    await profileRef.update(updates)
+
+    const updatedDoc = await profileRef.get()
+    const profile = { id: updatedDoc.id, ...updatedDoc.data() }
+
+    res.status(200).json({ profile })
+  } catch (error) {
+    console.error('Update agent profile error:', error)
+    res.status(500).json({ error: String(error) })
+  }
+})
+
+/**
+ * DELETE /deleteAgentProfile
+ * Delete an agent profile
+ */
+export const deleteAgentProfile = functions.https.onRequest(async (req, res) => {
+  if (handleCors(req, res)) return
+  
+  if (req.method !== 'DELETE' && req.method !== 'POST') {
+    res.status(405).json({ error: 'Method not allowed' })
+    return
+  }
+
+  try {
+    const instanceId = req.headers['x-instance-id'] as string
+
+    const auth = await validateInstance(instanceId)
+    if (!auth) {
+      res.status(401).json({ error: 'Invalid or disconnected instance' })
+      return
+    }
+
+    const { profileId } = req.body
+
+    if (!profileId) {
+      res.status(400).json({ error: 'Missing profileId' })
+      return
+    }
+
+    const profileRef = db
+      .collection('users')
+      .doc(auth.userId)
+      .collection('agentProfiles')
+      .doc(profileId)
+
+    const profileDoc = await profileRef.get()
+    if (!profileDoc.exists) {
+      res.status(404).json({ error: 'Agent profile not found' })
+      return
+    }
+
+    await profileRef.delete()
+
+    res.status(200).json({ ok: true })
+  } catch (error) {
+    console.error('Delete agent profile error:', error)
+    res.status(500).json({ error: String(error) })
+  }
+})
+
+// ─────────────────────────────────────────────────────────────
 // Migration Helper (one-time use)
 // ─────────────────────────────────────────────────────────────
 
