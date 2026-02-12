@@ -49,44 +49,70 @@ export async function analyzeRepositoryDeep(repoPath, readme) {
 async function parseReadmeHierarchy(content) {
   const lines = content.split('\n')
   const features = []
+
+  // Only start parsing after we hit a recognizable features section.
+  // Questra uses "## Core Features".
+  let inFeaturesSection = false
   let currentFeature = null
   let currentSection = null
-  
+
   for (let i = 0; i < lines.length; i++) {
-    const line = lines[i]
-    
-    // ### Feature headers (with emoji or keywords)
-    const h3Match = line.match(/^###\s+([🔐🗺️📍✈️🤝👤🎯🏠🔥💡📊🎨⚙️].*|.*(?:Feature|System|Management|Integration|Planning|Dashboard|Authentication|Profile|Settings|Service|Module|Component).*)/)
-    
+    const rawLine = lines[i]
+    const line = rawLine.trimEnd()
+
+    // Enter features section
+    if (/^##\s+(core\s+features|features|capabilities)/i.test(line)) {
+      inFeaturesSection = true
+      continue
+    }
+
+    // Exit at next H2 after entering
+    if (inFeaturesSection && /^##\s+/.test(line) && !/^##\s+(core\s+features|features|capabilities)/i.test(line)) {
+      break
+    }
+
+    if (!inFeaturesSection) continue
+
+    // ### Feature headers (treat all H3 inside features section as top-level features)
+    const h3Match = line.match(/^###\s+(.+)/)
     if (h3Match) {
-      // Save previous feature
-      if (currentFeature) {
-        features.push(currentFeature)
-      }
-      
+      if (currentFeature) features.push(currentFeature)
+
       let title = h3Match[1].trim()
-      title = title.replace(/^[🔐🗺️📍✈️🤝👤🎯🏠🔥💡📊🎨⚙️]\s*/, '') // Remove emoji
-      title = title.replace(/^\*\*(.+?)\*\*:?$/, '$1') // Remove **text**
-      
-      // Extract description
+      // Remove leading emoji (multi-codepoint-safe) + punctuation
+      title = title.replace(/^\p{Extended_Pictographic}+\s*/u, '')
+      // If the header contains an inline " - " list starter, keep only the section title
+      title = title.split(' - ')[0].trim()
+      // Cleanup markdown wrappers
+      title = title.replace(/^\*\*(.+?)\*\*:?$/, '$1')
+      title = title.replace(/\s+\*\*.*$/, '').trim() // drop trailing inline bold segments if present
+
+      // Description: take following paragraph lines
       const description = extractDescription(lines, i + 1)
-      
+
       currentFeature = {
         title,
         description,
         subFeatures: [],
         codeFiles: []
       }
-      currentSection = currentFeature
+
+      // Default sub-section to an implicit bucket so bullets immediately under the H3 become children
+      currentFeature.subFeatures.push({
+        title: 'Details',
+        description: '',
+        items: []
+      })
+      currentSection = currentFeature.subFeatures[0]
       continue
     }
-    
+
     // #### Sub-headers become sub-features
     const h4Match = line.match(/^####\s+(.+)/)
     if (h4Match && currentFeature) {
       const subTitle = h4Match[1].replace(/^\*\*(.+?)\*\*:?$/, '$1').trim()
       const subDesc = extractDescription(lines, i + 1)
-      
+
       currentFeature.subFeatures.push({
         title: subTitle,
         description: subDesc,
@@ -95,22 +121,39 @@ async function parseReadmeHierarchy(content) {
       currentSection = currentFeature.subFeatures[currentFeature.subFeatures.length - 1]
       continue
     }
-    
-    // Bullet points under features become items
-    const bulletMatch = line.match(/^[\s]*[-*]\s+\*\*(.+?)\*\*:?\s*(.*)/)
-    if (bulletMatch && currentSection && currentSection !== currentFeature) {
-      currentSection.items.push({
-        title: bulletMatch[1].trim(),
-        description: bulletMatch[2].trim()
-      })
+
+    // Bullet points under features become items (support bold + non-bold bullets)
+    if (currentFeature && currentSection) {
+      const boldBullet = line.match(/^[\s]*[-*]\s+\*\*(.+?)\*\*:?\s*(.*)/)
+      if (boldBullet) {
+        currentSection.items.push({
+          title: boldBullet[1].trim(),
+          description: (boldBullet[2] || '').trim()
+        })
+        continue
+      }
+
+      const plainBullet = line.match(/^[\s]*[-*]\s+(.+)/)
+      if (plainBullet) {
+        const text = plainBullet[1].trim()
+        // Split "Title: desc" when available
+        const idx = text.indexOf(':')
+        if (idx > 0 && idx < 80) {
+          currentSection.items.push({
+            title: text.slice(0, idx).trim(),
+            description: text.slice(idx + 1).trim()
+          })
+        } else {
+          currentSection.items.push({
+            title: text,
+            description: ''
+          })
+        }
+      }
     }
   }
-  
-  // Push last feature
-  if (currentFeature) {
-    features.push(currentFeature)
-  }
-  
+
+  if (currentFeature) features.push(currentFeature)
   return features
 }
 
