@@ -238,41 +238,55 @@ function detectTechStack(files) {
  */
 function extractFeaturesFromReadme(content) {
   const features = []
-
-  // Look for feature sections
   const lines = content.split('\n')
-  let inFeatureSection = false
-
-  for (const line of lines) {
-    if (/^#+\s*(features?|capabilities)/i.test(line)) {
-      inFeatureSection = true
-      continue
-    }
-
-    if (inFeatureSection && /^#+\s/.test(line)) {
-      inFeatureSection = false
-    }
-
-    if (inFeatureSection && /^[-*]\s+(.+)/.test(line)) {
-      const match = line.match(/^[-*]\s+(.+)/)
-      if (match) {
-        // Clean up markdown formatting and colons
-        let title = match[1].trim()
-        title = title.replace(/^\*\*(.+?)\*\*:?$/, '$1') // Remove **text**: or **text**
-        title = title.replace(/^`(.+?)`$/, '$1') // Remove `text`
-        title = title.replace(/:$/, '') // Remove trailing colon
+  
+  // Find feature sections (### headers with emoji or "Feature" keyword)
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i]
+    
+    // Match ### headers that look like features (emoji or keywords)
+    const featureHeaderMatch = line.match(/^###\s+([🔐🗺️📍✈️🤝👤🎯🏠].*|.*(?:Feature|System|Management|Integration|Planning|Dashboard|Authentication|Profile|Settings).*)/)
+    
+    if (featureHeaderMatch) {
+      let title = featureHeaderMatch[1].trim()
+      // Remove emoji and clean title
+      title = title.replace(/^[🔐🗺️📍✈️🤝👤🎯🏠]\s*/, '')
+      title = title.replace(/^\*\*(.+?)\*\*:?$/, '$1')
+      
+      // Extract description from following lines until next header
+      let summary = ''
+      const descLines = []
+      
+      for (let j = i + 1; j < lines.length && j < i + 20; j++) {
+        const nextLine = lines[j].trim()
         
-        features.push({
-          title: title.trim(),
-          summary: '',
-          status: 'planned',
-          priority: 'p2'
-        })
+        // Stop at next header
+        if (nextLine.match(/^#{1,4}\s/)) break
+        
+        // Collect non-empty, non-list lines as description
+        if (nextLine && !nextLine.match(/^[-*]\s/) && !nextLine.match(/^`{3}/)) {
+          descLines.push(nextLine)
+        }
+        
+        // Stop after collecting some description
+        if (descLines.length >= 2) break
       }
+      
+      summary = descLines.join(' ').substring(0, 200)
+      
+      features.push({
+        title: title.trim(),
+        summary: summary || `${title} functionality`,
+        status: 'planned',
+        priority: 'p2'
+      })
+      
+      // Limit features
+      if (features.length >= 15) break
     }
   }
 
-  return features.slice(0, 20)
+  return features.slice(0, 15)
 }
 
 /**
