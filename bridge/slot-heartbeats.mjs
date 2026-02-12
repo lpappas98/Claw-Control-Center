@@ -59,18 +59,23 @@ async function writeSnapshot() {
     beatsBySlot.set(s.slot, beats)
 
     const active = pickActiveTask(tasks, s.slot)
-    const task = active?.title ?? (s.slot === 'pm' ? 'Orchestrating delivery' : 'Waiting for assignment')
     const mode = active ? 'active' : 'waiting'
 
-    return {
+    const worker = {
       slot: s.slot,
       label: s.label,
       role: s.role,
-      task,
       mode,
       lastBeatAt: now,
       beats,
     }
+
+    // Only set task field if actually working on something
+    if (active) {
+      worker.task = active.title
+    }
+
+    return worker
   })
 
   await fs.mkdir(path.dirname(OUT_FILE), { recursive: true })
