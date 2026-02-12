@@ -548,7 +548,7 @@ export const mockAdapter: Adapter = {
     mockPMProjects = [next, ...mockPMProjects]
     mockPMTrees.set(id, [])
     mockPMCards.set(id, [])
-    mockPMIntakes.set(id, { ideas: [], analyses: [], questions: [], requirements: [] })
+    mockPMIntakes.set(id, { idea: [], analysis: [], questions: [], requirements: [] })
     mockPMActivities.set(id, [])
     return next
   },
@@ -591,7 +591,7 @@ export const mockAdapter: Adapter = {
       project: p,
       tree: mockPMTrees.get(id) ?? [],
       cards: mockPMCards.get(id) ?? [],
-      intake: mockPMIntakes.get(id) ?? { ideas: [], analyses: [], questions: [], requirements: [] },
+      intake: mockPMIntakes.get(id) ?? { idea: [], analysis: [], questions: [], requirements: [] },
     }
   },
 
@@ -737,7 +737,7 @@ export const mockAdapter: Adapter = {
   // PM Projects - Intake
   async getPMIntake(projectId: string): Promise<PMIntake> {
     await sleep(80)
-    return mockPMIntakes.get(projectId) ?? { ideas: [], analyses: [], questions: [], requirements: [] }
+    return mockPMIntakes.get(projectId) ?? { idea: [], analysis: [], questions: [], requirements: [] }
   },
 
   async setPMIntake(projectId: string, intake: PMIntake): Promise<PMIntake> {
@@ -748,25 +748,25 @@ export const mockAdapter: Adapter = {
 
   async addPMIdeaVersion(projectId: string, text: string): Promise<PMIntake> {
     await sleep(100)
-    const intake = mockPMIntakes.get(projectId) ?? { ideas: [], analyses: [], questions: [], requirements: [] }
+    const intake = mockPMIntakes.get(projectId) ?? { idea: [], analysis: [], questions: [], requirements: [] }
     const idea = { id: `idea-${Date.now()}`, text, createdAt: nowIso() }
-    intake.ideas = [...intake.ideas, idea]
+    intake.idea = [...intake.idea, idea]
     mockPMIntakes.set(projectId, intake)
     return intake
   },
 
   async addPMAnalysis(projectId: string, summary: string, keyPoints: string[]): Promise<PMIntake> {
     await sleep(100)
-    const intake = mockPMIntakes.get(projectId) ?? { ideas: [], analyses: [], questions: [], requirements: [] }
+    const intake = mockPMIntakes.get(projectId) ?? { idea: [], analysis: [], questions: [], requirements: [] }
     const analysis = { id: `analysis-${Date.now()}`, summary, keyPoints, createdAt: nowIso() }
-    intake.analyses = [...intake.analyses, analysis]
+    intake.analysis = [...intake.analysis, analysis]
     mockPMIntakes.set(projectId, intake)
     return intake
   },
 
   async generatePMQuestions(projectId: string): Promise<PMIntake> {
     await sleep(200)
-    const intake = mockPMIntakes.get(projectId) ?? { ideas: [], analyses: [], questions: [], requirements: [] }
+    const intake = mockPMIntakes.get(projectId) ?? { idea: [], analysis: [], questions: [], requirements: [] }
     const questions = [
       { id: `q-${Date.now()}-1`, category: 'Goal', prompt: 'What problem are we solving?', required: true, answer: null },
       { id: `q-${Date.now()}-2`, category: 'Users', prompt: 'Who are the primary users?', required: true, answer: null },
@@ -779,7 +779,7 @@ export const mockAdapter: Adapter = {
 
   async answerPMQuestion(projectId: string, questionId: string, answerText: string): Promise<PMIntake> {
     await sleep(100)
-    const intake = mockPMIntakes.get(projectId) ?? { ideas: [], analyses: [], questions: [], requirements: [] }
+    const intake = mockPMIntakes.get(projectId) ?? { idea: [], analysis: [], questions: [], requirements: [] }
     const idx = intake.questions.findIndex((q) => q.id === questionId)
     if (idx >= 0) {
       intake.questions[idx] = { 
@@ -823,8 +823,8 @@ export const mockAdapter: Adapter = {
     })
     // Copy intake data
     const pmIntake: PMIntake = {
-      ideas: [{ id: `idea-migrated`, text: intake.idea, createdAt: intake.createdAt }],
-      analyses: [],
+      idea: [{ id: `idea-migrated`, text: intake.idea, createdAt: intake.createdAt }],
+      analysis: [],
       questions: intake.questions.map((q) => ({
         id: q.id,
         category: q.category,

@@ -1844,13 +1844,13 @@ function pmToProject(
 
   // Convert intake
   const projectIntake: ProjectIntake = {
-    idea: intake.ideas.map(i => ({
+    idea: (intake.idea || []).map(i => ({
       id: i.id,
       at: i.createdAt,
       author: 'human' as const,
       text: i.text,
     })),
-    analysis: intake.analyses.map(a => ({
+    analysis: (intake.analysis || []).map(a => ({
       id: a.id,
       at: a.createdAt,
       type: 'software' as const,

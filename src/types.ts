@@ -399,8 +399,8 @@ export type PMRequirement = {
 
 /** Full intake artifacts for a project */
 export type PMIntake = {
-  ideas: PMIdeaVersion[]
-  analyses: PMAnalysis[]
+  idea: PMIdeaVersion[]
+  analysis: PMAnalysis[]
   questions: PMIntakeQuestion[]
   requirements: PMRequirement[]
 }
