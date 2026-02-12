@@ -393,6 +393,31 @@ export function bridgeAdapter(opts: BridgeAdapterOptions): Adapter {
       })
     },
 
+    // Worker Metadata
+    listWorkerMetadata() {
+      return fetchJson<import('../types').WorkerMetadata[]>(`${base}/api/workers/metadata`)
+    },
+
+    async getWorkerMetadata(slot: string) {
+      try {
+        return await fetchJson<import('../types').WorkerMetadata>(`${base}/api/workers/metadata/${encodeURIComponent(slot)}`)
+      } catch (e) {
+        // Return null if not found
+        if (e instanceof Error && e.message.includes('404')) {
+          return null
+        }
+        throw e
+      }
+    },
+
+    updateWorkerMetadata(data: import('../types').WorkerMetadataUpdate) {
+      return fetchJson<import('../types').WorkerMetadata>(`${base}/api/workers/metadata/${encodeURIComponent(data.slot)}`, {
+        method: 'PUT',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(data),
+      })
+    },
+
     // OpenClaw Connections (not implemented in bridge adapter)
     async generateConnectionToken() {
       throw new Error('Connection tokens only available with Firestore adapter')

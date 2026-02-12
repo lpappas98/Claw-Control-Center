@@ -6,8 +6,9 @@ import { getAgentInfo } from '../lib/agentUtils'
 import { Badge } from '../components/Badge'
 import { TaskModal } from '../components/TaskModal'
 import { AgentProfileModal } from '../components/AgentProfileModal'
+import { WorkerEditModal } from '../components/WorkerEditModal'
 import { CopyButton } from '../components/CopyButton'
-import type { ActivityEvent, AgentProfile, ActiveSession, BoardLane, LiveSnapshot, Priority, SystemStatus, Task, WorkerHeartbeat, Blocker } from '../types'
+import type { ActivityEvent, AgentProfile, ActiveSession, BoardLane, LiveSnapshot, Priority, SystemStatus, Task, WorkerHeartbeat, WorkerMetadata, Blocker } from '../types'
 
 type HomeTask = {
   id: string
@@ -149,9 +150,23 @@ export function MissionControl({
     10000 // Refresh every 10s
   )
 
+  // Load worker metadata
+  const workerMetadata = usePoll<WorkerMetadata[]>(
+    async () => {
+      try {
+        return await adapter.listWorkerMetadata()
+      } catch (e) {
+        console.warn('[home] listWorkerMetadata failed', e)
+        return []
+      }
+    },
+    10000 // Refresh every 10s
+  )
+
   const [openTask, setOpenTask] = useState<Task | null>(null)
   const [showProfileModal, setShowProfileModal] = useState(false)
   const [editingProfile, setEditingProfile] = useState<AgentProfile | null>(null)
+  const [editingWorkerSlot, setEditingWorkerSlot] = useState<string | null>(null)
 
   useEffect(() => {
     if (!openTask) return
@@ -162,15 +177,20 @@ export function MissionControl({
 
   const agents = useMemo(() => {
     const workers = live.data?.workers ?? []
+    const metadata = workerMetadata.data ?? []
     
     // Only show actual workers - no placeholder slots
     return workers.map((w) => {
+      // Check if we have custom metadata for this worker
+      const customMetadata = metadata.find(m => m.slot === w.slot)
       const profile = getAgentInfo(w.slot, w.label)
+      
       return {
         id: w.slot,
-        name: profile.name,
-        emoji: profile.emoji,
-        role: profile.role,
+        name: customMetadata?.name || profile.name,
+        emoji: customMetadata?.emoji || profile.emoji,
+        role: customMetadata?.role || profile.role,
+        model: customMetadata?.model,
         status: homeStatus(w.status),
         rawStatus: w.status,
         online: w.status !== 'offline',
@@ -178,7 +198,7 @@ export function MissionControl({
         lastBeatAt: w.lastBeatAt,
       }
     })
-  }, [live.data?.workers])
+  }, [live.data?.workers, workerMetadata.data])
 
   const tasks = useMemo<HomeTask[]>(() => {
     const persistedTasks = persisted.data ?? []
@@ -302,7 +322,20 @@ export function MissionControl({
             </div>
           )}
           {agents.map((agent) => (
-            <article className="agent-card" key={agent.id}>
+            <article 
+              className="agent-card clickable" 
+              key={agent.id}
+              onClick={() => setEditingWorkerSlot(agent.id)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  setEditingWorkerSlot(agent.id)
+                }
+              }}
+              title="Click to edit worker metadata"
+            >
               <div className="agent-head">
                 <div>
                   <div className="agent-name">
@@ -318,6 +351,11 @@ export function MissionControl({
                 <span className="muted">· {agent.status === 'working' ? '⚡ Working' : '💤 Sleeping'}</span>
               </div>
               <div className="muted">{agent.task}</div>
+              {agent.model && (
+                <div className="muted" style={{ fontSize: 12 }}>
+                  Model: {agent.model}
+                </div>
+              )}
               <div className="muted">heartbeat: {fmtAgo(agent.lastBeatAt)}</div>
             </article>
           ))}
@@ -661,6 +699,18 @@ export function MissionControl({
             setShowProfileModal(false)
             setEditingProfile(null)
           }}
+          onSaved={() => {
+            // Poll will refresh automatically
+          }}
+        />
+      )}
+
+      {editingWorkerSlot && (
+        <WorkerEditModal
+          adapter={adapter}
+          slot={editingWorkerSlot}
+          initialMetadata={(workerMetadata.data ?? []).find(m => m.slot === editingWorkerSlot)}
+          onClose={() => setEditingWorkerSlot(null)}
           onSaved={() => {
             // Poll will refresh automatically
           }}

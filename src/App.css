@@ -472,6 +472,21 @@ textarea {
   gap: 0.45rem;
 }
 
+.agent-card.clickable {
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.agent-card.clickable:hover {
+  border-color: #4b5ca1;
+  background: #0e1324;
+}
+
+.agent-card.clickable:focus {
+  outline: 2px solid #5f6dff;
+  outline-offset: 2px;
+}
+
 .agent-head {
   display: flex;
   justify-content: space-between;

@@ -18,6 +18,8 @@ import type {
   TaskCreate,
   TaskUpdate,
   WorkerHeartbeat,
+  WorkerMetadata,
+  WorkerMetadataUpdate,
   IntakeProject,
   IntakeProjectCreate,
   IntakeProjectUpdate,
@@ -79,6 +81,11 @@ export type Adapter = {
   createAgentProfile(create: AgentProfileCreate): Promise<AgentProfile>
   updateAgentProfile(update: AgentProfileUpdate): Promise<AgentProfile>
   deleteAgentProfile(id: string): Promise<{ ok: boolean }>
+
+  // Worker Metadata
+  listWorkerMetadata(): Promise<WorkerMetadata[]>
+  getWorkerMetadata(slot: string): Promise<WorkerMetadata | null>
+  updateWorkerMetadata(update: WorkerMetadataUpdate): Promise<WorkerMetadata>
 
   // PM/PO intake projects (local single-user)
   listIntakeProjects(): Promise<IntakeProject[]>

@@ -23,6 +23,12 @@ import {
   deleteAgentProfile as deleteAgentProfileData 
 } from './agentProfiles.mjs'
 import {
+  loadWorkerMetadata,
+  saveWorkerMetadata,
+  getWorkerMetadata,
+  upsertWorkerMetadata,
+} from './workerMetadata.mjs'
+import {
   listActiveSessions,
   registerSession,
   updateSession,
@@ -48,6 +54,8 @@ import {
   getFeatureIntake,
   listPmProjects,
   loadPmProject,
+  moveTreeNode,
+  reorderTreeChildren,
   replaceIntake,
   setFeatureIntake,
   softDeletePmProject,
@@ -72,6 +80,7 @@ const TASKS_FILE = process.env.OPERATOR_HUB_TASKS_FILE ?? path.join(WORKSPACE, '
 const INTAKE_PROJECTS_FILE = process.env.OPERATOR_HUB_INTAKE_PROJECTS_FILE ?? path.join(WORKSPACE, '.clawhub', 'intake-projects.json')
 const PM_PROJECTS_DIR = process.env.OPERATOR_HUB_PM_PROJECTS_DIR ?? path.join(WORKSPACE, '.clawhub', 'projects')
 const AGENT_PROFILES_FILE = process.env.OPERATOR_HUB_AGENT_PROFILES_FILE ?? path.join(WORKSPACE, 'agent-profiles.json')
+const WORKER_METADATA_FILE = process.env.OPERATOR_HUB_WORKER_METADATA_FILE ?? path.join(WORKSPACE, '.clawhub', 'worker-metadata.json')
 const ACTIVE_SESSIONS_FILE = process.env.OPERATOR_HUB_ACTIVE_SESSIONS_FILE ?? path.join(WORKSPACE, 'active-sessions.json')
 
 /** @type {import('../src/types').ActivityEvent[]} */
@@ -91,10 +100,14 @@ let intakeProjects = await loadIntakeProjects(INTAKE_PROJECTS_FILE)
 /** @type {import('../src/types').AgentProfile[]} */
 let agentProfiles = await loadAgentProfiles(AGENT_PROFILES_FILE)
 
+/** @type {import('../src/types').WorkerMetadata[]} */
+let workerMetadata = await loadWorkerMetadata(WORKER_METADATA_FILE)
+
 const rulesSaver = makeDebouncedSaver(() => saveRules(RULES_FILE, rules))
 const ruleHistorySaver = makeDebouncedSaver(() => saveRuleHistory(RULE_HISTORY_FILE, ruleHistory))
 const intakeProjectsSaver = makeDebouncedSaver(() => saveIntakeProjects(INTAKE_PROJECTS_FILE, intakeProjects))
 const agentProfilesSaver = makeDebouncedSaver(() => saveAgentProfiles(AGENT_PROFILES_FILE, agentProfiles))
+const workerMetadataSaver = makeDebouncedSaver(() => saveWorkerMetadata(WORKER_METADATA_FILE, workerMetadata))
 
 /** @type {import('../src/types').Task[]} */
 let tasks = await loadTasks(TASKS_FILE)
@@ -102,6 +115,7 @@ const tasksSaver = makeDebouncedSaver(() => saveTasks(TASKS_FILE, tasks))
 let tasksSaveTimer = null
 let rulesSaveTimer = null
 let agentProfilesSaveTimer = null
+let workerMetadataSaveTimer = null
 
 let lastGatewayHealth = null
 let lastGatewaySummary = null
@@ -156,6 +170,15 @@ function scheduleAgentProfilesSave() {
   agentProfilesSaveTimer = setTimeout(async () => {
     agentProfilesSaveTimer = null
     await agentProfilesSaver.flush()
+  }, 750)
+}
+
+function scheduleWorkerMetadataSave() {
+  workerMetadataSaver.trigger()
+  if (workerMetadataSaveTimer) return
+  workerMetadataSaveTimer = setTimeout(async () => {
+    workerMetadataSaveTimer = null
+    await workerMetadataSaver.flush()
   }, 750)
 }
 
@@ -815,6 +838,37 @@ app.delete('/api/agent-profiles/:id', async (req, res) => {
   res.json({ ok: true })
 })
 
+// ---- Worker Metadata ----
+app.get('/api/workers/metadata', async (_req, res) => {
+  res.json(workerMetadata)
+})
+
+app.get('/api/workers/metadata/:slot', async (req, res) => {
+  const metadata = getWorkerMetadata(workerMetadata, req.params.slot)
+  if (!metadata) return res.status(404).send('worker metadata not found')
+  res.json(metadata)
+})
+
+app.put('/api/workers/metadata/:slot', async (req, res) => {
+  try {
+    const slot = req.params.slot
+    const result = upsertWorkerMetadata(workerMetadata, slot, req.body ?? {})
+    
+    if (result.idx >= 0) {
+      // Update existing
+      workerMetadata = [...workerMetadata.slice(0, result.idx), result.updated, ...workerMetadata.slice(result.idx + 1)]
+    } else {
+      // Create new
+      workerMetadata = [...workerMetadata, result.updated]
+    }
+    
+    scheduleWorkerMetadataSave()
+    res.json(result.updated)
+  } catch (err) {
+    res.status(400).send(err?.message ?? 'invalid metadata')
+  }
+})
+
 // ---- Tasks (operator board seed) ----
 app.get('/api/tasks', async (_req, res) => {
   const sorted = tasks.slice().sort((a, b) => (b.updatedAt ?? '').localeCompare(a.updatedAt ?? ''))
@@ -1095,6 +1149,31 @@ app.delete('/api/pm/projects/:id/tree/nodes/:nodeId', async (req, res) => {
     if (ok === null) return res.status(404).send('project not found')
     if (!ok) return res.status(404).send('node not found')
     res.json({ ok: true })
+  } catch (err) {
+    res.status(400).send(err?.message ?? 'invalid request')
+  }
+})
+
+app.patch('/api/pm/projects/:id/tree/nodes/:nodeId/move', async (req, res) => {
+  try {
+    const newParentId = typeof req.body?.parentId === 'string' ? req.body.parentId : ''
+    const result = await moveTreeNode(PM_PROJECTS_DIR, req.params.id, req.params.nodeId, newParentId)
+    if (result === null) return res.status(404).send('project not found')
+    if (result?.error) return res.status(400).send(result.error)
+    res.json(result)
+  } catch (err) {
+    res.status(400).send(err?.message ?? 'invalid request')
+  }
+})
+
+app.put('/api/pm/projects/:id/tree/reorder', async (req, res) => {
+  try {
+    const parentId = typeof req.body?.parentId === 'string' ? req.body.parentId : ''
+    const orderedIds = Array.isArray(req.body?.orderedIds) ? req.body.orderedIds : []
+    const result = await reorderTreeChildren(PM_PROJECTS_DIR, req.params.id, parentId, orderedIds)
+    if (result === null) return res.status(404).send('project not found')
+    if (result?.error) return res.status(400).send(result.error)
+    res.json(result)
   } catch (err) {
     res.status(400).send(err?.message ?? 'invalid request')
   }

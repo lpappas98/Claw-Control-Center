@@ -43,6 +43,23 @@ export type WorkerHeartbeat = {
   beats: Array<{ at: string }>
 }
 
+export type WorkerMetadata = {
+  slot: string
+  name?: string
+  role?: string
+  model?: string
+  emoji?: string
+  updatedAt: string
+}
+
+export type WorkerMetadataUpdate = {
+  slot: string
+  name?: string
+  role?: string
+  model?: string
+  emoji?: string
+}
+
 export type ProjectInfo = {
   id: string
   name: string

@@ -814,6 +814,17 @@ export const mockAdapter: Adapter = {
     throw new Error('Agent profiles only available with Firestore adapter')
   },
 
+  // Worker Metadata
+  async listWorkerMetadata() {
+    return []
+  },
+  async getWorkerMetadata() {
+    return null
+  },
+  async updateWorkerMetadata() {
+    throw new Error('Worker metadata only available with bridge adapter')
+  },
+
   // OpenClaw Connections (not implemented in mock adapter)
   async generateConnectionToken() {
     throw new Error('Connection tokens only available with Firestore adapter')

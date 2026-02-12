@@ -531,6 +531,107 @@ export async function deleteTreeNode(rootDir, projectId, nodeId) {
   return true
 }
 
+export async function moveTreeNode(rootDir, projectId, nodeId, newParentId) {
+  const p = await loadPmProject(rootDir, projectId)
+  if (!p) return null
+
+  const tree = normalizeTree(p.tree)
+  
+  // Find and extract the node
+  const hit = findNodeRef(tree, nodeId)
+  if (!hit) return { error: 'node not found' }
+  
+  // Can't move a node to be its own child
+  if (newParentId === nodeId) return { error: 'cannot move node to itself' }
+  
+  // Check if newParentId is a descendant of nodeId (would create a cycle)
+  if (newParentId) {
+    const isDescendant = (nodes, targetId) => {
+      for (const n of nodes ?? []) {
+        if (n.id === targetId) return true
+        if (n.children?.length && isDescendant(n.children, targetId)) return true
+      }
+      return false
+    }
+    if (isDescendant(hit.node.children ?? [], newParentId)) {
+      return { error: 'cannot move node to its own descendant' }
+    }
+  }
+  
+  // Extract the node from its current location
+  const node = hit.node
+  hit.parent.splice(hit.index, 1)
+  
+  // Insert into new parent
+  const nextTree = insertNode(tree, newParentId || '', node)
+  if (!nextTree) return { error: 'parent not found' }
+
+  await writeJsonAtomic(treePath(rootDir, projectId), nextTree)
+  await writeJsonAtomic(overviewPath(rootDir, projectId), {
+    ...(await readJson(overviewPath(rootDir, projectId), {})),
+    updatedAt: nowIso(),
+  })
+
+  return node
+}
+
+export async function reorderTreeChildren(rootDir, projectId, parentId, orderedIds) {
+  const p = await loadPmProject(rootDir, projectId)
+  if (!p) return null
+
+  if (!Array.isArray(orderedIds)) return { error: 'orderedIds must be an array' }
+
+  const tree = normalizeTree(p.tree)
+  
+  // Find the parent (or use root if no parentId)
+  let targetChildren
+  if (!parentId) {
+    targetChildren = tree
+  } else {
+    const hit = findNodeRef(tree, parentId)
+    if (!hit) return { error: 'parent not found' }
+    targetChildren = hit.node.children ?? []
+    if (!hit.node.children) hit.node.children = []
+  }
+
+  // Verify all orderedIds exist in current children
+  const currentIds = new Set(targetChildren.map(n => n.id))
+  const orderedSet = new Set(orderedIds)
+  
+  if (orderedSet.size !== currentIds.size) {
+    return { error: 'orderedIds count mismatch' }
+  }
+  
+  for (const id of orderedIds) {
+    if (!currentIds.has(id)) {
+      return { error: `unknown child id: ${id}` }
+    }
+  }
+
+  // Build a map of id -> node
+  const nodeMap = new Map(targetChildren.map(n => [n.id, n]))
+  
+  // Reorder according to orderedIds
+  const reordered = orderedIds.map(id => nodeMap.get(id))
+  
+  // Update the tree
+  if (!parentId) {
+    tree.length = 0
+    tree.push(...reordered)
+  } else {
+    const hit = findNodeRef(tree, parentId)
+    hit.node.children = reordered
+  }
+
+  await writeJsonAtomic(treePath(rootDir, projectId), tree)
+  await writeJsonAtomic(overviewPath(rootDir, projectId), {
+    ...(await readJson(overviewPath(rootDir, projectId), {})),
+    updatedAt: nowIso(),
+  })
+
+  return reordered
+}
+
 export async function createKanbanCard(rootDir, projectId, create) {
   const p = await loadPmProject(rootDir, projectId)
   if (!p) return null
