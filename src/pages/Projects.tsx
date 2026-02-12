@@ -142,156 +142,6 @@ function PriorityPill({ p }: { p: KanbanCard['priority'] | FeatureNode['priority
   return <span className={`badge ${cls}`}>{p.toUpperCase()}</span>
 }
 
-function fakeProjects(): Project[] {
-  const now = Date.now()
-  const iso = (minsAgo: number) => new Date(now - minsAgo * 60_000).toISOString()
-
-  const tree: FeatureNode[] = [
-    {
-      id: 'feat-auth',
-      title: 'Auth + identities',
-      summary: 'Local auth, sessions, and role-based permissions.',
-      status: 'in_progress',
-      priority: 'p0',
-      tags: ['security'],
-      owner: 'Logan',
-      children: [
-        {
-          id: 'feat-auth-login',
-          title: 'Login / unlock flow',
-          summary: 'Quick unlock for local instance + optional passcode.',
-          status: 'planned',
-          priority: 'p1',
-          dependsOn: ['feat-auth'],
-        },
-        {
-          id: 'feat-auth-perms',
-          title: 'Tool permissions matrix',
-          summary: 'Allow/deny rules for exec/browser/messaging, etc.',
-          status: 'planned',
-          priority: 'p0',
-          dependsOn: ['feat-auth'],
-        },
-      ],
-    },
-    {
-      id: 'feat-projects',
-      title: 'Projects hub UX',
-      summary: 'Overview / Tree / Kanban with deep feature specs.',
-      status: 'planned',
-      priority: 'p0',
-      tags: ['ux'],
-      children: [
-        {
-          id: 'feat-projects-overview',
-          title: 'Project overview dashboard',
-          summary: 'High-signal project homepage: priorities, links, activity.',
-          status: 'planned',
-          priority: 'p0',
-          dependsOn: ['feat-projects'],
-        },
-        {
-          id: 'feat-projects-tree',
-          title: 'Feature tree map',
-          summary: 'Hierarchy + dependency view with feature spec pages.',
-          status: 'planned',
-          priority: 'p0',
-          dependsOn: ['feat-projects'],
-        },
-        {
-          id: 'feat-projects-kanban',
-          title: 'Kanban board',
-          summary: 'Execution view; connect cards to features.',
-          status: 'planned',
-          priority: 'p1',
-          dependsOn: ['feat-projects'],
-        },
-      ],
-    },
-    {
-      id: 'feat-bridge',
-      title: 'Bridge + local status',
-      summary: 'Expose health + actions via the local bridge.',
-      status: 'blocked',
-      priority: 'p1',
-      tags: ['backend'],
-      children: [
-        {
-          id: 'feat-bridge-jobs',
-          title: 'Jobs / cron visibility',
-          summary: 'Show scheduled jobs and last runs.',
-          status: 'planned',
-          priority: 'p2',
-          dependsOn: ['feat-bridge'],
-        },
-      ],
-    },
-  ]
-
-  const cards: KanbanCard[] = [
-    { id: 'c-1', title: 'Design Settings nav + sections', priority: 'p0', column: 'in_progress', owner: 'Logan', featureId: 'feat-auth-perms', due: 'Fri' },
-    { id: 'c-2', title: 'Tree view: focus + search + filters', priority: 'p0', column: 'todo', owner: 'TARS', featureId: 'feat-projects-tree' },
-    { id: 'c-3', title: 'Project overview: “Next up” block', priority: 'p1', column: 'todo', owner: 'TARS', featureId: 'feat-projects-overview' },
-    { id: 'c-4', title: 'Bridge: expose service health', priority: 'p2', column: 'blocked', owner: 'TARS', featureId: 'feat-bridge' },
-    { id: 'c-5', title: 'Kanban: drag + drop interactions', priority: 'p1', column: 'todo', owner: 'TARS', featureId: 'feat-projects-kanban' },
-    { id: 'c-6', title: 'Write acceptance criteria template', priority: 'p2', column: 'done', owner: 'TARS', featureId: 'feat-projects' },
-  ]
-
-  return [
-    {
-      id: 'p-operator-hub',
-      name: 'TARS Operator Hub',
-      summary: 'Local-first control surface for OpenClaw + projects.',
-      status: 'active',
-      tags: ['local', 'operator', 'ux'],
-      owner: 'Logan',
-      updatedAt: iso(32),
-      links: [
-        { label: 'Repo', url: 'https://github.com/openclaw/openclaw' },
-        { label: 'Docs', url: 'https://docs.openclaw.ai' },
-        { label: 'Figma', url: 'https://figma.com' },
-      ],
-      tree,
-      cards,
-      activity: [
-        { id: 'a-1', at: iso(14), actor: 'Logan', text: 'Moved “Design Settings nav + sections” → In progress' },
-        { id: 'a-2', at: iso(54), actor: 'TARS', text: 'Created feature: “Feature tree map”' },
-        { id: 'a-3', at: iso(160), actor: 'Logan', text: 'Updated project summary and links' },
-      ],
-    },
-    {
-      id: 'p-task-manager',
-      name: 'Task Manager',
-      summary: 'Simple kanban + quick capture app (reference UI).',
-      status: 'paused',
-      tags: ['reference', 'kanban'],
-      owner: 'Logan',
-      updatedAt: iso(240),
-      links: [{ label: 'Mock repo', url: 'https://example.com' }],
-      tree: [
-        {
-          id: 'feat-capture',
-          title: 'Fast capture',
-          summary: 'One-line add, keyboard-first.',
-          status: 'done',
-          priority: 'p1',
-        },
-        {
-          id: 'feat-board',
-          title: 'Board view',
-          summary: 'Columns, drag/drop, swimlanes.',
-          status: 'in_progress',
-          priority: 'p0',
-        },
-      ],
-      cards: [
-        { id: 'tc-1', title: 'Polish column headers', priority: 'p2', column: 'todo', owner: 'Logan' },
-        { id: 'tc-2', title: 'Add keyboard shortcuts', priority: 'p1', column: 'in_progress', owner: 'Logan' },
-      ],
-      activity: [{ id: 'ta-1', at: iso(200), actor: 'Logan', text: 'Paused project' }],
-    },
-  ]
-}
 
 function TabBar({ tab, setTab }: { tab: ProjectTab; setTab: (t: ProjectTab) => void }) {
   return (
@@ -378,15 +228,15 @@ function FeatureDrawer({
                 <div className="stack">
                   <div className="field">
                     <label className="muted">Problem</label>
-                    <textarea className="input" rows={3} defaultValue={`(fake) Users need ${feature.title.toLowerCase()} to ship reliably without manual steps.`} />
+                    <textarea className="input" rows={3} defaultValue={`What problem does this solve for users?`} />
                   </div>
                   <div className="field">
                     <label className="muted">Solution</label>
-                    <textarea className="input" rows={3} defaultValue={`(fake) Provide a clear UI flow, safe defaults, and obvious status feedback.`} />
+                    <textarea className="input" rows={3} defaultValue={`What does 'done' look like?`} />
                   </div>
                   <div className="field">
                     <label className="muted">Non-goals</label>
-                    <textarea className="input" rows={2} defaultValue={`(fake) Not building team workflows; single-user local mode first.`} />
+                    <textarea className="input" rows={2} defaultValue={`What are we explicitly not doing?`} />
                   </div>
                 </div>
               </div>
@@ -488,7 +338,7 @@ function FeatureDrawer({
 
               <div className="panel" style={{ padding: 14 }}>
                 <h4 style={{ marginTop: 0 }}>Checklist</h4>
-                <div className="muted">(fake) Add subtasks here. In the real build this could feed Kanban cards or vice-versa.</div>
+                <div className="muted">Break this feature into smaller tasks.</div>
               </div>
             </div>
           ) : null}
@@ -940,7 +790,7 @@ function Overview({ project }: { project: Project }) {
           <div className="stat-card">
             <div className="stat-title">Tags</div>
             <div className="stat-value"><strong>{project.tags.join(' · ')}</strong></div>
-            <div className="muted">(fake) configurable</div>
+            <div className="muted"></div>
           </div>
           <div className="stat-card">
             <div className="stat-title">Work</div>
@@ -951,7 +801,7 @@ function Overview({ project }: { project: Project }) {
 
         <div className="field" style={{ marginTop: 12 }}>
           <label className="muted">Description</label>
-          <textarea className="input" rows={6} defaultValue={project.summary + '\n\n(fake) Success looks like: fast orientation, clear feature specs, and smooth execution via Kanban.'} />
+          <textarea className="input" rows={6} defaultValue={project.summary} />
         </div>
       </section>
 
@@ -1939,12 +1789,7 @@ export function Projects({ adapter }: { adapter: Adapter }) {
       }
     } catch (err) {
       console.error('Failed to load projects:', err)
-      // Fall back to fake data for demo/mock mode
-      const fake = fakeProjects()
-      setProjects(fake)
-      if (fake.length && !activeId) {
-        setActiveId(fake[0].id)
-      }
+      setProjects([])
     } finally {
       setLoading(false)
     }
