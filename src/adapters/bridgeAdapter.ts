@@ -400,17 +400,28 @@ export function bridgeAdapter(opts: BridgeAdapterOptions): Adapter {
     },
 
     // Active Sessions
-    async registerSession() {
-      throw new Error('Active sessions only available with Firestore adapter')
+    async registerSession(data: import('../types').ActiveSessionCreate) {
+      return fetchJson<import('../types').ActiveSession>(`${base}/api/sessions/register`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(data),
+      })
     },
-    async updateSession() {
-      throw new Error('Active sessions only available with Firestore adapter')
+    async updateSession(data: import('../types').ActiveSessionUpdate) {
+      return fetchJson<import('../types').ActiveSession>(`${base}/api/sessions/${encodeURIComponent(data.id)}`, {
+        method: 'PATCH',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(data),
+      })
     },
-    async listActiveSessions() {
-      return []
+    async listActiveSessions(instanceId?: string) {
+      const qs = instanceId ? `?${new URLSearchParams({ instanceId }).toString()}` : ''
+      return fetchJson<import('../types').ActiveSession[]>(`${base}/api/sessions${qs}`)
     },
-    async terminateSession() {
-      throw new Error('Active sessions only available with Firestore adapter')
+    async terminateSession(id: string) {
+      return fetchJson<{ ok: boolean; session: import('../types').ActiveSession }>(`${base}/api/sessions/${encodeURIComponent(id)}`, {
+        method: 'DELETE',
+      })
     },
   }
 }

@@ -14,6 +14,20 @@ import { loadActivity, makeDebouncedSaver, saveActivity } from './activityStore.
 import { getHeartbeatDiagnostics } from './watchdog.mjs'
 import { loadRules, loadRuleHistory, pushRuleHistory, saveRules, saveRuleHistory } from './rules.mjs'
 import { loadTasks, makeId as makeTaskId, normalizeLane, normalizePriority, saveTasks } from './tasks.mjs'
+import { 
+  loadAgentProfiles, 
+  saveAgentProfiles, 
+  getAgentProfile, 
+  createAgentProfile as createAgentProfileData,
+  updateAgentProfile as updateAgentProfileData,
+  deleteAgentProfile as deleteAgentProfileData 
+} from './agentProfiles.mjs'
+import {
+  listActiveSessions,
+  registerSession,
+  updateSession,
+  terminateSession,
+} from './activeSessions.mjs'
 import {
   draftScopeAndTree,
   ensureUniqueProjectId,
@@ -57,6 +71,8 @@ const RULE_HISTORY_FILE = process.env.OPERATOR_HUB_RULE_HISTORY_FILE ?? path.joi
 const TASKS_FILE = process.env.OPERATOR_HUB_TASKS_FILE ?? path.join(WORKSPACE, '.clawhub', 'tasks.json')
 const INTAKE_PROJECTS_FILE = process.env.OPERATOR_HUB_INTAKE_PROJECTS_FILE ?? path.join(WORKSPACE, '.clawhub', 'intake-projects.json')
 const PM_PROJECTS_DIR = process.env.OPERATOR_HUB_PM_PROJECTS_DIR ?? path.join(WORKSPACE, '.clawhub', 'projects')
+const AGENT_PROFILES_FILE = process.env.OPERATOR_HUB_AGENT_PROFILES_FILE ?? path.join(WORKSPACE, 'agent-profiles.json')
+const ACTIVE_SESSIONS_FILE = process.env.OPERATOR_HUB_ACTIVE_SESSIONS_FILE ?? path.join(WORKSPACE, 'active-sessions.json')
 
 /** @type {import('../src/types').ActivityEvent[]} */
 let activity = await loadActivity(ACTIVITY_FILE)
@@ -72,9 +88,13 @@ let ruleHistory = await loadRuleHistory(RULE_HISTORY_FILE)
 /** @type {import('../src/types').IntakeProject[]} */
 let intakeProjects = await loadIntakeProjects(INTAKE_PROJECTS_FILE)
 
+/** @type {import('../src/types').AgentProfile[]} */
+let agentProfiles = await loadAgentProfiles(AGENT_PROFILES_FILE)
+
 const rulesSaver = makeDebouncedSaver(() => saveRules(RULES_FILE, rules))
 const ruleHistorySaver = makeDebouncedSaver(() => saveRuleHistory(RULE_HISTORY_FILE, ruleHistory))
 const intakeProjectsSaver = makeDebouncedSaver(() => saveIntakeProjects(INTAKE_PROJECTS_FILE, intakeProjects))
+const agentProfilesSaver = makeDebouncedSaver(() => saveAgentProfiles(AGENT_PROFILES_FILE, agentProfiles))
 
 /** @type {import('../src/types').Task[]} */
 let tasks = await loadTasks(TASKS_FILE)
@@ -120,6 +140,10 @@ function scheduleTasksSave() {
     tasksSaveTimer = null
     await tasksSaver.flush()
   }, 750)
+}
+
+function scheduleAgentProfilesSave() {
+  agentProfilesSaver.trigger()
 }
 
 function pushActivity(evt) {
@@ -723,6 +747,52 @@ app.post('/api/rules/:id/toggle', async (req, res) => {
   res.json(next)
 })
 
+// ---- Agent Profiles ----
+app.get('/api/agent-profiles', async (_req, res) => {
+  const sorted = agentProfiles.slice().sort((a, b) => a.name.localeCompare(b.name))
+  res.json(sorted)
+})
+
+app.get('/api/agent-profiles/:id', async (req, res) => {
+  const profile = getAgentProfile(agentProfiles, req.params.id)
+  if (!profile) return res.status(404).send('agent profile not found')
+  res.json(profile)
+})
+
+app.post('/api/agent-profiles', async (req, res) => {
+  try {
+    const profile = createAgentProfileData(agentProfiles, req.body ?? {})
+    agentProfiles = [...agentProfiles, profile]
+    scheduleAgentProfilesSave()
+    res.json(profile)
+  } catch (err) {
+    res.status(400).send(err?.message ?? 'invalid profile data')
+  }
+})
+
+app.patch('/api/agent-profiles/:id', async (req, res) => {
+  try {
+    const result = updateAgentProfileData(agentProfiles, req.params.id, req.body ?? {})
+    if (!result) return res.status(404).send('agent profile not found')
+    
+    const { idx, updated } = result
+    agentProfiles = [...agentProfiles.slice(0, idx), updated, ...agentProfiles.slice(idx + 1)]
+    scheduleAgentProfilesSave()
+    res.json(updated)
+  } catch (err) {
+    res.status(400).send(err?.message ?? 'invalid profile data')
+  }
+})
+
+app.delete('/api/agent-profiles/:id', async (req, res) => {
+  const idx = deleteAgentProfileData(agentProfiles, req.params.id)
+  if (idx === null) return res.status(404).send('agent profile not found')
+  
+  agentProfiles = [...agentProfiles.slice(0, idx), ...agentProfiles.slice(idx + 1)]
+  scheduleAgentProfilesSave()
+  res.json({ ok: true })
+})
+
 // ---- Tasks (operator board seed) ----
 app.get('/api/tasks', async (_req, res) => {
   const sorted = tasks.slice().sort((a, b) => (b.updatedAt ?? '').localeCompare(a.updatedAt ?? ''))
@@ -1284,6 +1354,96 @@ app.post('/api/pm/migrate/from-intake', async (_req, res) => {
   res.json({ ok: true, created, skipped })
 })
 
+// ---- Active Sessions ----
+app.get('/api/sessions', async (req, res) => {
+  try {
+    const instanceId = typeof req.query.instanceId === 'string' ? req.query.instanceId : undefined
+    const sessions = await listActiveSessions(ACTIVE_SESSIONS_FILE, instanceId)
+    res.json(sessions)
+  } catch (err) {
+    res.status(500).json({ error: err?.message ?? 'Failed to list sessions' })
+  }
+})
+
+app.post('/api/sessions/register', async (req, res) => {
+  try {
+    const body = req.body ?? {}
+    
+    // Validate required fields
+    if (!body.sessionKey || typeof body.sessionKey !== 'string') {
+      return res.status(400).send('sessionKey required')
+    }
+    if (!body.instanceId || typeof body.instanceId !== 'string') {
+      return res.status(400).send('instanceId required')
+    }
+    
+    const session = await registerSession(ACTIVE_SESSIONS_FILE, body)
+    
+    pushActivity({
+      id: newId('session'),
+      at: new Date().toISOString(),
+      level: 'info',
+      source: 'sessions',
+      message: `session registered: ${session.label ?? session.sessionKey} (${session.id})`,
+      meta: { sessionId: session.id, instanceId: session.instanceId, task: session.task },
+    })
+    
+    res.json(session)
+  } catch (err) {
+    res.status(400).json({ error: err?.message ?? 'Failed to register session' })
+  }
+})
+
+app.patch('/api/sessions/:id', async (req, res) => {
+  try {
+    const id = req.params.id
+    const body = req.body ?? {}
+    
+    const updated = await updateSession(ACTIVE_SESSIONS_FILE, { id, ...body })
+    
+    if (!updated) {
+      return res.status(404).send('session not found')
+    }
+    
+    pushActivity({
+      id: newId('session'),
+      at: new Date().toISOString(),
+      level: 'info',
+      source: 'sessions',
+      message: `session updated: ${updated.label ?? updated.sessionKey} (${updated.id}) - status: ${updated.status}`,
+      meta: { sessionId: updated.id, status: updated.status, task: updated.task },
+    })
+    
+    res.json(updated)
+  } catch (err) {
+    res.status(400).json({ error: err?.message ?? 'Failed to update session' })
+  }
+})
+
+app.delete('/api/sessions/:id', async (req, res) => {
+  try {
+    const id = req.params.id
+    const terminated = await terminateSession(ACTIVE_SESSIONS_FILE, id)
+    
+    if (!terminated) {
+      return res.status(404).send('session not found')
+    }
+    
+    pushActivity({
+      id: newId('session'),
+      at: new Date().toISOString(),
+      level: 'info',
+      source: 'sessions',
+      message: `session terminated: ${terminated.label ?? terminated.sessionKey} (${terminated.id})`,
+      meta: { sessionId: terminated.id, instanceId: terminated.instanceId },
+    })
+    
+    res.json({ ok: true, session: terminated })
+  } catch (err) {
+    res.status(400).json({ error: err?.message ?? 'Failed to terminate session' })
+  }
+})
+
 app.post('/api/control', async (req, res) => {
   const action = req.body
   const at = new Date().toISOString()
@@ -1329,6 +1489,7 @@ async function flushActivityOnExit() {
     await ruleHistorySaver.flush()
     await tasksSaver.flush()
     await intakeProjectsSaver.flush()
+    await agentProfilesSaver.flush()
   } catch {
     // best-effort
   }
