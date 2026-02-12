@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { Adapter } from '../adapters/adapter'
-import type { BoardLane, Priority, Task } from '../types'
+import type { AgentProfile, BoardLane, Priority, Task } from '../types'
 import { CopyButton } from './CopyButton'
+import { usePoll } from '../lib/usePoll'
 
 const LANES: BoardLane[] = ['proposed', 'queued', 'development', 'review', 'blocked', 'done']
 const PRIORITIES: Priority[] = ['P0', 'P1', 'P2', 'P3']
@@ -42,6 +43,34 @@ export function TaskModal({
   const [draftProblem, setDraftProblem] = useState(task.problem ?? '')
   const [draftScope, setDraftScope] = useState(task.scope ?? '')
   const [draftAcceptanceRaw, setDraftAcceptanceRaw] = useState((task.acceptanceCriteria ?? []).join('\n'))
+  const [draftProjectId, setDraftProjectId] = useState(task.projectId ?? '')
+  const [draftAssignedProfileId, setDraftAssignedProfileId] = useState(task.assignedProfileId ?? '')
+
+  // Load PM projects and agent profiles for dropdowns (prefixed with _ until dropdowns added)
+  const _pmProjects = usePoll<{ id: string; name: string }[]>(
+    async () => {
+      try {
+        const projects = await adapter.listPMProjects()
+        return projects.map(p => ({ id: p.id, name: p.name }))
+      } catch (e) {
+        console.warn('[TaskModal] listPMProjects failed', e)
+        return []
+      }
+    },
+    15000
+  )
+
+  const agentProfiles = usePoll<AgentProfile[]>(
+    async () => {
+      try {
+        return await adapter.listAgentProfiles()
+      } catch (e) {
+        console.warn('[TaskModal] listAgentProfiles failed', e)
+        return []
+      }
+    },
+    10000
+  )
 
   useEffect(() => {
     setDraftTitle(task.title)
@@ -51,6 +80,8 @@ export function TaskModal({
     setDraftProblem(task.problem ?? '')
     setDraftScope(task.scope ?? '')
     setDraftAcceptanceRaw((task.acceptanceCriteria ?? []).join('\n'))
+    setDraftProjectId(task.projectId ?? '')
+    setDraftAssignedProfileId(task.assignedProfileId ?? '')
   }, [task])
 
   const dirty =
@@ -60,7 +91,9 @@ export function TaskModal({
     draftOwner !== (task.owner ?? '') ||
     draftProblem !== (task.problem ?? '') ||
     draftScope !== (task.scope ?? '') ||
-    draftAcceptanceRaw.trim() !== (task.acceptanceCriteria ?? []).join('\n').trim()
+    draftAcceptanceRaw.trim() !== (task.acceptanceCriteria ?? []).join('\n').trim() ||
+    draftProjectId !== (task.projectId ?? '') ||
+    draftAssignedProfileId !== (task.assignedProfileId ?? '')
 
   const acceptanceCriteria = useMemo(() => normalizeLines(draftAcceptanceRaw), [draftAcceptanceRaw])
 
@@ -77,6 +110,8 @@ export function TaskModal({
         problem: draftProblem.trim() || undefined,
         scope: draftScope.trim() || undefined,
         acceptanceCriteria,
+        projectId: draftProjectId || undefined,
+        assignedProfileId: draftAssignedProfileId || undefined,
       })
       onSaved(updated)
     } catch (e) {
@@ -143,6 +178,30 @@ export function TaskModal({
             <label className="field">
               <div className="muted">Owner</div>
               <input value={draftOwner} onChange={(e) => setDraftOwner(e.target.value)} placeholder="optional" />
+            </label>
+
+            <label className="field">
+              <div className="muted">Project</div>
+              <select value={draftProjectId} onChange={(e) => setDraftProjectId(e.target.value)}>
+                <option value="">None</option>
+                {(pmProjects.data ?? []).map((p) => (
+                  <option value={p.id} key={p.id}>
+                    {p.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="field">
+              <div className="muted">Assigned Agent</div>
+              <select value={draftAssignedProfileId} onChange={(e) => setDraftAssignedProfileId(e.target.value)}>
+                <option value="">None</option>
+                {(agentProfiles.data ?? []).map((p) => (
+                  <option value={p.id} key={p.id}>
+                    {p.emoji ?? '🤖'} {p.name} ({p.role})
+                  </option>
+                ))}
+              </select>
             </label>
 
             <label className="field" style={{ gridColumn: '1 / -1' }}>

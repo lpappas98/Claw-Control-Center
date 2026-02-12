@@ -133,6 +133,20 @@ export function MissionControl({
     10000 // Refresh every 10s
   )
 
+  // Load PM projects for project names
+  const pmProjects = usePoll<{ id: string; name: string }[]>(
+    async () => {
+      try {
+        const projects = await adapter.listPMProjects()
+        return projects.map(p => ({ id: p.id, name: p.name }))
+      } catch (e) {
+        console.warn('[home] listPMProjects failed', e)
+        return []
+      }
+    },
+    15000 // Refresh every 15s
+  )
+
   // Load agent profiles
   const agentProfiles = usePoll<AgentProfile[]>(
     async () => {
@@ -287,6 +301,20 @@ export function MissionControl({
   ]
 
   const blockedTasks = tasks.filter((t) => t.lane === 'blocked')
+
+  // Helper to get project name
+  const getProjectName = (projectId?: string) => {
+    if (!projectId) return null
+    const project = (pmProjects.data ?? []).find(p => p.id === projectId)
+    return project?.name ?? null
+  }
+
+  // Helper to get assigned agent profile
+  const getAssignedAgent = (profileId?: string) => {
+    if (!profileId) return null
+    const profile = (agentProfiles.data ?? []).find(p => p.id === profileId)
+    return profile ? { name: profile.name, emoji: profile.emoji ?? '🤖' } : null
+  }
 
   return (
     <main className="main-grid">
@@ -457,12 +485,24 @@ export function MissionControl({
             {blockedTasks.length === 0 && <div className="muted">No blocked tasks</div>}
             {blockedTasks.map((task) => {
               const canOpen = !!task.details
+              const projectName = getProjectName(task.details?.projectId)
+              const assignedAgent = getAssignedAgent(task.details?.assignedProfileId)
+              
               const inner = (
                 <>
                   <div className={`priority-tag ${task.priority.toLowerCase()}`}>{task.priority}</div>
+                  {projectName && (
+                    <div className="muted" style={{ fontSize: 11, marginBottom: 2 }}>
+                      📁 {projectName}
+                    </div>
+                  )}
                   <div className="home-task-title">{task.title}</div>
-                  <div className={`worker-chip ${task.agent ? 'assigned' : 'unassigned'}`}>
-                    {task.agent ? `${task.agentEmoji ?? '🤖'} ${task.agent}` : 'Unassigned'}
+                  <div className={`worker-chip ${task.agent || assignedAgent ? 'assigned' : 'unassigned'}`}>
+                    {assignedAgent 
+                      ? `${assignedAgent.emoji} ${assignedAgent.name}` 
+                      : task.agent 
+                      ? `${task.agentEmoji ?? '🤖'} ${task.agent}` 
+                      : 'Unassigned'}
                   </div>
                 </>
               )
@@ -497,12 +537,24 @@ export function MissionControl({
                     {laneTasks.length === 0 && <div className="home-task empty">No tasks</div>}
                     {laneTasks.map((task) => {
                       const canOpen = !!task.details
+                      const projectName = getProjectName(task.details?.projectId)
+                      const assignedAgent = getAssignedAgent(task.details?.assignedProfileId)
+                      
                       const inner = (
                         <>
                           <div className={`priority-tag ${task.priority.toLowerCase()}`}>{task.priority}</div>
+                          {projectName && (
+                            <div className="muted" style={{ fontSize: 11, marginBottom: 2 }}>
+                              📁 {projectName}
+                            </div>
+                          )}
                           <div className="home-task-title">{task.title}</div>
-                          <div className={`worker-chip ${task.agent ? 'assigned' : 'unassigned'}`}>
-                            {task.agent ? `${task.agentEmoji ?? '🤖'} ${task.agent}` : 'Unassigned'}
+                          <div className={`worker-chip ${task.agent || assignedAgent ? 'assigned' : 'unassigned'}`}>
+                            {assignedAgent 
+                              ? `${assignedAgent.emoji} ${assignedAgent.name}` 
+                              : task.agent 
+                              ? `${task.agentEmoji ?? '🤖'} ${task.agent}` 
+                              : 'Unassigned'}
                           </div>
                         </>
                       )
