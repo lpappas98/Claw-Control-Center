@@ -17,6 +17,41 @@ function fmtWhen(iso: string) {
   }
 }
 
+type Severity = 'critical' | 'required' | 'standard' | 'guidance'
+
+const SEVERITY_COLORS: Record<Severity, string> = {
+  critical: '#ef4444',
+  required: '#f97316',
+  standard: '#3b82f6',
+  guidance: '#6b7280'
+}
+
+const CATEGORIES = [
+  'Workflow',
+  'Communication',
+  'Safety & Security',
+  'Agent Management',
+  'Memory & Knowledge',
+  'Personality & Style'
+]
+
+function SeverityBadge({ severity }: { severity?: Severity }) {
+  if (!severity) return null
+  const color = SEVERITY_COLORS[severity]
+  return (
+    <span 
+      className="pill"
+      style={{ 
+        backgroundColor: color,
+        color: '#fff',
+        textTransform: 'capitalize'
+      }}
+    >
+      {severity}
+    </span>
+  )
+}
+
 export function Config({ adapter }: { adapter: Adapter }) {
   const [tab, setTab] = useState<'models' | 'rules'>('models')
 
@@ -42,6 +77,8 @@ export function Config({ adapter }: { adapter: Adapter }) {
   const [createDesc, setCreateDesc] = useState('')
   const [createContent, setCreateContent] = useState('')
   const [createEnabled, setCreateEnabled] = useState(true)
+  const [createSeverity, setCreateSeverity] = useState<Severity>('standard')
+  const [createCategory, setCreateCategory] = useState('')
 
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const selected = useMemo(() => (rules ?? []).find((r) => r.id === selectedId) ?? null, [rules, selectedId])
@@ -49,6 +86,10 @@ export function Config({ adapter }: { adapter: Adapter }) {
   const [draftTitle, setDraftTitle] = useState('')
   const [draftDesc, setDraftDesc] = useState('')
   const [draftContent, setDraftContent] = useState('')
+  const [draftSeverity, setDraftSeverity] = useState<Severity>('standard')
+  const [draftCategory, setDraftCategory] = useState('')
+
+  const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set())
 
   async function refreshModels() {
     setModelLoading(true)
@@ -117,6 +158,8 @@ export function Config({ adapter }: { adapter: Adapter }) {
     setDraftTitle(selected.title)
     setDraftDesc(selected.description ?? '')
     setDraftContent(selected.content)
+    setDraftSeverity(selected.severity ?? 'standard')
+    setDraftCategory(selected.category ?? '')
   }, [selected])
 
   async function toggleRule(rule: Rule) {
@@ -144,6 +187,8 @@ export function Config({ adapter }: { adapter: Adapter }) {
         title: draftTitle,
         description: draftDesc,
         content: draftContent,
+        severity: draftSeverity,
+        category: draftCategory || undefined,
       })
       setRules((prev) => (prev ? prev.map((r) => (r.id === selected.id ? updated : r)) : prev))
       const h = await adapter.listRuleHistory(200)
@@ -166,6 +211,8 @@ export function Config({ adapter }: { adapter: Adapter }) {
         description: createDesc.trim() || undefined,
         content: createContent,
         enabled: createEnabled,
+        severity: createSeverity,
+        category: createCategory || undefined,
       })
       setRules((prev) => (prev ? [...prev, next] : [next]))
       setSelectedId(next.id)
@@ -174,6 +221,8 @@ export function Config({ adapter }: { adapter: Adapter }) {
       setCreateDesc('')
       setCreateContent('')
       setCreateEnabled(true)
+      setCreateSeverity('standard')
+      setCreateCategory('')
       setCreateOpen(false)
       const h = await adapter.listRuleHistory(200)
       setHistory(h)
@@ -208,7 +257,44 @@ export function Config({ adapter }: { adapter: Adapter }) {
     }
   }
 
-  const ruleDirty = !!selected && (draftTitle !== selected.title || draftDesc !== (selected.description ?? '') || draftContent !== selected.content)
+  const ruleDirty = !!selected && (
+    draftTitle !== selected.title || 
+    draftDesc !== (selected.description ?? '') || 
+    draftContent !== selected.content ||
+    draftSeverity !== (selected.severity ?? 'standard') ||
+    draftCategory !== (selected.category ?? '')
+  )
+
+  // Group rules by category
+  const rulesByCategory = useMemo(() => {
+    const grouped: Record<string, Rule[]> = {}
+    const uncategorized: Rule[] = []
+    
+    ;(rules ?? []).forEach((rule) => {
+      if (rule.category) {
+        if (!grouped[rule.category]) {
+          grouped[rule.category] = []
+        }
+        grouped[rule.category].push(rule)
+      } else {
+        uncategorized.push(rule)
+      }
+    })
+    
+    return { grouped, uncategorized }
+  }, [rules])
+
+  function toggleCategory(category: string) {
+    setCollapsedCategories(prev => {
+      const next = new Set(prev)
+      if (next.has(category)) {
+        next.delete(category)
+      } else {
+        next.add(category)
+      }
+      return next
+    })
+  }
 
   return (
     <main className="main-grid">
@@ -332,6 +418,26 @@ export function Config({ adapter }: { adapter: Adapter }) {
                     </label>
 
                     <label className="field">
+                      <div className="muted">Severity</div>
+                      <select value={createSeverity} onChange={(e) => setCreateSeverity(e.target.value as Severity)}>
+                        <option value="critical">Critical</option>
+                        <option value="required">Required</option>
+                        <option value="standard">Standard</option>
+                        <option value="guidance">Guidance</option>
+                      </select>
+                    </label>
+
+                    <label className="field">
+                      <div className="muted">Category</div>
+                      <select value={createCategory} onChange={(e) => setCreateCategory(e.target.value)}>
+                        <option value="">None</option>
+                        {CATEGORIES.map(cat => (
+                          <option key={cat} value={cat}>{cat}</option>
+                        ))}
+                      </select>
+                    </label>
+
+                    <label className="field">
                       <div className="muted">Body</div>
                       <textarea value={createContent} onChange={(e) => setCreateContent(e.target.value)} rows={8} />
                     </label>
@@ -353,43 +459,128 @@ export function Config({ adapter }: { adapter: Adapter }) {
                 </div>
               )}
 
-              <div className="table-like">
-                {(rules ?? []).map((r) => (
-                  <div className="row" key={r.id}>
-                    <div className="row-main">
-                      <div className="row-title">
-                        <button
-                          type="button"
-                          className="btn ghost"
-                          style={{ padding: '4px 8px' }}
-                          onClick={() => setSelectedId(r.id)}
-                          title={r.id}
-                        >
-                          <strong>{r.title}</strong>
-                        </button>
-                        <span className={`pill ${r.enabled ? 'sev-low' : ''}`} title={r.enabled ? 'enabled' : 'disabled'}>
-                          {r.enabled ? 'Enabled' : 'Disabled'}
-                        </span>
-                      </div>
-                      <div className="muted">{r.description ?? '—'}</div>
-                    </div>
-                    <div className="row-side">
-                      <div className="muted">updated: {fmtWhen(r.updatedAt)}</div>
-                      <button className="btn" type="button" onClick={() => toggleRule(r)} disabled={busyId === r.id}>
-                        {busyId === r.id ? 'Working…' : r.enabled ? 'Disable' : 'Enable'}
-                      </button>
-                    </div>
+              {/* Categorized Rules */}
+              {Object.entries(rulesByCategory.grouped).map(([category, categoryRules]) => (
+                <div key={category} style={{ marginBottom: '1rem' }}>
+                  <div 
+                    style={{ 
+                      padding: '0.75rem',
+                      backgroundColor: 'var(--bg-secondary)',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      marginBottom: '0.5rem'
+                    }}
+                    onClick={() => toggleCategory(category)}
+                  >
+                    <strong>{category}</strong>
+                    <span className="muted">
+                      {collapsedCategories.has(category) ? '▶' : '▼'} {categoryRules.length} rule{categoryRules.length !== 1 ? 's' : ''}
+                    </span>
                   </div>
-                ))}
-                {!rulesLoading && (rules?.length ?? 0) === 0 && <div className="muted">No rules configured.</div>}
-              </div>
+                  
+                  {!collapsedCategories.has(category) && (
+                    <div className="table-like">
+                      {categoryRules.map((r) => (
+                        <div className="row" key={r.id}>
+                          <div className="row-main">
+                            <div className="row-title">
+                              <button
+                                type="button"
+                                className="btn ghost"
+                                style={{ padding: '4px 8px' }}
+                                onClick={() => setSelectedId(r.id)}
+                                title={r.id}
+                              >
+                                <strong>{r.title}</strong>
+                              </button>
+                              <SeverityBadge severity={r.severity} />
+                              <span className={`pill ${r.enabled ? 'sev-low' : ''}`} title={r.enabled ? 'enabled' : 'disabled'}>
+                                {r.enabled ? 'Enabled' : 'Disabled'}
+                              </span>
+                            </div>
+                            <div className="muted">{r.description ?? '—'}</div>
+                          </div>
+                          <div className="row-side">
+                            <div className="muted">updated: {fmtWhen(r.updatedAt)}</div>
+                            <button className="btn" type="button" onClick={() => toggleRule(r)} disabled={busyId === r.id}>
+                              {busyId === r.id ? 'Working…' : r.enabled ? 'Disable' : 'Enable'}
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+
+              {/* Uncategorized Rules */}
+              {rulesByCategory.uncategorized.length > 0 && (
+                <div style={{ marginBottom: '1rem' }}>
+                  <div 
+                    style={{ 
+                      padding: '0.75rem',
+                      backgroundColor: 'var(--bg-secondary)',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      marginBottom: '0.5rem'
+                    }}
+                    onClick={() => toggleCategory('uncategorized')}
+                  >
+                    <strong>Uncategorized</strong>
+                    <span className="muted">
+                      {collapsedCategories.has('uncategorized') ? '▶' : '▼'} {rulesByCategory.uncategorized.length} rule{rulesByCategory.uncategorized.length !== 1 ? 's' : ''}
+                    </span>
+                  </div>
+                  
+                  {!collapsedCategories.has('uncategorized') && (
+                    <div className="table-like">
+                      {rulesByCategory.uncategorized.map((r) => (
+                        <div className="row" key={r.id}>
+                          <div className="row-main">
+                            <div className="row-title">
+                              <button
+                                type="button"
+                                className="btn ghost"
+                                style={{ padding: '4px 8px' }}
+                                onClick={() => setSelectedId(r.id)}
+                                title={r.id}
+                              >
+                                <strong>{r.title}</strong>
+                              </button>
+                              <SeverityBadge severity={r.severity} />
+                              <span className={`pill ${r.enabled ? 'sev-low' : ''}`} title={r.enabled ? 'enabled' : 'disabled'}>
+                                {r.enabled ? 'Enabled' : 'Disabled'}
+                              </span>
+                            </div>
+                            <div className="muted">{r.description ?? '—'}</div>
+                          </div>
+                          <div className="row-side">
+                            <div className="muted">updated: {fmtWhen(r.updatedAt)}</div>
+                            <button className="btn" type="button" onClick={() => toggleRule(r)} disabled={busyId === r.id}>
+                              {busyId === r.id ? 'Working…' : r.enabled ? 'Disable' : 'Enable'}
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {!rulesLoading && (rules?.length ?? 0) === 0 && <div className="muted">No rules configured.</div>}
             </section>
 
             <section className="panel span-2" style={{ gridColumn: 'span 2' }}>
               <div className="panel-header">
                 <div>
                   <h3>Rule editor</h3>
-                  <p className="muted">Edit the selected rule (title/description/body). Changes are recorded in history.</p>
+                  <p className="muted">Edit the selected rule (title/description/body/severity/category). Changes are recorded in history.</p>
                 </div>
               </div>
 
@@ -420,6 +611,26 @@ export function Config({ adapter }: { adapter: Adapter }) {
                   <label className="field">
                     <div className="muted">Description</div>
                     <input value={draftDesc} onChange={(e) => setDraftDesc(e.target.value)} placeholder="optional" />
+                  </label>
+
+                  <label className="field">
+                    <div className="muted">Severity</div>
+                    <select value={draftSeverity} onChange={(e) => setDraftSeverity(e.target.value as Severity)}>
+                      <option value="critical">Critical</option>
+                      <option value="required">Required</option>
+                      <option value="standard">Standard</option>
+                      <option value="guidance">Guidance</option>
+                    </select>
+                  </label>
+
+                  <label className="field">
+                    <div className="muted">Category</div>
+                    <select value={draftCategory} onChange={(e) => setDraftCategory(e.target.value)}>
+                      <option value="">None</option>
+                      {CATEGORIES.map(cat => (
+                        <option key={cat} value={cat}>{cat}</option>
+                      ))}
+                    </select>
                   </label>
 
                   <label className="field">

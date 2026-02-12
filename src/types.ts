@@ -249,6 +249,8 @@ export type RuleCreate = {
   description?: string
   content: string
   enabled?: boolean
+  severity?: 'critical' | 'required' | 'standard' | 'guidance'
+  category?: string
 }
 
 export type RuleUpdate = {
@@ -256,6 +258,8 @@ export type RuleUpdate = {
   title?: string
   description?: string
   content?: string
+  severity?: 'critical' | 'required' | 'standard' | 'guidance'
+  category?: string
 }
 
 export type RuleDeleteResult = { ok: true }
