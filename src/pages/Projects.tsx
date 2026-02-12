@@ -1020,7 +1020,6 @@ function NewProjectWizard({
   const [files, setFiles] = useState<File[]>([])
 
   const [analysis, setAnalysis] = useState<ProjectIntake['analysis'][number] | null>(null)
-  const [questions, setQuestions] = useState<IntakeQuestion[]>([])
   const [analysisLoading, setAnalysisLoading] = useState(false)
   
   // Conversational questioning state
@@ -1064,41 +1063,7 @@ function NewProjectWizard({
     return { type, tags: tags.length ? tags : ['hybrid'], risks }
   }
 
-  const generateQuestions = (type: 'software' | 'ops' | 'hybrid'): IntakeQuestion[] => {
-    const base: Array<{ category: string; prompt: string }> = [
-      { category: 'Outcome', prompt: 'What does success look like for this project (measurable or concrete)?' },
-      { category: 'Users', prompt: 'Who is this for? List the primary user(s)/actor(s).' },
-      { category: 'Workflow', prompt: 'Describe the main workflow in 3–6 steps.' },
-      { category: 'Scope', prompt: 'What are the non-goals (explicitly out of scope for v1)?' },
-      { category: 'Constraints', prompt: 'Any constraints: timeline, budget, offline/local-only, devices, performance?' },
-      { category: 'Risks', prompt: 'What are the biggest unknowns or risks we should validate early?' },
-    ]
-
-    const software: Array<{ category: string; prompt: string }> = [
-      { category: 'Platform', prompt: 'What platforms: web, mobile, desktop? Single-user or multi-user?' },
-      { category: 'Data', prompt: 'What are the core objects/data entities? (e.g., Trip, List, Item, Profile)' },
-      { category: 'Integrations', prompt: 'Any integrations (GitHub, maps, payments, auth, etc.)?' },
-      { category: 'Permissions', prompt: 'Any roles/permissions/sharing rules?' },
-    ]
-
-    const ops: Array<{ category: string; prompt: string }> = [
-      { category: 'SOP', prompt: 'What is the standard process/checklist? List steps and decision points.' },
-      { category: 'Assets', prompt: 'What assets/locations are involved (tools, rooms, machines, sites)?' },
-      { category: 'Schedule', prompt: 'Does this recur on a schedule? What triggers it?' },
-      { category: 'Safety', prompt: 'Any safety rules, stop conditions, or escalation paths?' },
-    ]
-
-    const extra = type === 'software' ? software : type === 'ops' ? ops : [...software.slice(0, 2), ...ops.slice(0, 2)]
-
-    const picked = [...base, ...extra].slice(0, 10)
-
-    return picked.map((q, idx) => ({
-      id: `q-${idx + 1}`,
-      category: q.category,
-      prompt: q.prompt,
-      answer: null,
-    }))
-  }
+  // Removed - now using conversational questioning instead of generateQuestions
 
   const makeSeedTree = (type: 'software' | 'ops' | 'hybrid', citations: { kind: 'idea' | 'question'; id: string }[]): FeatureNode[] => {
     const src = (kind: 'idea' | 'question', id: string) => [{ kind, id } as const]

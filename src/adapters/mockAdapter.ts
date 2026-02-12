@@ -387,7 +387,7 @@ export const mockAdapter: Adapter = {
     return next
   },
 
-  async generateAIQuestions(idea: string, questionCount?: number) {
+  async generateAIQuestions(_idea: string, questionCount?: number) {
     await sleep(1500) // Simulate AI generation time
     const count = questionCount || 10
     return Array.from({ length: Math.min(count, 10) }).map((_, i) => ({
@@ -399,7 +399,7 @@ export const mockAdapter: Adapter = {
     }))
   },
 
-  async nextQuestion(idea: string, conversationHistory: Array<{question: string, answer: string}>) {
+  async nextQuestion(_idea: string, conversationHistory: Array<{question: string, answer: string}>) {
     await sleep(1000)
     const count = conversationHistory.length
     if (count >= 6) {
@@ -419,7 +419,7 @@ export const mockAdapter: Adapter = {
     }
   },
 
-  async questionSuggestion(question: string, context?: string, partialAnswer?: string) {
+  async questionSuggestion(_question: string, _context?: string, _partialAnswer?: string) {
     await sleep(500)
     return {
       suggestion: 'Consider focusing on the specific user persona and their workflow. What problem are they trying to solve?'
