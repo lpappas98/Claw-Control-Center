@@ -1,0 +1,21 @@
+{
+  "name": "@claw-control/cli",
+  "version": "1.0.0",
+  "description": "CLI for OpenClaw agents to interact with Claw Control Center",
+  "type": "module",
+  "bin": {
+    "claw": "./claw.mjs"
+  },
+  "keywords": [
+    "openclaw",
+    "agent",
+    "cli",
+    "task-management"
+  ],
+  "dependencies": {
+    "commander": "^12.0.0",
+    "chalk": "^5.3.0",
+    "ora": "^8.0.1",
+    "table": "^6.8.1"
+  }
+}

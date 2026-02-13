@@ -41,6 +41,11 @@ import {
   upsertTreeNode,
 } from './pmProjectsStore.mjs'
 
+import { getAgentsStore } from './agentsStore.mjs'
+import { getTasksStore } from './tasksStore.mjs'
+import { getNotificationsStore } from './notificationsStore.mjs'
+import { autoAssignTask, getAssignmentSuggestions } from './taskAssignment.mjs'
+
 const execFileAsync = promisify(execFile)
 
 const app = express()
@@ -55,6 +60,9 @@ const RULE_HISTORY_FILE = process.env.OPERATOR_HUB_RULE_HISTORY_FILE ?? path.joi
 const TASKS_FILE = process.env.OPERATOR_HUB_TASKS_FILE ?? path.join(WORKSPACE, '.clawhub', 'tasks.json')
 const INTAKE_PROJECTS_FILE = process.env.OPERATOR_HUB_INTAKE_PROJECTS_FILE ?? path.join(WORKSPACE, '.clawhub', 'intake-projects.json')
 const PM_PROJECTS_DIR = process.env.OPERATOR_HUB_PM_PROJECTS_DIR ?? path.join(WORKSPACE, '.clawhub', 'projects')
+const AGENTS_FILE = process.env.OPERATOR_HUB_AGENTS_FILE ?? path.join(WORKSPACE, '.clawhub', 'agents.json')
+const NEW_TASKS_FILE = process.env.OPERATOR_HUB_NEW_TASKS_FILE ?? path.join(WORKSPACE, '.clawhub', 'new-tasks.json')
+const NOTIFICATIONS_FILE = process.env.OPERATOR_HUB_NOTIFICATIONS_FILE ?? path.join(WORKSPACE, '.clawhub', 'notifications.json')
 
 /** @type {import('../src/types').ActivityEvent[]} */
 let activity = await loadActivity(ACTIVITY_FILE)
@@ -78,6 +86,16 @@ const intakeProjectsSaver = makeDebouncedSaver(() => saveIntakeProjects(INTAKE_P
 let tasks = await loadTasks(TASKS_FILE)
 const tasksSaver = makeDebouncedSaver(() => saveTasks(TASKS_FILE, tasks))
 let tasksSaveTimer = null
+
+// Initialize new stores (multi-agent system)
+const agentsStore = getAgentsStore(AGENTS_FILE)
+const newTasksStore = getTasksStore(NEW_TASKS_FILE)
+const notificationsStore = getNotificationsStore(NOTIFICATIONS_FILE)
+
+// Ensure stores are loaded
+await agentsStore.load()
+await newTasksStore.load()
+await notificationsStore.load()
 
 let lastGatewayHealth = null
 let lastGatewaySummary = null
@@ -1289,6 +1307,283 @@ app.post('/api/control', async (req, res) => {
   res.json(result)
 })
 
+// ====== AGENT ENDPOINTS ======
+
+app.post('/api/agents/register', async (req, res) => {
+  try {
+    const body = req.body ?? {}
+    const id = typeof body.id === 'string' ? body.id.trim() : ''
+    if (!id) return res.status(400).send('id required')
+
+    const agent = await agentsStore.upsert({
+      id,
+      name: body.name || id,
+      emoji: body.emoji || '🤖',
+      roles: Array.isArray(body.roles) ? body.roles : [],
+      model: body.model || '',
+      workspace: body.workspace || '',
+      status: body.status || 'offline',
+      instanceId: body.instanceId || '',
+      tailscaleIP: body.tailscaleIP || '',
+      currentTask: body.currentTask || null,
+      activeTasks: Array.isArray(body.activeTasks) ? body.activeTasks : [],
+      metadata: body.metadata || {}
+    })
+
+    res.json(agent)
+  } catch (err) {
+    res.status(400).send(err?.message ?? 'invalid request')
+  }
+})
+
+app.get('/api/agents', async (_req, res) => {
+  try {
+    const agents = await agentsStore.getAll()
+    res.json(agents)
+  } catch (err) {
+    res.status(400).send(err?.message ?? 'invalid request')
+  }
+})
+
+app.get('/api/agents/:id', async (req, res) => {
+  try {
+    const agent = await agentsStore.get(req.params.id)
+    if (!agent) return res.status(404).send('agent not found')
+    res.json(agent)
+  } catch (err) {
+    res.status(400).send(err?.message ?? 'invalid request')
+  }
+})
+
+app.put('/api/agents/:id/status', async (req, res) => {
+  try {
+    const body = req.body ?? {}
+    const status = typeof body.status === 'string' ? body.status : 'offline'
+    const currentTask = body.currentTask || null
+
+    const agent = await agentsStore.updateStatus(req.params.id, status, currentTask)
+    if (!agent) return res.status(404).send('agent not found')
+    res.json(agent)
+  } catch (err) {
+    res.status(400).send(err?.message ?? 'invalid request')
+  }
+})
+
+app.get('/api/agents/:id/tasks', async (req, res) => {
+  try {
+    const agent = await agentsStore.get(req.params.id)
+    if (!agent) return res.status(404).send('agent not found')
+
+    const taskIds = agent.activeTasks || []
+    const agentTasks = []
+    for (const taskId of taskIds) {
+      const task = await newTasksStore.get(taskId)
+      if (task) agentTasks.push(task)
+    }
+
+    res.json({ agent, tasks: agentTasks })
+  } catch (err) {
+    res.status(400).send(err?.message ?? 'invalid request')
+  }
+})
+
+// ====== NOTIFICATION ENDPOINTS ======
+
+app.get('/api/agents/:id/notifications', async (req, res) => {
+  try {
+    const unreadOnly = req.query.unread === 'true'
+    const notifications = await notificationsStore.getForAgent(req.params.id, { unread: unreadOnly })
+    res.json(notifications)
+  } catch (err) {
+    res.status(400).send(err?.message ?? 'invalid request')
+  }
+})
+
+app.post('/api/notifications', async (req, res) => {
+  try {
+    const body = req.body ?? {}
+    const agentId = typeof body.agentId === 'string' ? body.agentId.trim() : ''
+    if (!agentId) return res.status(400).send('agentId required')
+
+    const notification = await notificationsStore.create({
+      agentId,
+      type: body.type || 'info',
+      title: body.title || '',
+      text: body.text || '',
+      taskId: body.taskId || null,
+      projectId: body.projectId || null,
+      from: body.from || null,
+      metadata: body.metadata || {}
+    })
+
+    res.json(notification)
+  } catch (err) {
+    res.status(400).send(err?.message ?? 'invalid request')
+  }
+})
+
+app.put('/api/notifications/:id/read', async (req, res) => {
+  try {
+    const notification = await notificationsStore.markRead(req.params.id)
+    if (!notification) return res.status(404).send('notification not found')
+    res.json(notification)
+  } catch (err) {
+    res.status(400).send(err?.message ?? 'invalid request')
+  }
+})
+
+app.delete('/api/notifications/:id', async (req, res) => {
+  try {
+    const deleted = await notificationsStore.delete(req.params.id)
+    if (!deleted) return res.status(404).send('notification not found')
+    res.json({ success: true, id: req.params.id })
+  } catch (err) {
+    res.status(400).send(err?.message ?? 'invalid request')
+  }
+})
+
+// ====== TASK ENHANCEMENT ENDPOINTS ======
+
+app.post('/api/tasks/:id/assign', async (req, res) => {
+  try {
+    const taskId = req.params.id
+    const body = req.body ?? {}
+    const agentId = typeof body.agentId === 'string' ? body.agentId.trim() : ''
+    if (!agentId) return res.status(400).send('agentId required')
+
+    const task = await newTasksStore.assign(taskId, agentId, body.assignedBy || 'api')
+    if (!task) return res.status(404).send('task not found')
+
+    // Update agent's active tasks
+    const agent = await agentsStore.get(agentId)
+    if (agent) {
+      const activeTasks = [...(agent.activeTasks || []), taskId]
+      await agentsStore.updateActiveTasks(agentId, activeTasks)
+    }
+
+    // Create notification
+    if (agent) {
+      await notificationsStore.create({
+        agentId,
+        type: 'task-assigned',
+        title: 'Task assigned',
+        text: `You've been assigned: ${task.title}`,
+        taskId,
+        projectId: task.projectId,
+        from: 'manual-assign'
+      })
+    }
+
+    res.json(task)
+  } catch (err) {
+    res.status(400).send(err?.message ?? 'invalid request')
+  }
+})
+
+app.post('/api/tasks/:id/auto-assign', async (req, res) => {
+  try {
+    const task = await newTasksStore.get(req.params.id)
+    if (!task) return res.status(404).send('task not found')
+
+    const result = await autoAssignTask(task, agentsStore, newTasksStore, notificationsStore)
+    res.json(result)
+  } catch (err) {
+    res.status(400).send(err?.message ?? 'invalid request')
+  }
+})
+
+app.post('/api/tasks/:id/comment', async (req, res) => {
+  try {
+    const body = req.body ?? {}
+    const text = typeof body.text === 'string' ? body.text.trim() : ''
+    if (!text) return res.status(400).send('text required')
+
+    const by = typeof body.by === 'string' ? body.by.trim() : 'unknown'
+    const task = await newTasksStore.addComment(req.params.id, text, by)
+    if (!task) return res.status(404).send('task not found')
+    res.json(task)
+  } catch (err) {
+    res.status(400).send(err?.message ?? 'invalid request')
+  }
+})
+
+app.post('/api/tasks/:id/time', async (req, res) => {
+  try {
+    const body = req.body ?? {}
+    const agentId = typeof body.agentId === 'string' ? body.agentId.trim() : ''
+    const hours = typeof body.hours === 'number' ? body.hours : 0
+    if (!agentId) return res.status(400).send('agentId required')
+    if (hours <= 0) return res.status(400).send('hours must be positive')
+
+    const task = await newTasksStore.logTime(req.params.id, agentId, hours, body.start, body.end)
+    if (!task) return res.status(404).send('task not found')
+    res.json(task)
+  } catch (err) {
+    res.status(400).send(err?.message ?? 'invalid request')
+  }
+})
+
+app.get('/api/tasks/:id/context', async (req, res) => {
+  try {
+    const task = await newTasksStore.get(req.params.id)
+    if (!task) return res.status(404).send('task not found')
+
+    // Get dependencies
+    const dependencies = await newTasksStore.getDependencies(req.params.id)
+    const blocked = await newTasksStore.getBlockedTasks(req.params.id)
+    const subtasks = await newTasksStore.getSubtasks(req.params.id)
+
+    // Get assigned agent info
+    let agent = null
+    if (task.assignedTo) {
+      agent = await agentsStore.get(task.assignedTo)
+    }
+
+    const context = {
+      task,
+      agent,
+      dependencies,
+      blocked,
+      subtasks
+    }
+
+    res.json(context)
+  } catch (err) {
+    res.status(400).send(err?.message ?? 'invalid request')
+  }
+})
+
+app.put('/api/tasks/:id/dependencies', async (req, res) => {
+  try {
+    const body = req.body ?? {}
+    const dependsOn = Array.isArray(body.dependsOn) ? body.dependsOn : []
+    const updatedBy = body.updatedBy || 'api'
+
+    const task = await newTasksStore.updateDependencies(req.params.id, dependsOn, updatedBy)
+    if (!task) return res.status(404).send('task not found')
+    res.json(task)
+  } catch (err) {
+    res.status(400).send(err?.message ?? 'invalid request')
+  }
+})
+
+// ====== LEGACY TASK ENDPOINTS (BACKWARD COMPATIBILITY) ======
+
+// Enhanced legacy POST /api/tasks to support lane -> done transition with auto-unblock
+app.post('/api/tasks/:id/complete', async (req, res) => {
+  try {
+    const task = await newTasksStore.update(req.params.id, { lane: 'done' }, 'api')
+    if (!task) return res.status(404).send('task not found')
+
+    // Auto-unblock tasks that depend on this one
+    const unblocked = await newTasksStore.handleCompletion(req.params.id)
+
+    res.json({ task, unblocked })
+  } catch (err) {
+    res.status(400).send(err?.message ?? 'invalid request')
+  }
+})
+
 app.get('/healthz', (_req, res) => res.send('ok'))
 
 async function flushActivityOnExit() {
@@ -1302,6 +1597,13 @@ async function flushActivityOnExit() {
     await ruleHistorySaver.flush()
     await tasksSaver.flush()
     await intakeProjectsSaver.flush()
+  } catch {
+    // best-effort
+  }
+  try {
+    await agentsStore.save()
+    await newTasksStore.save()
+    await notificationsStore.save()
   } catch {
     // best-effort
   }
