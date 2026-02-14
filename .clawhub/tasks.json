@@ -273,7 +273,7 @@
   {
     "id": "task-454d2a9718497-1771056177712",
     "title": "Add idle/working status distinction for agents in UI",
-    "lane": "development",
+    "lane": "review",
     "priority": "P1",
     "owner": "dev-2",
     "problem": "Agents show as online even when idle. No way to tell if an agent is actively working on a task vs just heartbeating",
@@ -289,7 +289,7 @@
       "Test: complete task, verify status changes back to idle"
     ],
     "createdAt": "2026-02-14T08:02:57.712Z",
-    "updatedAt": "2026-02-14T13:28:41.640065Z",
+    "updatedAt": "2026-02-14T13:32:42.021081Z",
     "statusHistory": [
       {
         "at": "2026-02-14T12:05:05.839Z",
@@ -319,6 +319,12 @@
         "from": "queued",
         "to": "development",
         "note": "picked up by Patch"
+      },
+      {
+        "at": "2026-02-14T13:32:42.021111Z",
+        "from": "development",
+        "to": "review",
+        "note": "Work complete - ready for integration testing"
       }
     ]
   },

@@ -22,6 +22,19 @@ function getStatusVariant(status: Agent['status']): 'default' | 'secondary' | 'd
   }
 }
 
+function getStatusLabel(status: Agent['status']): string {
+  switch (status) {
+    case 'online':
+      return 'Online'
+    case 'busy':
+      return 'Busy'
+    case 'offline':
+      return 'Offline'
+    default:
+      return 'Unknown'
+  }
+}
+
 export function AgentTile({ agent, currentTask, onClick, isSelected = false }: AgentTileProps) {
   const statusVariant = getStatusVariant(agent.status)
   const statusLabel = getStatusLabel(agent.status)

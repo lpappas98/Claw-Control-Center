@@ -1,5 +1,12 @@
 [
   {
+    "id": "bridge-be12e69a7dc76-1771075862539",
+    "at": "2026-02-14T13:31:02.539Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
     "id": "bridge-3e860d061636a-1771071203029",
     "at": "2026-02-14T12:13:23.029Z",
     "level": "info",
@@ -5512,19 +5519,6 @@
       "workerSlot": "dev-2",
       "worker": "Patch",
       "startedAt": "2026-02-11T03:21:52.922Z"
-    }
-  },
-  {
-    "id": "task-created-00c02fbf5e25d-1770780114106",
-    "at": "2026-02-11T03:21:52.922Z",
-    "level": "info",
-    "source": "tasks",
-    "message": "task created: Polishing layout, spacing, and status clarity",
-    "meta": {
-      "eventType": "task.created",
-      "task": "Polishing layout, spacing, and status clarity",
-      "workerSlot": "dev-2",
-      "worker": "Patch"
     }
   }
 ]
