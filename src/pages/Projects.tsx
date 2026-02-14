@@ -1423,7 +1423,7 @@ export function Projects({ adapter: _adapter }: { adapter: Adapter }) {
 
             <div className="projects-main-body">
               {tab === 'Overview' ? <Overview project={active} /> : null}
-              {tab === 'Tree' ? <TreeView project={active} onOpen={(n) => setDrawer(n)} /> : null}
+              {tab === 'Tree' ? <TreeView project={active} onOpen={(n) => setSelectedFeatureId(n.id)} /> : null}
               {tab === 'Kanban' ? <KanbanBoard project={active} onOpenFeature={(n) => setDrawer(n)} /> : null}
             </div>
 

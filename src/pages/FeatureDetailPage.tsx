@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/Badge'
+import { Badge } from '@/components/ui/badge'
 import {
   ArrowLeft,
   AlertCircle,
