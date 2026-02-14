@@ -13,10 +13,13 @@ import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
+import { DependencyGraph } from './DependencyGraph'
+import { TimeTrackingPanel } from './TimeTrackingPanel'
 
 interface TaskDetailModalProps {
   task: AgentTask
   agents: Agent[]
+  allTasks?: AgentTask[]
   onClose: () => void
   onTaskUpdated?: (task: AgentTask) => void
   onTaskDeleted?: () => void
@@ -28,6 +31,7 @@ const PRIORITIES: TaskPriority[] = ['P0', 'P1', 'P2', 'P3']
 export function TaskDetailModal({
   task,
   agents,
+  allTasks = [],
   onClose,
   onTaskUpdated,
   onTaskDeleted,
@@ -318,6 +322,32 @@ export function TaskDetailModal({
               </div>
             </>
           ) : null}
+
+          {/* Dependency Graph */}
+          {allTasks.length > 0 && (
+            <>
+              <Separator />
+              <DependencyGraph
+                task={task}
+                allTasks={allTasks}
+              />
+            </>
+          )}
+
+          {/* Time Tracking */}
+          <>
+            <Separator />
+            <TimeTrackingPanel
+              taskId={task.id}
+              estimatedHours={task.estimatedHours}
+              actualHours={task.actualHours}
+              timeLogs={task.timeLogs}
+              onAddTimeLog={async (hours, note) => {
+                const updated = await api.addTimeLog(task.id, hours, note)
+                onTaskUpdated?.(updated)
+              }}
+            />
+          </>
         </div>
 
         <DialogFooter>
