@@ -1,0 +1,201 @@
+{
+  "schemaVersion": 1,
+  "features": {
+    "feat-1": {
+      "id": "feat-1",
+      "acceptanceCriteria": [
+        {
+          "id": "ac1",
+          "text": "Dashboard loads within 2 seconds",
+          "done": false
+        },
+        {
+          "id": "ac2",
+          "text": "Responsive design works on mobile/tablet/desktop",
+          "done": true
+        },
+        {
+          "id": "ac3",
+          "text": "All widgets display correct data from backend",
+          "done": false
+        }
+      ],
+      "aiContext": {
+        "reasoning": "The Home Dashboard is a critical entry point for users. It needs to display personalized content including active trips, saved places, and trending destinations. The dashboard should load quickly and be responsive across all device types.",
+        "confidence": 92,
+        "generatedAt": "2026-02-13T10:30:00.000Z",
+        "model": "TARS"
+      },
+      "tasks": [
+        {
+          "id": "task-feat1-1",
+          "title": "Design dashboard layout",
+          "status": "done",
+          "priority": "p0",
+          "assignee": "alice",
+          "tag": "design"
+        },
+        {
+          "id": "task-feat1-2",
+          "title": "Implement widget components",
+          "status": "in_progress",
+          "priority": "p0",
+          "assignee": "bob",
+          "tag": "frontend"
+        },
+        {
+          "id": "task-feat1-3",
+          "title": "Connect to backend APIs",
+          "status": "planned",
+          "priority": "p0",
+          "assignee": "charlie",
+          "tag": "backend"
+        },
+        {
+          "id": "task-feat1-4",
+          "title": "Performance optimization",
+          "status": "planned",
+          "priority": "p1",
+          "assignee": null,
+          "tag": "optimization"
+        }
+      ]
+    },
+    "feat-2": {
+      "id": "feat-2",
+      "acceptanceCriteria": [
+        {
+          "id": "ac1",
+          "text": "Search returns results in <500ms",
+          "done": true
+        },
+        {
+          "id": "ac2",
+          "text": "Real-time suggestions update as user types",
+          "done": false
+        },
+        {
+          "id": "ac3",
+          "text": "Handles queries for cities, countries, and locations",
+          "done": true
+        }
+      ],
+      "aiContext": {
+        "reasoning": "Smart Search is a core feature that enables users to quickly find destinations. Integration with Google Places API provides real-time suggestions. Caching improves performance for repeated searches.",
+        "confidence": 88,
+        "generatedAt": "2026-02-13T10:45:00.000Z",
+        "model": "TARS"
+      },
+      "tasks": [
+        {
+          "id": "task-feat2-1",
+          "title": "Integrate Google Places API",
+          "status": "done",
+          "priority": "p0",
+          "assignee": "dave",
+          "tag": "integration"
+        },
+        {
+          "id": "task-feat2-2",
+          "title": "Implement local caching",
+          "status": "done",
+          "priority": "p0",
+          "assignee": "eve",
+          "tag": "backend"
+        },
+        {
+          "id": "task-feat2-3",
+          "title": "Build suggestion UI component",
+          "status": "in_progress",
+          "priority": "p0",
+          "assignee": "frank",
+          "tag": "frontend"
+        },
+        {
+          "id": "task-feat2-4",
+          "title": "Add rate limiting",
+          "status": "planned",
+          "priority": "p1",
+          "assignee": null,
+          "tag": "backend"
+        }
+      ]
+    },
+    "feat-8": {
+      "id": "feat-8",
+      "acceptanceCriteria": [
+        {
+          "id": "ac1",
+          "text": "At least 3 authentication methods implemented",
+          "done": false
+        },
+        {
+          "id": "ac2",
+          "text": "Secure token storage on client",
+          "done": false
+        },
+        {
+          "id": "ac3",
+          "text": "Session management working properly",
+          "done": false
+        }
+      ],
+      "aiContext": {
+        "reasoning": "Multiple sign-in options reduce friction for new users. Supporting email, Google, Apple, Facebook, and SMS provides broad coverage. Session management must be secure with proper token refresh.",
+        "confidence": 95,
+        "generatedAt": "2026-02-13T11:00:00.000Z",
+        "model": "TARS"
+      },
+      "tasks": [
+        {
+          "id": "task-feat8-1",
+          "title": "Setup Firebase authentication",
+          "status": "done",
+          "priority": "p0",
+          "assignee": "grace",
+          "tag": "backend"
+        },
+        {
+          "id": "task-feat8-2",
+          "title": "Implement email/password auth",
+          "status": "in_progress",
+          "priority": "p0",
+          "assignee": "henry",
+          "tag": "backend"
+        },
+        {
+          "id": "task-feat8-3",
+          "title": "Add Google Sign-In",
+          "status": "in_progress",
+          "priority": "p0",
+          "assignee": "ivy",
+          "tag": "integration"
+        },
+        {
+          "id": "task-feat8-4",
+          "title": "Add Apple Sign-In",
+          "status": "planned",
+          "priority": "p0",
+          "assignee": null,
+          "tag": "integration"
+        },
+        {
+          "id": "task-feat8-5",
+          "title": "Add Facebook auth",
+          "status": "planned",
+          "priority": "p1",
+          "assignee": null,
+          "tag": "integration"
+        },
+        {
+          "id": "task-feat8-6",
+          "title": "SMS verification",
+          "status": "planned",
+          "priority": "p1",
+          "assignee": null,
+          "tag": "backend"
+        }
+      ]
+    }
+  }
+}

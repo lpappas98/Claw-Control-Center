@@ -34,6 +34,7 @@
     "react-day-picker": "^9.13.2",
     "react-dom": "^19.2.0",
     "react-hook-form": "^7.71.1",
+    "react-router-dom": "^7.13.0",
     "winston": "^3.19.0",
     "ws": "^8.19.0",
     "zod": "^4.3.6"

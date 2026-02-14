@@ -2,7 +2,7 @@
   {
     "id": "task-89d5d4f1974da-1771070537948",
     "title": "Implement Feature Detail page with sub-features, tasks, and AI context",
-    "lane": "queued",
+    "lane": "development",
     "priority": "P0",
     "owner": "dev-1",
     "problem": "Need feature detail page from file_119: breadcrumb nav, feature header with stats, acceptance criteria checklist, AI context card, dependency chain, expandable sub-features with task tables, activity sidebar",
@@ -28,8 +28,14 @@
       "Screenshot matches file_119 design"
     ],
     "createdAt": "2026-02-14T12:02:17.948Z",
-    "updatedAt": "2026-02-14T12:02:17.948Z",
+    "updatedAt": "2026-02-14T12:07:33.673Z",
     "statusHistory": [
+      {
+        "at": "2026-02-14T12:07:33.673Z",
+        "from": "queued",
+        "to": "development",
+        "note": "updated"
+      },
       {
         "at": "2026-02-14T12:02:17.948Z",
         "to": "queued",
@@ -75,7 +81,7 @@
   {
     "id": "task-9157ec57506e4-1771070504558",
     "title": "Implement redesigned Activity page with filters, stats, and event grouping",
-    "lane": "development",
+    "lane": "review",
     "priority": "P0",
     "owner": "dev-2",
     "problem": "Current Activity page is basic. Need polished redesign from file_118 with comprehensive filtering, event grouping, statistics bar, and expandable event details",
@@ -99,8 +105,14 @@
       "Screenshot matches file_118 design"
     ],
     "createdAt": "2026-02-14T12:01:44.558Z",
-    "updatedAt": "2026-02-14T12:02:28.270Z",
+    "updatedAt": "2026-02-14T12:04:17.484Z",
     "statusHistory": [
+      {
+        "at": "2026-02-14T12:04:17.484Z",
+        "from": "development",
+        "to": "review",
+        "note": "updated"
+      },
       {
         "at": "2026-02-14T12:02:28.270Z",
         "from": "queued",
@@ -243,7 +255,7 @@
   {
     "id": "task-454d2a9718497-1771056177712",
     "title": "Add idle/working status distinction for agents in UI",
-    "lane": "blocked",
+    "lane": "queued",
     "priority": "P1",
     "owner": "dev-2",
     "problem": "Agents show as online even when idle. No way to tell if an agent is actively working on a task vs just heartbeating",
@@ -259,8 +271,14 @@
       "Test: complete task, verify status changes back to idle"
     ],
     "createdAt": "2026-02-14T08:02:57.712Z",
-    "updatedAt": "2026-02-14T08:24:49.809Z",
+    "updatedAt": "2026-02-14T12:05:05.839Z",
     "statusHistory": [
+      {
+        "at": "2026-02-14T12:05:05.839Z",
+        "from": "blocked",
+        "to": "queued",
+        "note": "updated"
+      },
       {
         "at": "2026-02-14T08:24:49.809Z",
         "from": "development",
