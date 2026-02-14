@@ -943,6 +943,52 @@ app.put('/api/tasks/:id', async (req, res) => {
   if (global.broadcastWS) global.broadcastWS("task-updated", next)
 })
 
+app.delete('/api/tasks/:id', async (req, res) => {
+  const id = req.params.id
+  const idx = tasks.findIndex((t) => t.id === id)
+  if (idx < 0) return res.status(404).send('task not found')
+
+  const deleted = tasks[idx]
+  tasks = [...tasks.slice(0, idx), ...tasks.slice(idx + 1)]
+  scheduleTasksSave()
+  res.json({ success: true, deleted })
+  // Broadcast task deletion
+  if (global.broadcastWS) global.broadcastWS("task-deleted", deleted)
+})
+
+app.post('/api/tasks/:id/comment', async (req, res) => {
+  const id = req.params.id
+  const idx = tasks.findIndex((t) => t.id === id)
+  if (idx < 0) return res.status(404).send('task not found')
+
+  const body = req.body ?? {}
+  const text = typeof body.text === 'string' ? body.text.trim() : ''
+  const author = typeof body.author === 'string' ? body.author.trim() : 'unknown'
+  if (!text) return res.status(400).send('comment text required')
+
+  const now = new Date().toISOString()
+  const comment = {
+    id: `comment-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+    text,
+    author,
+    createdAt: now
+  }
+
+  const task = tasks[idx]
+  const comments = Array.isArray(task.comments) ? task.comments : []
+  const updated = {
+    ...task,
+    comments: [...comments, comment],
+    updatedAt: now
+  }
+
+  tasks = [...tasks.slice(0, idx), updated, ...tasks.slice(idx + 1)]
+  scheduleTasksSave()
+  res.json({ success: true, comment, task: updated })
+  // Broadcast task update
+  if (global.broadcastWS) global.broadcastWS("task-updated", updated)
+})
+
 // ---- PM/PO Intake Projects ----
 app.get('/api/intake/projects', async (_req, res) => {
   const sorted = intakeProjects.slice().sort((a, b) => (b.updatedAt ?? '').localeCompare(a.updatedAt ?? ''))
