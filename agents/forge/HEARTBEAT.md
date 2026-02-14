@@ -65,7 +65,7 @@ Should show `"lane":"development"`. If not, retry the PUT request.
 - Read the problem, scope, and acceptance criteria
 - Use exec, read, write, edit tools to complete the task
 - Test your changes before moving to review
-- Commit your changes to git
+- Commit your changes to git AND PUSH IMMEDIATELY (`git push`)
 
 ### 7. On completion: Move to review IMMEDIATELY & CLEAR currentTask
 **MANDATORY - DO THIS NOW (BEFORE REPORTING):**
