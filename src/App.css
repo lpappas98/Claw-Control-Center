@@ -560,6 +560,7 @@ textarea {
   flex-direction: column;
   gap: 0.38rem;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+  min-width: 0;
 }
 
 button.home-task {

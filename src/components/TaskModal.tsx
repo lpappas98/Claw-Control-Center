@@ -98,18 +98,18 @@ export function TaskModal({
 
   return (
     <Dialog open={true} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-[#0d1426] border border-[#33406a]">
         <DialogHeader>
           <div className="space-y-2">
-            <div className="text-xs text-slate-500">
-              task <code className="bg-slate-100 px-2 py-1 rounded">{task.id}</code>
+            <div className="text-xs text-slate-400">
+              task <code className="bg-[#161b2f] px-2 py-1 rounded text-slate-300 border border-[#33406a]">{task.id}</code>
             </div>
-            <DialogTitle>{task.title}</DialogTitle>
+            <DialogTitle className="text-[#f2f4f8]">{task.title}</DialogTitle>
           </div>
         </DialogHeader>
 
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded p-3 text-sm text-red-800">
+          <div className="bg-red-900/20 border border-red-800/50 rounded p-3 text-sm text-red-300">
             <strong>Task error:</strong> {error}
           </div>
         )}
@@ -117,16 +117,20 @@ export function TaskModal({
         <div className="space-y-4 py-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-700">Title</label>
-              <Input value={draftTitle} onChange={(e) => setDraftTitle(e.target.value)} />
+              <label className="text-sm font-medium text-slate-300">Title</label>
+              <Input 
+                value={draftTitle} 
+                onChange={(e) => setDraftTitle(e.target.value)}
+                className="bg-[#161b2f] border-[#33406a] text-[#f2f4f8]"
+              />
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-700">Lane</label>
+              <label className="text-sm font-medium text-slate-300">Lane</label>
               <select
                 value={draftLane}
                 onChange={(e) => setDraftLane(e.target.value as BoardLane)}
-                className="h-10 w-full px-3 py-2 rounded-md border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-950 text-sm"
+                className="h-10 w-full px-3 py-2 rounded-md border border-[#33406a] bg-[#161b2f] text-[#f2f4f8] focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
               >
                 {LANES.map((l) => (
                   <option value={l} key={l}>
@@ -137,11 +141,11 @@ export function TaskModal({
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-700">Priority</label>
+              <label className="text-sm font-medium text-slate-300">Priority</label>
               <select
                 value={draftPriority}
                 onChange={(e) => setDraftPriority(e.target.value as Priority)}
-                className="h-10 w-full px-3 py-2 rounded-md border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-950 text-sm"
+                className="h-10 w-full px-3 py-2 rounded-md border border-[#33406a] bg-[#161b2f] text-[#f2f4f8] focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
               >
                 {PRIORITIES.map((p) => (
                   <option value={p} key={p}>
@@ -152,59 +156,63 @@ export function TaskModal({
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-700">Owner</label>
+              <label className="text-sm font-medium text-slate-300">Owner</label>
               <Input
                 value={draftOwner}
                 onChange={(e) => setDraftOwner(e.target.value)}
                 placeholder="optional"
+                className="bg-[#161b2f] border-[#33406a] text-[#f2f4f8] placeholder:text-slate-500"
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium text-slate-700">Problem</label>
+            <label className="text-sm font-medium text-slate-300">Problem</label>
             <Textarea
               value={draftProblem}
               onChange={(e) => setDraftProblem(e.target.value)}
               rows={3}
               placeholder="why does this task exist?"
+              className="bg-[#161b2f] border-[#33406a] text-[#f2f4f8] placeholder:text-slate-500"
             />
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium text-slate-700">Scope</label>
+            <label className="text-sm font-medium text-slate-300">Scope</label>
             <Textarea
               value={draftScope}
               onChange={(e) => setDraftScope(e.target.value)}
               rows={4}
               placeholder="what is in/out?"
+              className="bg-[#161b2f] border-[#33406a] text-[#f2f4f8] placeholder:text-slate-500"
             />
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium text-slate-700">Acceptance criteria (one per line)</label>
+            <label className="text-sm font-medium text-slate-300">Acceptance criteria (one per line)</label>
             <Textarea
               value={draftAcceptanceRaw}
               onChange={(e) => setDraftAcceptanceRaw(e.target.value)}
               rows={6}
+              className="bg-[#161b2f] border-[#33406a] text-[#f2f4f8]"
             />
           </div>
 
-          <div className="text-xs text-slate-500 bg-slate-50 p-3 rounded">
+          <div className="text-xs text-slate-400 bg-[#161b2f] border border-[#33406a] p-3 rounded">
             created: {fmtWhen(task.createdAt)} · updated: {fmtWhen(task.updatedAt)} · history: {task.statusHistory?.length ?? 0} events
           </div>
 
           <details className="space-y-2" open>
-            <summary className="font-medium text-sm cursor-pointer">Status history</summary>
+            <summary className="font-medium text-sm cursor-pointer text-slate-300 hover:text-slate-200">▸ Status history</summary>
             <div className="space-y-2 mt-2">
               {(task.statusHistory ?? []).map((h, idx) => (
-                <div key={`${h.at}-${idx}`} className="border border-slate-200 rounded p-2 text-sm">
-                  <div className="font-medium">
+                <div key={`${h.at}-${idx}`} className="border border-[#33406a] bg-[#161b2f] rounded p-3 text-sm">
+                  <div className="font-medium text-[#f2f4f8]">
                     {h.to}
-                    {h.from ? <span className="text-slate-500 font-normal"> (from {h.from})</span> : null}
+                    {h.from ? <span className="text-slate-400 font-normal"> (from {h.from})</span> : null}
                   </div>
-                  <div className="text-slate-600">{h.note ?? '—'}</div>
-                  <div className="text-xs text-slate-500">{fmtWhen(h.at)}</div>
+                  <div className="text-slate-300 mt-1">{h.note ?? '—'}</div>
+                  <div className="text-xs text-slate-500 mt-1">{fmtWhen(h.at)}</div>
                 </div>
               ))}
               {(task.statusHistory?.length ?? 0) === 0 && (
@@ -214,9 +222,9 @@ export function TaskModal({
           </details>
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="border-t border-[#33406a] pt-4">
           <div className="w-full">
-            <div className="text-xs text-slate-500 mb-3">
+            <div className="text-xs text-slate-400 mb-3">
               Saving lane changes will append a history entry.
             </div>
             <div className="flex gap-2 justify-end">
