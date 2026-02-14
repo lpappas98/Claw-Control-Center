@@ -548,13 +548,23 @@ app.get('/api/live', async (_req, res) => {
   const nowMs = Date.now()
   const nowIso = new Date(nowMs).toISOString()
 
-  const candidates = [
-    path.join(WORKSPACE, 'worker-heartbeats.json'),
-    path.join(WORKSPACE, '.clawhub', 'worker-heartbeats.json'),
-  ]
+  // Get workers from agents store (new system) instead of worker-heartbeats.json
+  const agents = await agentsStore.getAll()
+  const workers = agents.map(agent => {
+    const lastBeatIso = agent.lastHeartbeat ? new Date(agent.lastHeartbeat).toISOString() : undefined
+    return {
+      slot: agent.id,
+      label: agent.name,
+      status: agent.status === 'online' ? 'active' : agent.status === 'busy' ? 'active' : 'offline',
+      task: agent.currentTask || undefined,
+      lastBeatAt: lastBeatIso,
+      beats: lastBeatIso ? [{ at: lastBeatIso }] : []
+    }
+  })
 
-  const [status, workers, watchdog] = await Promise.all([getStatus(), listWorkersFromCandidates(candidates, nowMs), getHeartbeatDiagnostics(candidates, nowMs)])
+  const status = await getStatus()
   const blockers = computeBlockersFrom({ status, workers, workspace: WORKSPACE, now: new Date(nowMs) })
+  const watchdog = { health: 'unknown', summary: 'using new agent system' }
   recordTaskLifecycle(workers, nowMs)
 
   res.json({ updatedAt: nowIso, status, workers, blockers, watchdog })
