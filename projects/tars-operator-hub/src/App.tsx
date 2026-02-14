@@ -5,11 +5,13 @@ import { Projects } from './pages/Projects'
 import { Activity } from './pages/Activity'
 import { Rules } from './pages/Rules'
 import { Config } from './pages/Config'
+import { KanbanPage } from './pages/KanbanPage'
+import { AgentsPage } from './pages/AgentsPage'
 import { loadAdapterConfig, saveAdapterConfig, toAdapter, type AdapterConfig } from './lib/adapterState'
 
-type NavTab = 'Mission Control' | 'Projects' | 'Activity' | 'Rules' | 'Config' | 'Docs'
+type NavTab = 'Mission Control' | 'Projects' | 'Activity' | 'Kanban' | 'Agents' | 'Rules' | 'Config' | 'Docs'
 
-const tabs: NavTab[] = ['Mission Control', 'Projects', 'Activity', 'Rules', 'Config', 'Docs']
+const tabs: NavTab[] = ['Mission Control', 'Projects', 'Activity', 'Kanban', 'Agents', 'Rules', 'Config', 'Docs']
 
 const NAV_TAB_KEY = 'tars.operatorHub.navTab'
 
@@ -34,6 +36,7 @@ function saveNavTab(tab: NavTab) {
 export default function App() {
   const [tab, setTab] = useState<NavTab>(() => loadNavTab())
   const [cfg, setCfg] = useState<AdapterConfig>(() => loadAdapterConfig())
+  const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null)
 
   const adapter = useMemo(() => toAdapter(cfg), [cfg])
 
@@ -87,6 +90,16 @@ export default function App() {
       {tab === 'Mission Control' && <MissionControl adapter={adapter} cfg={cfg} onCfg={updateCfg} />}
       {tab === 'Projects' && <Projects adapter={adapter} />}
       {tab === 'Activity' && <Activity adapter={adapter} />}
+      {tab === 'Kanban' && <KanbanPage selectedAgentId={selectedAgentId} />}
+      {tab === 'Agents' && (
+        <AgentsPage
+          selectedAgentId={selectedAgentId}
+          onSelectAgent={(agentId) => {
+            setSelectedAgentId(agentId)
+            setTab('Kanban')
+          }}
+        />
+      )}
       {tab === 'Rules' && <Rules adapter={adapter} />}
       {tab === 'Config' && <Config adapter={adapter} />}
       {tab === 'Docs' && (

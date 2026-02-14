@@ -258,3 +258,78 @@ export type ModelSetResult = {
   message: string
   defaultModel?: string
 }
+
+// ---- Multi-Agent Task Management ----
+export type TaskStatus = 'queued' | 'development' | 'review' | 'blocked' | 'done'
+
+export type TaskPriority = 'P0' | 'P1' | 'P2' | 'P3'
+
+export type AgentStatus = 'online' | 'offline' | 'busy'
+
+export type Agent = {
+  id: string
+  name: string
+  emoji: string
+  role: string
+  status: AgentStatus
+  lastSeenAt: string
+  currentTaskId?: string
+  workload: number // number of active tasks
+  tags?: string[]
+}
+
+export type TaskComment = {
+  id: string
+  agentId: string
+  text: string
+  createdAt: string
+}
+
+export type TimeLog = {
+  id: string
+  agentId: string
+  hours: number
+  note?: string
+  loggedAt: string
+}
+
+export type TaskDependency = {
+  id: string
+  dependsOnTaskId: string
+  dependsOnTask?: Task
+  blockedByTaskId?: string
+}
+
+export type AgentTask = {
+  id: string
+  title: string
+  description?: string
+  status: TaskStatus
+  priority: TaskPriority
+  assigneeId?: string
+  assignee?: Agent
+  estimatedHours?: number
+  actualHours?: number
+  tags?: string[]
+  projectId?: string
+  createdAt: string
+  updatedAt: string
+  comments?: TaskComment[]
+  timeLogs?: TimeLog[]
+  dependencies?: TaskDependency[]
+  blockedBy?: string[] // task ids that block this
+  blocks?: string[] // task ids that this blocks
+  subtaskCount?: number
+  commentCount?: number
+}
+
+export type Notification = {
+  id: string
+  agentId: string
+  type: 'task_assigned' | 'task_commented' | 'task_blocked' | 'task_completed' | 'status_change'
+  title: string
+  message: string
+  taskId?: string
+  read: boolean
+  createdAt: string
+}
