@@ -13,7 +13,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // Configuration
 const BRIDGE_URL = process.env.BRIDGE_URL || 'http://localhost:8787';
-const HEARTBEAT_INTERVAL_MS = 15 * 60 * 1000; // 15 minutes
+const HEARTBEAT_INTERVAL_MS = 30 * 1000; // 30 seconds
 const WORKSPACE_DIR = process.env.AGENT_WORKSPACE || process.cwd();
 
 // Read agent identity
