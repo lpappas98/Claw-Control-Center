@@ -1170,6 +1170,49 @@ app.delete('/api/pm/projects/:id/tree/nodes/:nodeId', async (req, res) => {
   }
 })
 
+// Features
+app.get('/api/pm/projects/:projectId/features/:featureId', async (req, res) => {
+  try {
+    const feature = await getFeatureDetail(PM_PROJECTS_DIR, req.params.projectId, req.params.featureId)
+    if (!feature) return res.status(404).send('feature not found')
+    res.json(feature)
+  } catch (err) {
+    res.status(400).send(err?.message ?? 'invalid request')
+  }
+})
+
+app.get('/api/pm/projects/:projectId/features/:featureId/subfeatures', async (req, res) => {
+  try {
+    const result = await getFeatureSubFeatures(PM_PROJECTS_DIR, req.params.projectId, req.params.featureId)
+    if (!result) return res.status(404).send('feature not found')
+    res.json(result)
+  } catch (err) {
+    res.status(400).send(err?.message ?? 'invalid request')
+  }
+})
+
+app.patch('/api/pm/projects/:projectId/features/:featureId/criteria/:index', async (req, res) => {
+  try {
+    const index = parseInt(req.params.index, 10)
+    const done = req.body?.done ?? false
+    const updated = await updateAcceptanceCriteria(PM_PROJECTS_DIR, req.params.projectId, req.params.featureId, index, done)
+    if (!updated) return res.status(404).send('criteria not found')
+    res.json(updated)
+  } catch (err) {
+    res.status(400).send(err?.message ?? 'invalid request')
+  }
+})
+
+app.post('/api/pm/projects/:projectId/features/:featureId/regenerate', async (req, res) => {
+  try {
+    const aiContext = await regenerateAiContext(PM_PROJECTS_DIR, req.params.projectId, req.params.featureId)
+    if (!aiContext) return res.status(404).send('feature not found')
+    res.json(aiContext)
+  } catch (err) {
+    res.status(400).send(err?.message ?? 'invalid request')
+  }
+})
+
 // Cards
 app.get('/api/pm/projects/:id/cards', async (req, res) => {
   try {
