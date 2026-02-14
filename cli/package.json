@@ -12,5 +12,10 @@
   "keywords": ["claw", "task-management", "cli"],
   "author": "",
   "license": "MIT",
-  "dependencies": {}
+  "dependencies": {
+    "commander": "^12.0.0",
+    "chalk": "^5.3.0",
+    "ora": "^8.0.1",
+    "table": "^6.8.1"
+  }
 }
