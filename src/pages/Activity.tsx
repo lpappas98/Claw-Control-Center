@@ -7,7 +7,6 @@ import { Badge } from '../components/Badge'
 import { CopyButton } from '../components/CopyButton'
 
 const levels: ActivityLevel[] = ['info', 'warn', 'error']
-
 type Severity = 'Low' | 'Medium' | 'High'
 const severities: Severity[] = ['Low', 'Medium', 'High']
 
@@ -48,11 +47,14 @@ function getType(e: ActivityEvent): string {
   return safeString(m.type) || safeString(m.eventType) || safeString(m.kind) || safeString(m.action) || ''
 }
 
+function getSource(e: ActivityEvent): string {
+  return e.source || ''
+}
+
 function getSeverity(e: ActivityEvent): Severity {
   const m = getMeta(e)
   const raw = safeString(m.severity)
   if (raw === 'High' || raw === 'Medium' || raw === 'Low') return raw
-  // Fallback: treat event level as a coarse severity.
   if (e.level === 'error') return 'High'
   if (e.level === 'warn') return 'Medium'
   return 'Low'
@@ -82,7 +84,6 @@ function extractTimeline(e: ActivityEvent): TimelineItem[] {
   const meta = getMeta(e)
   const items: TimelineItem[] = []
 
-  // 1) explicit timeline array
   const tl = meta.timeline
   if (Array.isArray(tl)) {
     for (const raw of tl) {
@@ -96,7 +97,6 @@ function extractTimeline(e: ActivityEvent): TimelineItem[] {
     }
   }
 
-  // 2) common timestamp keys (meta-driven)
   const knownKeys: Array<[string, string]> = [
     ['createdAt', 'created'],
     ['queuedAt', 'queued'],
@@ -110,15 +110,12 @@ function extractTimeline(e: ActivityEvent): TimelineItem[] {
   for (const [key, label] of knownKeys) {
     const at = safeString(meta[key])
     if (!at) continue
-    // avoid duplicating if timeline already has this timestamp
     if (items.some((it) => it.at === at)) continue
     items.push({ label, at })
   }
 
-  // 3) ensure base event time is present
   if (!items.some((it) => it.at === e.at)) items.unshift({ label: 'at', at: e.at })
 
-  // Sort ascending when possible.
   const parse = (s: string) => {
     const n = Date.parse(s)
     return Number.isFinite(n) ? n : null
@@ -135,58 +132,177 @@ function extractTimeline(e: ActivityEvent): TimelineItem[] {
   return items
 }
 
+// Event grouping: consecutive identical events are grouped
+interface GroupedEvent {
+  id: string
+  events: ActivityEvent[]
+  count: number
+  first: ActivityEvent
+  expanded: boolean
+}
+
+function groupConsecutiveEvents(events: ActivityEvent[]): GroupedEvent[] {
+  if (events.length === 0) return []
+
+  const groups: GroupedEvent[] = []
+  let currentGroup: ActivityEvent[] = [events[0]]
+
+  for (let i = 1; i < events.length; i++) {
+    const prev = events[i - 1]
+    const curr = events[i]
+
+    const prevKey = `${getSource(prev)}|${getActor(prev)}|${getType(prev)}|${curr.message}`
+    const currKey = `${getSource(curr)}|${getActor(curr)}|${getType(curr)}|${curr.message}`
+
+    if (prevKey === currKey) {
+      currentGroup.push(curr)
+    } else {
+      groups.push({
+        id: currentGroup[0].id,
+        events: currentGroup,
+        count: currentGroup.length,
+        first: currentGroup[0],
+        expanded: false,
+      })
+      currentGroup = [curr]
+    }
+  }
+
+  if (currentGroup.length > 0) {
+    groups.push({
+      id: currentGroup[0].id,
+      events: currentGroup,
+      count: currentGroup.length,
+      first: currentGroup[0],
+      expanded: false,
+    })
+  }
+
+  return groups
+}
+
+// Type-based color coding
+function getTypeColor(type: string): string {
+  const colorMap: Record<string, string> = {
+    'task.created': '#3b82f6',
+    'task.assigned': '#10b981',
+    'task.completed': '#8b5cf6',
+    'task.updated': '#f59e0b',
+    'error': '#ef4444',
+    'warn': '#f59e0b',
+    'info': '#3b82f6',
+  }
+  return colorMap[type] || '#6b7280'
+}
+
+function getLevelIcon(level: string): string {
+  switch (level) {
+    case 'error': return '⚠️'
+    case 'warn': return '⚡'
+    case 'info': return 'ℹ️'
+    default: return '•'
+  }
+}
+
 export function Activity({ adapter }: { adapter: Adapter }) {
-  const [level, setLevel] = useState<ActivityLevel | 'all'>('all')
-  const [severity, setSeverity] = useState<Severity | 'all'>('all')
-  const [actor, setActor] = useState<string>('all')
-  const [type, setType] = useState<string>('all')
+  const [sourceFilter, setSourceFilter] = useState<string>('all')
+  const [actorFilter, setActorFilter] = useState<string>('all')
+  const [typeFilter, setTypeFilter] = useState<string>('all')
   const [q, setQ] = useState('')
-  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [groupDuplicates, setGroupDuplicates] = useState(true)
+  const [expandedGroupIds, setExpandedGroupIds] = useState<Set<string>>(new Set())
 
   const fn = useCallback(() => adapter.listActivity(250), [adapter])
   const { data, error, loading, refreshing, lastSuccessAt } = usePoll(fn, 5000)
 
-  const { actors, types } = useMemo(() => {
+  // Extract unique sources, actors, types
+  const { sources, actors, types, typeStats } = useMemo(() => {
     const list = data ?? []
+    const s = new Set<string>()
     const a = new Set<string>()
     const t = new Set<string>()
+    const stats: Record<string, number> = {}
+
     for (const e of list) {
+      const source = getSource(e)
       const actor = getActor(e)
       const type = getType(e)
+
+      if (source) s.add(source)
       if (actor) a.add(actor)
-      if (type) t.add(type)
+      if (type) {
+        t.add(type)
+        stats[type] = (stats[type] || 0) + 1
+      }
     }
+
     return {
-      actors: Array.from(a).sort((x, y) => x.localeCompare(y)),
-      types: Array.from(t).sort((x, y) => x.localeCompare(y)),
+      sources: Array.from(s).sort(),
+      actors: Array.from(a).sort(),
+      types: Array.from(t).sort(),
+      typeStats: stats,
     }
   }, [data])
 
+  // Filter events
   const filtered = useMemo(() => {
     const list = data ?? []
     const needle = normalizeNeedle(q)
+
     return list.filter((e) => {
-      if (level !== 'all' && e.level !== level) return false
-      if (severity !== 'all' && getSeverity(e) !== severity) return false
-      if (actor !== 'all' && getActor(e) !== actor) return false
-      if (type !== 'all' && getType(e) !== type) return false
+      if (sourceFilter !== 'all' && getSource(e) !== sourceFilter) return false
+      if (actorFilter !== 'all' && getActor(e) !== actorFilter) return false
+      if (typeFilter !== 'all' && getType(e) !== typeFilter) return false
+
       if (!needle) return true
 
       const metaText = metaToPrettyText(e.meta)
-      const hay = `${e.source} ${getActor(e)} ${getType(e)} ${getSeverity(e)} ${e.message} ${metaText}`
+      const hay = `${e.source} ${getActor(e)} ${getType(e)} ${e.message} ${metaText}`
       return includesNeedle(hay, needle)
     })
-  }, [data, level, severity, actor, type, q])
+  }, [data, sourceFilter, actorFilter, typeFilter, q])
 
-  const effectiveSelectedId = useMemo(() => {
-    if (selectedId && (data ?? []).some((e) => e.id === selectedId)) return selectedId
-    return filtered[0]?.id ?? null
-  }, [data, filtered, selectedId])
+  // Group or flatten
+  const grouped = useMemo(() => {
+    if (groupDuplicates) {
+      return groupConsecutiveEvents(filtered)
+    }
+    return filtered.map((e) => ({
+      id: e.id,
+      events: [e],
+      count: 1,
+      first: e,
+      expanded: false,
+    }))
+  }, [filtered, groupDuplicates])
 
-  const selected = useMemo(() => {
-    if (!effectiveSelectedId) return null
-    return (data ?? []).find((e) => e.id === effectiveSelectedId) ?? null
-  }, [data, effectiveSelectedId])
+  // Calculate stats
+  const stats = useMemo(() => {
+    const totalEvents = data?.length ?? 0
+    const filteredCount = filtered.length
+    const groupCount = grouped.length
+    const typeBreakdown = typeStats
+
+    return {
+      totalEvents,
+      filteredCount,
+      groupCount,
+      typeBreakdown,
+    }
+  }, [data, filtered, grouped, typeStats])
+
+  // Toggle group expansion
+  const toggleExpanded = (groupId: string) => {
+    setExpandedGroupIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(groupId)) {
+        next.delete(groupId)
+      } else {
+        next.add(groupId)
+      }
+      return next
+    })
+  }
 
   return (
     <main className="main-grid">
@@ -194,176 +310,225 @@ export function Activity({ adapter }: { adapter: Adapter }) {
         <div className="panel-header">
           <div>
             <h2>Activity</h2>
-            <p className="muted">
-              Click an event for drill-down. Filters support actor/type/severity. (poll: 5s)
-            </p>
+            <p className="muted">Real-time event stream with intelligent filtering and grouping (poll: 5s)</p>
           </div>
-          <div className="right">
-            <div className="muted" style={{ textAlign: 'right', marginBottom: 6 }}>
-              {refreshing ? 'refreshing…' : lastSuccessAt ? `last ok: ${new Date(lastSuccessAt).toLocaleTimeString()}` : ''}
-            </div>
-            <div className="stack-h">
-              <label className="field inline">
-                <span className="muted">level</span>
-                <select value={level} onChange={(e) => setLevel(e.target.value as ActivityLevel | 'all')}>
-                  <option value="all">all</option>
-                  {levels.map((l) => (
-                    <option value={l} key={l}>
-                      {l}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="field inline">
-                <span className="muted">severity</span>
-                <select value={severity} onChange={(e) => setSeverity(e.target.value as Severity | 'all')}>
-                  <option value="all">all</option>
-                  {severities.map((s) => (
-                    <option value={s} key={s}>
+
+          {/* Filter Bar */}
+          <div className="activity-filter-bar">
+            <div className="filter-row">
+              <label className="filter-field">
+                <span className="filter-label">Source</span>
+                <select value={sourceFilter} onChange={(e) => setSourceFilter(e.target.value)}>
+                  <option value="all">All</option>
+                  {sources.map((s) => (
+                    <option key={s} value={s}>
                       {s}
                     </option>
                   ))}
                 </select>
               </label>
-              <label className="field inline">
-                <span className="muted">actor</span>
-                <select value={actor} onChange={(e) => setActor(e.target.value)}>
-                  <option value="all">all</option>
+
+              <label className="filter-field">
+                <span className="filter-label">Actor</span>
+                <select value={actorFilter} onChange={(e) => setActorFilter(e.target.value)}>
+                  <option value="all">All</option>
                   {actors.map((a) => (
-                    <option value={a} key={a}>
+                    <option key={a} value={a}>
                       {a}
                     </option>
                   ))}
                 </select>
               </label>
-              <label className="field inline">
-                <span className="muted">type</span>
-                <select value={type} onChange={(e) => setType(e.target.value)}>
-                  <option value="all">all</option>
+
+              <label className="filter-field">
+                <span className="filter-label">Type</span>
+                <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)}>
+                  <option value="all">All</option>
                   {types.map((t) => (
-                    <option value={t} key={t}>
+                    <option key={t} value={t}>
                       {t}
                     </option>
                   ))}
                 </select>
               </label>
-              <label className="field inline">
-                <span className="muted">search</span>
-                <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="source, message, meta…" />
+
+              <label className="filter-field">
+                <span className="filter-label">Search</span>
+                <input
+                  type="text"
+                  value={q}
+                  onChange={(e) => setQ(e.target.value)}
+                  placeholder="message, meta, source…"
+                />
+              </label>
+
+              <label className="filter-checkbox">
+                <input
+                  type="checkbox"
+                  checked={groupDuplicates}
+                  onChange={(e) => setGroupDuplicates(e.target.checked)}
+                />
+                <span>Group Duplicates</span>
               </label>
             </div>
           </div>
-        </div>
 
-        {error && <Alert variant="destructive">{error.message}</Alert>}
-
-        <div className="activity-split">
-          <div className="activity-list">
-            <div className="muted" style={{ marginBottom: 8 }}>
-              showing {filtered.length} / {(data ?? []).length}
+          {/* Stats Bar */}
+          <div className="activity-stats-bar">
+            <div className="stat-item">
+              <span className="stat-label">Groups</span>
+              <span className="stat-value">{stats.groupCount}</span>
+            </div>
+            <div className="stat-item">
+              <span className="stat-label">Events</span>
+              <span className="stat-value">{stats.filteredCount}/{stats.totalEvents}</span>
             </div>
 
-            <div className="feed-grid feed-grid-single">
-              {filtered.map((e) => {
-                const metaText = e.meta ? JSON.stringify(e.meta, null, 2) : ''
-                const actor = getActor(e)
-                const type = getType(e)
-                const sev = getSeverity(e)
-                const selected = e.id === effectiveSelectedId
-                return (
-                  <div
-                    role="button"
-                    tabIndex={0}
-                    className={`feed-item feed-tile ${e.level}${selected ? ' selected' : ''}`}
-                    key={e.id}
-                    onClick={() => setSelectedId(e.id)}
-                    onKeyDown={(ev) => {
-                      if (ev.key === 'Enter' || ev.key === ' ') setSelectedId(e.id)
-                    }}
-                  >
-                    <div className="feed-head">
-                      <Badge kind={e.level} />
-                      <span className="feed-source">{e.source}</span>
-                      {type ? <span className="pill tiny">{type}</span> : null}
-                      {actor ? <span className="pill tiny">{actor}</span> : null}
-                      <span className={`pill tiny sev-${sev.toLowerCase()}`}>{sev}</span>
-                      <span className="muted">· {new Date(e.at).toLocaleString()}</span>
-                      <span className="right">
-                        <CopyButton
-                          text={`${e.at} ${e.source} ${e.level}\n${e.message}${metaText ? `\n\n${metaText}` : ''}`}
-                          label="Copy"
+            {/* Type breakdown with colored dots */}
+            {Object.entries(stats.typeBreakdown).length > 0 && (
+              <div className="stat-breakdown">
+                <span className="stat-label">Types:</span>
+                <div className="type-dots">
+                  {Object.entries(stats.typeBreakdown)
+                    .sort(([, a], [, b]) => b - a)
+                    .slice(0, 5)
+                    .map(([type, count]) => (
+                      <div key={type} className="type-dot" title={`${type}: ${count}`}>
+                        <span
+                          className="dot"
+                          style={{ backgroundColor: getTypeColor(type) }}
                         />
-                      </span>
-                    </div>
-                    <div className="feed-msg">{e.message}</div>
-                  </div>
-                )
-              })}
-              {!loading && filtered.length === 0 && <div className="muted">No events match filters.</div>}
+                        <span className="count">{count}</span>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            )}
+
+            {/* Status indicator */}
+            <div className="stat-status">
+              {refreshing ? (
+                <span className="muted">refreshing…</span>
+              ) : lastSuccessAt ? (
+                <span className="muted">
+                  last: {new Date(lastSuccessAt).toLocaleTimeString()}
+                </span>
+              ) : null}
             </div>
           </div>
 
-          <aside className="activity-detail">
-            {!selected && <div className="muted">Select an event to view details.</div>}
-            {selected && (
-              <div className="activity-detail-inner">
-                <div className="activity-detail-head">
-                  <div>
-                    <div className="stack-h" style={{ alignItems: 'center', gap: 10, marginBottom: 6 }}>
-                      <Badge kind={selected.level} />
-                      <h3 style={{ margin: 0 }}>{selected.source}</h3>
-                    </div>
-                    <div className="muted">{new Date(selected.at).toLocaleString()}</div>
+          {error && <Alert variant="destructive">{error.message}</Alert>}
+        </div>
+
+        {/* Activity Feed */}
+        <div className="activity-feed">
+          {grouped.length === 0 && !loading && (
+            <div className="activity-empty">
+              <div className="muted">No events match your filters.</div>
+            </div>
+          )}
+
+          {grouped.map((group) => {
+            const isExpanded = expandedGroupIds.has(group.id)
+            const showRepeatBadge = group.count > 1
+
+            return (
+              <div
+                key={group.id}
+                className={`activity-group ${isExpanded ? 'expanded' : ''}`}
+                style={{
+                  animation: 'fadeIn 0.2s ease-in',
+                }}
+              >
+                {/* Group Header / Event Row */}
+                <div
+                  className="activity-event-row"
+                  onClick={() => showRepeatBadge && toggleExpanded(group.id)}
+                  style={{ cursor: showRepeatBadge ? 'pointer' : 'default' }}
+                >
+                  <div className="event-icon">
+                    <span>{getLevelIcon(group.first.level)}</span>
                   </div>
-                  <div className="right">
+
+                  <div className="event-content">
+                    <div className="event-header">
+                      <span className="event-type">{getType(group.first) || 'event'}</span>
+                      {getActor(group.first) && (
+                        <span className="event-actor">{getActor(group.first)}</span>
+                      )}
+                      <span className="event-time">
+                        {new Date(group.first.at).toLocaleTimeString()}
+                      </span>
+                      {showRepeatBadge && (
+                        <span className="repeat-badge">{group.count}×</span>
+                      )}
+                    </div>
+                    <div className="event-message">{group.first.message}</div>
+                  </div>
+
+                  <div className="event-actions">
+                    {showRepeatBadge && (
+                      <button
+                        className="expand-btn"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          toggleExpanded(group.id)
+                        }}
+                      >
+                        {isExpanded ? '▼' : '▶'}
+                      </button>
+                    )}
                     <CopyButton
-                      label="Copy full"
-                      text={`${selected.at} ${selected.source} ${selected.level}\n${selected.message}${selected.meta ? `\n\n${metaToPrettyText(selected.meta)}` : ''}`}
+                      label="Copy"
+                      text={`${group.first.at} ${group.first.source} ${group.first.level}\n${group.first.message}${
+                        group.first.meta ? `\n\n${metaToPrettyText(group.first.meta)}` : ''
+                      }`}
                     />
                   </div>
                 </div>
 
-                <div className="activity-detail-msg">{selected.message}</div>
+                {/* Expanded Details */}
+                {isExpanded && (
+                  <div
+                    className="activity-expanded"
+                    style={{
+                      animation: 'fadeIn 0.2s ease-in',
+                    }}
+                  >
+                    <div className="expanded-header">
+                      <h4>Occurrences ({group.count})</h4>
+                    </div>
 
-                <div className="activity-kv">
-                  <div className="kv">
-                    <div className="muted">actor</div>
-                    <div>{getActor(selected) || <span className="muted">—</span>}</div>
-                  </div>
-                  <div className="kv">
-                    <div className="muted">type</div>
-                    <div>{getType(selected) || <span className="muted">—</span>}</div>
-                  </div>
-                  <div className="kv">
-                    <div className="muted">severity</div>
-                    <div>{getSeverity(selected)}</div>
-                  </div>
-                  <div className="kv">
-                    <div className="muted">id</div>
-                    <div className="mono">{selected.id}</div>
-                  </div>
-                </div>
+                    {group.events.map((e, idx) => (
+                      <div key={`${e.id}-${idx}`} className="expanded-event">
+                        <div className="exp-time">{new Date(e.at).toLocaleTimeString()}</div>
+                        <div className="exp-meta">
+                          <span>Source: {e.source}</span>
+                          <span>Type: {getType(e) || '—'}</span>
+                          <span>Severity: {getSeverity(e)}</span>
+                        </div>
+                        <div className="exp-message">{e.message}</div>
 
-                <details className="activity-timeline" open>
-                  <summary className="muted">timeline</summary>
-                  <div className="timeline">
-                    {extractTimeline(selected).map((it) => (
-                      <div className="timeline-row" key={`${it.label}-${it.at}`}>
-                        <div className="timeline-label">{it.label}</div>
-                        <div className="timeline-at">{new Date(it.at).toLocaleString()}</div>
-                        <div className="timeline-note muted">{it.note ?? ''}</div>
+                        {e.meta && Object.keys(e.meta).length > 0 && (
+                          <details className="exp-details">
+                            <summary className="muted">Meta</summary>
+                            <pre className="code">{metaToPrettyText(e.meta)}</pre>
+                          </details>
+                        )}
+
+                        <div className="exp-actions">
+                          <CopyButton
+                            label="Copy JSON"
+                            text={JSON.stringify({ ...e, meta: e.meta ?? {} }, null, 2)}
+                          />
+                        </div>
                       </div>
                     ))}
                   </div>
-                </details>
-
-                <details className="activity-meta" open={!!selected.meta}>
-                  <summary className="muted">meta / details</summary>
-                  {selected.meta ? <pre className="code">{metaToPrettyText(selected.meta)}</pre> : <div className="muted">—</div>}
-                </details>
+                )}
               </div>
-            )}
-          </aside>
+            )
+          })}
         </div>
       </section>
     </main>
