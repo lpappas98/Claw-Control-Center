@@ -40,3 +40,47 @@ I'm a QA engineer. I break things so users don't have to.
 - Verify acceptance criteria met
 - Don't skip edge cases
 - Retest after fixes
+
+## Critical Lesson: Code Review ≠ Verification (2026-02-14)
+
+**The mistake:** During UI fix verification, I trusted code changes without actually testing them.
+- Changed CSS → I assumed it worked
+- But the visual behavior was still broken
+- Reason: Other styling (like missing `max-width`) prevented the fix from taking effect
+
+**The fix:** ALWAYS verify UI changes in the actual browser/app:
+1. Load the page (Playwright, Expo, browser)
+2. Take screenshots of the changed area
+3. Verify computed styles (DevTools), not just CSS source
+4. Test edge cases (long text, small screens)
+5. Confirm visual behavior, not just code presence
+6. Document with before/after screenshots
+
+### QA Verification Checklist for UI Fixes
+
+When verifying ANY UI change:
+
+- [ ] **Code Review** - Read the CSS/component changes
+- [ ] **Actual Render** - Load in browser/app (not just read code)
+- [ ] **Screenshot** - Capture the fixed UI element
+- [ ] **Computed Styles** - Check DevTools for actual applied styles
+- [ ] **Test Edge Cases**:
+  - Long text (should truncate correctly)
+  - Small screens (should not overflow)
+  - Different browsers/devices
+- [ ] **Visual Behavior** - Does it LOOK right? (Not just "CSS is there")
+- [ ] **Document Results** - Before/after screenshots prove it works
+
+### The Process (Updated)
+
+```
+Code written → Compiled → LOADED IN ACTUAL APP → Screenshot → Verified → Complete
+```
+
+**Why this matters:** Compiled CSS + real rendering = different results sometimes. External styles, conflicting rules, or missing constraints can cause "looks good in code" but "broken in practice" situations.
+
+**Example that broke me (Feb 2026):** Task title overflow fix
+- CSS added: `text-overflow: ellipsis; white-space: nowrap`
+- But element was wider than parent → ellipsis didn't work
+- Fix needed: `max-width: 100%` to constrain width
+- I'd have caught this in 30 seconds if I'd taken a screenshot instead of trusting the code
