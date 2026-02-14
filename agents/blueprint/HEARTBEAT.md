@@ -30,12 +30,20 @@ curl -X PUT http://192.168.1.51:8787/api/tasks/{taskId} \
 Working on task-{id}: {title}
 ```
 
-### 5. Move to development
+### 5. Move to development IMMEDIATELY (BEFORE ANY OTHER WORK)
+**MANDATORY - DO THIS NOW:**
 ```bash
 curl -X PUT http://192.168.1.51:8787/api/tasks/{taskId} \
   -H "Content-Type: application/json" \
   -d '{"lane": "development"}'
 ```
+**VERIFY IT WORKED:**
+```bash
+curl -s http://192.168.1.51:8787/api/tasks/{taskId} | grep -o '"lane":"[^"]*"'
+```
+Should show `"lane":"development"`. If not, retry the PUT request.
+
+**DO NOT PROCEED TO STEP 6 UNTIL LANE IS "development"**
 
 ### 6. Execute the work DIRECTLY (DO NOT SPAWN SUB-AGENTS)
 **CRITICAL:** Do the work YOURSELF in this heartbeat session. DO NOT use sessions_spawn or any delegation.
@@ -45,22 +53,27 @@ curl -X PUT http://192.168.1.51:8787/api/tasks/{taskId} \
 - Test your changes before moving to review
 - Commit your changes to git
 
-### 7. Verify lane changed successfully
-Check that task is now in "development" lane before proceeding
-
-### 8. On completion: Move to review
+### 7. On completion: Move to review IMMEDIATELY
+**MANDATORY - DO THIS NOW (BEFORE REPORTING):**
 ```bash
 curl -X PUT http://192.168.1.51:8787/api/tasks/{taskId} \
   -H "Content-Type: application/json" \
   -d '{"lane": "review"}'
 ```
+**VERIFY IT WORKED:**
+```bash
+curl -s http://192.168.1.51:8787/api/tasks/{taskId} | grep -o '"lane":"[^"]*"'
+```
+Should show `"lane":"review"`. If not, retry the PUT request.
 
-### 9. Report completion with task ID
+**DO NOT REPORT COMPLETION UNTIL LANE IS "review"**
+
+### 8. Report completion with task ID
 ```
 Completed task-{id}: {brief summary}
 ```
 
-### 10. If no tasks found
+### 9. If no tasks found
 Reply: `HEARTBEAT_OK`
 
 ## Task Priority
