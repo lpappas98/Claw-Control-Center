@@ -1,0 +1,158 @@
+version: '3.9'
+
+services:
+  # OpenClaw Bridge - Central coordination hub
+  bridge:
+    image: openclaw:latest
+    container_name: openclaw-bridge-alpha
+    command: openclaw bridge start --host 0.0.0.0 --port 8787
+    ports:
+      - "8787:8787"
+    environment:
+      BRIDGE_URL: http://bridge:8787
+      LOG_LEVEL: info
+    volumes:
+      - ./templates/teams/team-alpha.json:/config/team-alpha.json:ro
+      - bridge-data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8787/api/agents"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - openclaw-network
+
+  # TARS - Project Manager / Architect
+  tars:
+    image: openclaw:latest
+    container_name: openclaw-tars-alpha
+    command: |
+      sh -c "
+        mkdir -p ~/.openclaw/agents/tars/{memory,.claw}
+        cp /config/souls/pm-soul.md ~/.openclaw/agents/tars/SOUL.md
+        openclaw --agent tars
+      "
+    depends_on:
+      bridge:
+        condition: service_healthy
+    environment:
+      BRIDGE_URL: http://bridge:8787
+      OPENCLAW_AGENT_ID: tars
+      OPENCLAW_AGENT_NAME: "TARS"
+      OPENCLAW_AGENT_EMOJI: "🤖"
+      OPENCLAW_AGENT_ROLES: "pm,architect,coordination"
+      OPENCLAW_AGENT_MODEL: "anthropic/claude-sonnet-4-5"
+    volumes:
+      - ./templates/souls/pm-soul.md:/config/souls/pm-soul.md:ro
+      - tars-workspace:/root/.openclaw/agents/tars
+    networks:
+      - openclaw-network
+
+  # Dev Agent - Backend/Frontend Developer
+  dev-agent:
+    image: openclaw:latest
+    container_name: openclaw-dev-alpha
+    command: |
+      sh -c "
+        mkdir -p ~/.openclaw/agents/dev-agent/{memory,.claw}
+        cp /config/souls/dev-soul.md ~/.openclaw/agents/dev-agent/SOUL.md
+        openclaw --agent dev-agent
+      "
+    depends_on:
+      bridge:
+        condition: service_healthy
+    environment:
+      BRIDGE_URL: http://bridge:8787
+      OPENCLAW_AGENT_ID: dev-agent
+      OPENCLAW_AGENT_NAME: "Dev Agent"
+      OPENCLAW_AGENT_EMOJI: "💻"
+      OPENCLAW_AGENT_ROLES: "backend-dev,frontend-dev,api"
+      OPENCLAW_AGENT_MODEL: "anthropic/claude-haiku-4-5"
+    volumes:
+      - ./templates/souls/dev-soul.md:/config/souls/dev-soul.md:ro
+      - dev-workspace:/root/.openclaw/agents/dev-agent
+    networks:
+      - openclaw-network
+
+  # Designer - UI/UX Designer
+  designer:
+    image: openclaw:latest
+    container_name: openclaw-designer-alpha
+    command: |
+      sh -c "
+        mkdir -p ~/.openclaw/agents/designer/{memory,.claw}
+        cp /config/souls/designer-soul.md ~/.openclaw/agents/designer/SOUL.md
+        openclaw --agent designer
+      "
+    depends_on:
+      bridge:
+        condition: service_healthy
+    environment:
+      BRIDGE_URL: http://bridge:8787
+      OPENCLAW_AGENT_ID: designer
+      OPENCLAW_AGENT_NAME: "Designer"
+      OPENCLAW_AGENT_EMOJI: "🎨"
+      OPENCLAW_AGENT_ROLES: "designer,ui,ux"
+      OPENCLAW_AGENT_MODEL: "anthropic/claude-sonnet-4-5"
+    volumes:
+      - ./templates/souls/designer-soul.md:/config/souls/designer-soul.md:ro
+      - designer-workspace:/root/.openclaw/agents/designer
+    networks:
+      - openclaw-network
+
+  # Optional: OpenClaw Web UI
+  ui:
+    image: openclaw-ui:latest
+    container_name: openclaw-ui-alpha
+    depends_on:
+      - bridge
+    ports:
+      - "3000:3000"
+    environment:
+      REACT_APP_BRIDGE_URL: http://bridge:8787
+    networks:
+      - openclaw-network
+
+volumes:
+  bridge-data:
+    driver: local
+  tars-workspace:
+    driver: local
+  dev-workspace:
+    driver: local
+  designer-workspace:
+    driver: local
+
+networks:
+  openclaw-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.25.0.0/16
+
+# Usage:
+#
+# 1. Build the image (if not available):
+#    docker build -t openclaw:latest .
+#
+# 2. Start the team:
+#    docker compose -f docker/team-alpha.yml up -d
+#
+# 3. Check status:
+#    docker compose -f docker/team-alpha.yml logs -f
+#
+# 4. Access the UI:
+#    http://localhost:3000
+#
+# 5. Check agents via API:
+#    curl http://localhost:8787/api/agents
+#
+# 6. Stop the team:
+#    docker compose -f docker/team-alpha.yml down
+#
+# Notes:
+# - Each agent has its own volume for persistent workspace
+# - Bridge data is persisted in bridge-data volume
+# - All agents connect to the same bridge
+# - UI is optional (comment out if not needed)
+# - Change 'latest' tag to specific version in production

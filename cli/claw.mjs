@@ -13,6 +13,8 @@
  *   claw task:stop <id>            # Stop working, log time
  *   claw task:status <id> <status> # Update task status
  *   claw task:comment <id> <text>  # Add comment
+ *   claw task:log <id> <hours> [note] # Manually log time
+ *   claw task:time <id>            # Show time entries
  *   claw task:done <id>            # Mark task as done
  */
 
@@ -449,6 +451,68 @@ program
     })
 
     console.log(`✅ Task ${id} marked as done (moved to review)`)
+  })
+
+/**
+ * claw task:log <id> <hours> [note]
+ */
+program
+  .command('task:log <id> <hours> [note]')
+  .description('Manually log time for a task')
+  .action(async (id, hoursStr, note) => {
+    const config = await loadConfig()
+    const hours = parseFloat(hoursStr)
+    
+    if (isNaN(hours) || hours <= 0) {
+      console.error('❌ Hours must be a positive number')
+      return
+    }
+
+    await apiRequest('POST', `/api/tasks/${id}/time`, {
+      agentId: config.agentId,
+      hours,
+      note: note || null,
+      start: Date.now() - (hours * 60 * 60 * 1000),
+      end: Date.now()
+    })
+
+    console.log(`✅ Logged ${hours}h for task ${id}`)
+    if (note) {
+      console.log(`   Note: ${note}`)
+    }
+  })
+
+/**
+ * claw task:time <id>
+ */
+program
+  .command('task:time <id>')
+  .description('Show time entries for a task')
+  .action(async (id) => {
+    const timeEntries = await apiRequest('GET', `/api/tasks/${id}/time`)
+    
+    if (!timeEntries || timeEntries.length === 0) {
+      console.log(`⏱️  No time entries for task ${id}`)
+      return
+    }
+
+    console.log(`\n⏱️  Time entries for task ${id}:\n`)
+    
+    let totalHours = 0
+    for (const entry of timeEntries) {
+      const date = new Date(entry.start).toLocaleDateString()
+      const time = new Date(entry.start).toLocaleTimeString()
+      console.log(`📅 ${date} at ${time}`)
+      console.log(`   Agent: ${entry.agentId}`)
+      console.log(`   Hours: ${entry.hours}h`)
+      if (entry.note) {
+        console.log(`   Note: ${entry.note}`)
+      }
+      totalHours += entry.hours
+      console.log()
+    }
+
+    console.log(`✅ Total: ${totalHours}h`)
   })
 
 /**

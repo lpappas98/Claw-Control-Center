@@ -56,6 +56,61 @@ export class TasksStore {
     this.loaded = false
   }
 
+  /**
+   * Validate dependencies for circular references
+   * @throws {Error} if circular dependency detected
+   */
+  validateDependencies(taskId, dependsOn = [], allTasks = null) {
+    if (!taskId || dependsOn.length === 0) return
+
+    // Check for self-dependency
+    if (dependsOn.includes(taskId)) {
+      throw new Error(`Circular dependency detected: task ${taskId} cannot depend on itself`)
+    }
+
+    const tasks = allTasks || this.tasks
+    
+    // Create a temporary task map with the updated dependencies for the target task
+    const tempTaskMap = new Map()
+    for (const task of tasks) {
+      if (task.id === taskId) {
+        tempTaskMap.set(task.id, { ...task, dependsOn })
+      } else {
+        tempTaskMap.set(task.id, task)
+      }
+    }
+    
+    const visited = new Set()
+    const recursionStack = new Set()
+
+    const hasCycle = (id) => {
+      if (recursionStack.has(id)) return true
+      if (visited.has(id)) return false
+
+      visited.add(id)
+      recursionStack.add(id)
+
+      const task = tempTaskMap.get(id)
+      if (!task) return false
+
+      for (const depId of (task.dependsOn || [])) {
+        if (hasCycle(depId)) return true
+      }
+
+      recursionStack.delete(id)
+      return false
+    }
+
+    // Check for cycles starting from any of the new dependencies
+    for (const depId of dependsOn) {
+      visited.clear()
+      recursionStack.clear()
+      if (hasCycle(depId)) {
+        throw new Error(`Circular dependency detected: task ${taskId} cannot depend on ${depId}`)
+      }
+    }
+  }
+
   async load() {
     try {
       const raw = await fs.readFile(this.filePath, 'utf8')
@@ -127,34 +182,38 @@ export class TasksStore {
     await this.ensureLoaded()
     
     const now = Date.now()
+    const dependsOn = Array.isArray(taskData.dependsOn) ? taskData.dependsOn : []
+    
+    // Validate dependencies before creating
+    this.validateDependencies(null, dependsOn, this.tasks)
+
+    const normalizedLane = normalizeLane(taskData.lane || 'queued')
     const task = {
       id: makeTaskId(),
       title: taskData.title || 'Untitled Task',
       description: taskData.description || '',
-      lane: normalizeLane(taskData.lane || 'queued'),
+      lane: normalizedLane,
       priority: normalizePriority(taskData.priority || 'P2'),
       assignedTo: taskData.assignedTo || null,
       createdBy: taskData.createdBy || null,
       parentId: taskData.parentId || null,
       projectId: taskData.projectId || null,
-      tags: taskData.tags || [],
+      tags: Array.isArray(taskData.tags) ? taskData.tags : [],
       estimatedHours: taskData.estimatedHours || null,
       actualHours: 0,
       timeEntries: [],
-      dependsOn: taskData.dependsOn || [],
-      blocks: taskData.blocks || [],
+      dependsOn: dependsOn,
+      blocks: Array.isArray(taskData.blocks) ? taskData.blocks : [],
       statusHistory: [{
         at: now,
-        to: normalizeLane(taskData.lane || 'queued'),
+        to: normalizedLane,
         note: 'created',
         by: taskData.createdBy || null
       }],
       comments: [],
-      metadata: taskData.metadata || {},
+      metadata: (taskData.metadata && typeof taskData.metadata === 'object') ? taskData.metadata : {},
       createdAt: now,
-      updatedAt: now,
-      // Preserve any legacy fields
-      ...taskData
+      updatedAt: now
     }
 
     this.tasks.push(task)
@@ -226,7 +285,7 @@ export class TasksStore {
   /**
    * Log time entry
    */
-  async logTime(id, agentId, hours, start = null, end = null) {
+  async logTime(id, agentId, hours, start = null, end = null, note = null) {
     await this.ensureLoaded()
     const task = this.tasks.find(t => t.id === id)
     if (!task) return null
@@ -236,7 +295,8 @@ export class TasksStore {
       agentId,
       hours,
       start: start || Date.now(),
-      end: end || Date.now()
+      end: end || Date.now(),
+      note: note || null
     })
 
     task.actualHours = (task.actualHours || 0) + hours
@@ -244,6 +304,15 @@ export class TasksStore {
 
     await this.save()
     return task
+  }
+
+  /**
+   * Get time entries for a task
+   */
+  async getTimeEntries(id) {
+    const task = await this.get(id)
+    if (!task) return []
+    return task.timeEntries || []
   }
 
   /**
@@ -277,9 +346,25 @@ export class TasksStore {
   }
 
   /**
+   * Get tasks that block this task (tasks in dependsOn array)
+   */
+  async getBlockerTasks(id) {
+    const task = await this.get(id)
+    if (!task || !task.dependsOn) return []
+
+    await this.ensureLoaded()
+    return this.tasks.filter(t => task.dependsOn.includes(t.id))
+  }
+
+  /**
    * Update dependencies
    */
   async updateDependencies(id, dependsOn, updatedBy = null) {
+    await this.ensureLoaded()
+    
+    // Validate dependencies before updating
+    this.validateDependencies(id, dependsOn, this.tasks)
+    
     return this.update(id, { dependsOn }, updatedBy)
   }
 

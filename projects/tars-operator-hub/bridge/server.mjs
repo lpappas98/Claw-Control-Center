@@ -44,7 +44,9 @@ import {
 import { getAgentsStore } from './agentsStore.mjs'
 import { getTasksStore } from './tasksStore.mjs'
 import { getNotificationsStore } from './notificationsStore.mjs'
+import { getTaskTemplatesStore } from './taskTemplates.mjs'
 import { autoAssignTask, getAssignmentSuggestions } from './taskAssignment.mjs'
+import { generateTasksFromPrompt, getProjectContext } from './aiTaskGeneration.mjs'
 
 const execFileAsync = promisify(execFile)
 
@@ -63,6 +65,7 @@ const PM_PROJECTS_DIR = process.env.OPERATOR_HUB_PM_PROJECTS_DIR ?? path.join(WO
 const AGENTS_FILE = process.env.OPERATOR_HUB_AGENTS_FILE ?? path.join(WORKSPACE, '.clawhub', 'agents.json')
 const NEW_TASKS_FILE = process.env.OPERATOR_HUB_NEW_TASKS_FILE ?? path.join(WORKSPACE, '.clawhub', 'new-tasks.json')
 const NOTIFICATIONS_FILE = process.env.OPERATOR_HUB_NOTIFICATIONS_FILE ?? path.join(WORKSPACE, '.clawhub', 'notifications.json')
+const TEMPLATES_FILE = process.env.OPERATOR_HUB_TEMPLATES_FILE ?? path.join(WORKSPACE, '.clawhub', 'taskTemplates.json')
 
 /** @type {import('../src/types').ActivityEvent[]} */
 let activity = await loadActivity(ACTIVITY_FILE)
@@ -91,11 +94,13 @@ let tasksSaveTimer = null
 const agentsStore = getAgentsStore(AGENTS_FILE)
 const newTasksStore = getTasksStore(NEW_TASKS_FILE)
 const notificationsStore = getNotificationsStore(NOTIFICATIONS_FILE)
+const templatesStore = getTaskTemplatesStore(TEMPLATES_FILE)
 
 // Ensure stores are loaded
 await agentsStore.load()
 await newTasksStore.load()
 await notificationsStore.load()
+await templatesStore.load()
 
 let lastGatewayHealth = null
 let lastGatewaySummary = null
@@ -1512,12 +1517,23 @@ app.post('/api/tasks/:id/time', async (req, res) => {
     const body = req.body ?? {}
     const agentId = typeof body.agentId === 'string' ? body.agentId.trim() : ''
     const hours = typeof body.hours === 'number' ? body.hours : 0
+    const note = typeof body.note === 'string' ? body.note.trim() : null
     if (!agentId) return res.status(400).send('agentId required')
     if (hours <= 0) return res.status(400).send('hours must be positive')
 
-    const task = await newTasksStore.logTime(req.params.id, agentId, hours, body.start, body.end)
+    const task = await newTasksStore.logTime(req.params.id, agentId, hours, body.start, body.end, note)
     if (!task) return res.status(404).send('task not found')
     res.json(task)
+  } catch (err) {
+    res.status(400).send(err?.message ?? 'invalid request')
+  }
+})
+
+app.get('/api/tasks/:id/time', async (req, res) => {
+  try {
+    const timeEntries = await newTasksStore.getTimeEntries(req.params.id)
+    if (!timeEntries) return res.status(404).send('task not found')
+    res.json(timeEntries)
   } catch (err) {
     res.status(400).send(err?.message ?? 'invalid request')
   }
@@ -1567,6 +1583,155 @@ app.put('/api/tasks/:id/dependencies', async (req, res) => {
   }
 })
 
+app.get('/api/tasks/:id/blockers', async (req, res) => {
+  try {
+    const blockers = await newTasksStore.getBlockerTasks(req.params.id)
+    res.json(blockers)
+  } catch (err) {
+    res.status(400).send(err?.message ?? 'invalid request')
+  }
+})
+
+app.get('/api/tasks/:id/blocked', async (req, res) => {
+  try {
+    const blocked = await newTasksStore.getBlockedTasks(req.params.id)
+    res.json(blocked)
+  } catch (err) {
+    res.status(400).send(err?.message ?? 'invalid request')
+  }
+})
+
+// ====== TASK TEMPLATES ENDPOINTS ======
+
+app.get('/api/templates', async (_req, res) => {
+  try {
+    const templates = await templatesStore.getAll()
+    res.json(templates)
+  } catch (err) {
+    res.status(400).send(err?.message ?? 'invalid request')
+  }
+})
+
+app.get('/api/templates/:id', async (req, res) => {
+  try {
+    const template = await templatesStore.getTemplate(req.params.id)
+    if (!template) return res.status(404).send('template not found')
+    res.json(template)
+  } catch (err) {
+    res.status(400).send(err?.message ?? 'invalid request')
+  }
+})
+
+app.post('/api/templates', async (req, res) => {
+  try {
+    const body = req.body ?? {}
+    const template = await templatesStore.createTemplate({
+      name: body.name,
+      description: body.description || '',
+      tasks: body.tasks || []
+    })
+    res.json(template)
+  } catch (err) {
+    res.status(400).send(err?.message ?? 'invalid request')
+  }
+})
+
+app.put('/api/templates/:id', async (req, res) => {
+  try {
+    const body = req.body ?? {}
+    const template = await templatesStore.updateTemplate(req.params.id, {
+      name: body.name,
+      description: body.description,
+      tasks: body.tasks
+    })
+    if (!template) return res.status(404).send('template not found')
+    res.json(template)
+  } catch (err) {
+    res.status(400).send(err?.message ?? 'invalid request')
+  }
+})
+
+app.delete('/api/templates/:id', async (req, res) => {
+  try {
+    const deleted = await templatesStore.deleteTemplate(req.params.id)
+    if (!deleted) return res.status(404).send('template not found')
+    res.json({ success: true })
+  } catch (err) {
+    res.status(400).send(err?.message ?? 'invalid request')
+  }
+})
+
+// Task instantiation from template
+app.post('/api/tasks/from-template', async (req, res) => {
+  try {
+    const body = req.body ?? {}
+    const templateId = body.templateId
+    const projectId = body.projectId || null
+    const createdBy = body.createdBy || 'api'
+
+    if (!templateId) {
+      return res.status(400).send('templateId is required')
+    }
+
+    const template = await templatesStore.getTemplate(templateId)
+    if (!template) {
+      return res.status(404).send('template not found')
+    }
+
+    // Create tasks from template
+    const createdTasks = []
+    const taskTitleToId = {}
+
+    // First pass: create all tasks
+    for (const templateTask of template.tasks) {
+      const task = await newTasksStore.create({
+        title: templateTask.title,
+        description: templateTask.description || '',
+        projectId,
+        createdBy,
+        estimatedHours: templateTask.estimatedHours || null,
+        tags: ['from-template', templateId],
+        priority: 'P2'
+      })
+
+      createdTasks.push(task)
+      taskTitleToId[templateTask.title] = task.id
+    }
+
+    // Second pass: resolve dependencies and auto-assign
+    for (let i = 0; i < template.tasks.length; i++) {
+      const templateTask = template.tasks[i]
+      const createdTask = createdTasks[i]
+
+      // Resolve dependencies
+      const dependencies = (templateTask.dependsOn || []).map(depTitle => {
+        return taskTitleToId[depTitle]
+      }).filter(Boolean)
+
+      if (dependencies.length > 0) {
+        await newTasksStore.updateDependencies(createdTask.id, dependencies, 'system')
+      }
+
+      // Auto-assign based on role - update task to include role in description/tags for pattern matching
+      const taskWithRole = {
+        ...createdTask,
+        title: `${createdTask.title} (${templateTask.role})`,
+        tags: [...(createdTask.tags || []), templateTask.role]
+      }
+
+      await autoAssignTask(taskWithRole, agentsStore, newTasksStore, notificationsStore)
+    }
+
+    res.json({
+      templateId,
+      taskIds: createdTasks.map(t => t.id),
+      tasks: createdTasks
+    })
+  } catch (err) {
+    res.status(400).send(err?.message ?? 'invalid request')
+  }
+})
+
 // ====== LEGACY TASK ENDPOINTS (BACKWARD COMPATIBILITY) ======
 
 // Enhanced legacy POST /api/tasks to support lane -> done transition with auto-unblock
@@ -1581,6 +1746,31 @@ app.post('/api/tasks/:id/complete', async (req, res) => {
     res.json({ task, unblocked })
   } catch (err) {
     res.status(400).send(err?.message ?? 'invalid request')
+  }
+})
+
+// ====== AI TASK GENERATION ======
+
+app.post('/api/ai/tasks/generate', async (req, res) => {
+  try {
+    const body = req.body ?? {}
+    const request = typeof body.request === 'string' ? body.request.trim() : ''
+    if (!request) return res.status(400).send('request required')
+
+    const projectId = typeof body.projectId === 'string' ? body.projectId.trim() : null
+    let context = body.context ?? {}
+
+    // Allow model override
+    if (body.model && typeof body.model === 'string') {
+      context.model = body.model
+    }
+
+    // Generate tasks via AI
+    const result = await generateTasksFromPrompt(request, projectId, context)
+
+    res.json(result)
+  } catch (err) {
+    res.status(400).send(err?.message ?? 'failed to generate tasks')
   }
 })
 
@@ -1604,6 +1794,7 @@ async function flushActivityOnExit() {
     await agentsStore.save()
     await newTasksStore.save()
     await notificationsStore.save()
+    await templatesStore.save()
   } catch {
     // best-effort
   }

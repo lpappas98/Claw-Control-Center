@@ -14,9 +14,19 @@ describe('TasksStore', () => {
     }
   })
 
+  // Helper to create a fresh store for each test
+  async function createFreshStore() {
+    try {
+      await fs.unlink(testFile)
+    } catch (e) {
+      // ignore
+    }
+    return new TasksStore(testFile)
+  }
+
   describe('task creation', async () => {
     it('should create a new task', async () => {
-      const store = new TasksStore(testFile)
+      const store = await createFreshStore()
       const task = await store.create({
         title: 'Implement login form',
         description: 'Build React component for user login',
@@ -35,7 +45,7 @@ describe('TasksStore', () => {
     })
 
     it('should normalize lane and priority', async () => {
-      const store = new TasksStore(testFile)
+      const store = await createFreshStore()
       const task = await store.create({
         title: 'Test task',
         lane: 'DEVELOPMENT',
@@ -47,7 +57,7 @@ describe('TasksStore', () => {
     })
 
     it('should initialize status history', async () => {
-      const store = new TasksStore(testFile)
+      const store = await createFreshStore()
       const task = await store.create({
         title: 'Task with history',
         lane: 'development',
@@ -61,7 +71,7 @@ describe('TasksStore', () => {
 
   describe('task updates', async () => {
     it('should update task fields', async () => {
-      const store = new TasksStore(testFile)
+      const store = await createFreshStore()
       const task = await store.create({ title: 'Initial' })
 
       const updated = await store.update(task.id, {
@@ -74,7 +84,7 @@ describe('TasksStore', () => {
     })
 
     it('should track lane changes in status history', async () => {
-      const store = new TasksStore(testFile)
+      const store = await createFreshStore()
       const task = await store.create({ title: 'Task', lane: 'queued' })
 
       const updated = await store.update(task.id, {
@@ -87,7 +97,7 @@ describe('TasksStore', () => {
     })
 
     it('should return null for non-existent task', async () => {
-      const store = new TasksStore(testFile)
+      const store = await createFreshStore()
       const result = await store.update('non-existent', { title: 'New' })
 
       assert.equal(result, null)
@@ -96,7 +106,7 @@ describe('TasksStore', () => {
 
   describe('task assignment', async () => {
     it('should assign task to agent', async () => {
-      const store = new TasksStore(testFile)
+      const store = await createFreshStore()
       const task = await store.create({ title: 'Task' })
 
       const updated = await store.assign(task.id, 'agent-123')
@@ -107,7 +117,7 @@ describe('TasksStore', () => {
 
   describe('comments', async () => {
     it('should add comment to task', async () => {
-      const store = new TasksStore(testFile)
+      const store = await createFreshStore()
       const task = await store.create({ title: 'Task' })
 
       const updated = await store.addComment(task.id, 'Great work!', 'user-1')
@@ -118,7 +128,7 @@ describe('TasksStore', () => {
     })
 
     it('should add multiple comments', async () => {
-      const store = new TasksStore(testFile)
+      const store = await createFreshStore()
       const task = await store.create({ title: 'Task' })
 
       await store.addComment(task.id, 'First', 'user-1')
@@ -130,7 +140,7 @@ describe('TasksStore', () => {
 
   describe('time tracking', async () => {
     it('should log time entry', async () => {
-      const store = new TasksStore(testFile)
+      const store = await createFreshStore()
       const task = await store.create({ title: 'Task' })
 
       const updated = await store.logTime(task.id, 'agent-1', 2.5)
@@ -141,7 +151,7 @@ describe('TasksStore', () => {
     })
 
     it('should accumulate actual hours', async () => {
-      const store = new TasksStore(testFile)
+      const store = await createFreshStore()
       const task = await store.create({ title: 'Task' })
 
       await store.logTime(task.id, 'agent-1', 2)
@@ -153,7 +163,7 @@ describe('TasksStore', () => {
 
   describe('subtasks', async () => {
     it('should get subtasks', async () => {
-      const store = new TasksStore(testFile)
+      const store = await createFreshStore()
       const parent = await store.create({ title: 'Parent' })
       const child = await store.create({ title: 'Child', parentId: parent.id })
 
@@ -164,7 +174,7 @@ describe('TasksStore', () => {
     })
 
     it('should return empty for task with no subtasks', async () => {
-      const store = new TasksStore(testFile)
+      const store = await createFreshStore()
       const task = await store.create({ title: 'Task' })
 
       const subtasks = await store.getSubtasks(task.id)
@@ -175,7 +185,7 @@ describe('TasksStore', () => {
 
   describe('dependencies', async () => {
     it('should get dependencies', async () => {
-      const store = new TasksStore(testFile)
+      const store = await createFreshStore()
       const taskA = await store.create({ title: 'A' })
       const taskB = await store.create({ title: 'B', dependsOn: [taskA.id] })
 
@@ -185,8 +195,19 @@ describe('TasksStore', () => {
       assert.equal(deps[0].id, taskA.id)
     })
 
+    it('should get blocker tasks', async () => {
+      const store = await createFreshStore()
+      const taskA = await store.create({ title: 'A' })
+      const taskB = await store.create({ title: 'B', dependsOn: [taskA.id] })
+
+      const blockers = await store.getBlockerTasks(taskB.id)
+
+      assert.equal(blockers.length, 1)
+      assert.equal(blockers[0].id, taskA.id)
+    })
+
     it('should update dependencies', async () => {
-      const store = new TasksStore(testFile)
+      const store = await createFreshStore()
       const taskA = await store.create({ title: 'A' })
       const taskB = await store.create({ title: 'B', dependsOn: [taskA.id] })
 
@@ -194,11 +215,51 @@ describe('TasksStore', () => {
 
       assert.deepEqual(updated.dependsOn, [])
     })
+
+    it('should prevent circular dependencies', async () => {
+      const store = await createFreshStore()
+      const taskA = await store.create({ title: 'A' })
+      const taskB = await store.create({ title: 'B', dependsOn: [taskA.id] })
+
+      let threw = false
+      try {
+        await store.updateDependencies(taskA.id, [taskB.id])
+      } catch (e) {
+        threw = true
+        assert.match(e.message, /Circular dependency detected/)
+      }
+      assert.ok(threw, 'Should have thrown circular dependency error')
+    })
+
+    it('should prevent self-dependencies', async () => {
+      const store = await createFreshStore()
+      const taskA = await store.create({ title: 'A' })
+
+      let threw = false
+      try {
+        await store.updateDependencies(taskA.id, [taskA.id])
+      } catch (e) {
+        threw = true
+        assert.match(e.message, /Circular dependency detected/)
+      }
+      assert.ok(threw, 'Should have thrown circular dependency error')
+    })
+
+    it('should handle multiple dependencies', async () => {
+      const store = await createFreshStore()
+      const taskA = await store.create({ title: 'A' })
+      const taskB = await store.create({ title: 'B' })
+      const taskC = await store.create({ title: 'C', dependsOn: [taskA.id, taskB.id] })
+
+      const deps = await store.getDependencies(taskC.id)
+
+      assert.equal(deps.length, 2)
+    })
   })
 
   describe('blocking relationships', async () => {
     it('should auto-unblock tasks on completion', async () => {
-      const store = new TasksStore(testFile)
+      const store = await createFreshStore()
       const blocker = await store.create({
         title: 'Blocker',
         blocks: [],
@@ -219,11 +280,76 @@ describe('TasksStore', () => {
       assert.equal(updated.lane, 'queued')
       assert.equal(updated.dependsOn.length, 0)
     })
+
+    it('should get blocked tasks', async () => {
+      const store = await createFreshStore()
+      const blocker = await store.create({ title: 'Blocker', blocks: [] })
+      const blocked1 = await store.create({ title: 'Blocked 1' })
+      const blocked2 = await store.create({ title: 'Blocked 2' })
+
+      await store.update(blocker.id, { blocks: [blocked1.id, blocked2.id] })
+
+      const blocked = await store.getBlockedTasks(blocker.id)
+
+      assert.equal(blocked.length, 2)
+    })
+
+    it('should handle multiple blockers for same task', async () => {
+      const store = await createFreshStore()
+      const blocker1 = await store.create({ title: 'Blocker 1' })
+      const blocker2 = await store.create({ title: 'Blocker 2' })
+      const blocked = await store.create({
+        title: 'Blocked',
+        lane: 'blocked',
+        dependsOn: [blocker1.id, blocker2.id],
+      })
+
+      await store.update(blocker1.id, { blocks: [blocked.id] })
+      await store.update(blocker2.id, { blocks: [blocked.id] })
+
+      // Complete first blocker
+      const unblocked1 = await store.handleCompletion(blocker1.id)
+      assert.equal(unblocked1.length, 1)
+
+      // Task should still be blocked with one remaining dependency
+      const check = await store.get(blocked.id)
+      assert.equal(check.dependsOn.length, 1)
+      // Lane should remain blocked since there are still dependencies
+      assert.equal(check.lane, 'blocked')
+
+      // Complete second blocker
+      const unblocked2 = await store.handleCompletion(blocker2.id)
+      assert.equal(unblocked2.length, 1)
+
+      // Now task should be unblocked and moved to queued
+      const finalCheck = await store.get(blocked.id)
+      assert.equal(finalCheck.dependsOn.length, 0)
+      assert.equal(finalCheck.lane, 'queued')
+    })
+
+    it('should not unblock if task has other dependencies', async () => {
+      const store = await createFreshStore()
+      const blocker1 = await store.create({ title: 'Blocker 1' })
+      const blocker2 = await store.create({ title: 'Blocker 2' })
+      const blocked = await store.create({
+        title: 'Blocked',
+        lane: 'blocked',
+        dependsOn: [blocker1.id, blocker2.id],
+      })
+
+      await store.update(blocker1.id, { blocks: [blocked.id] })
+
+      await store.handleCompletion(blocker1.id)
+
+      const updated = await store.get(blocked.id)
+      assert.equal(updated.lane, 'blocked')
+      assert.equal(updated.dependsOn.length, 1)
+    })
   })
 
   describe('filtering', async () => {
     it('should filter by lane', async () => {
-      const store = new TasksStore(testFile)
+      const store = await createFreshStore()
       await store.create({ title: 'Task 1', lane: 'queued' })
       await store.create({ title: 'Task 2', lane: 'development' })
 
@@ -234,7 +360,7 @@ describe('TasksStore', () => {
     })
 
     it('should filter by assignedTo', async () => {
-      const store = new TasksStore(testFile)
+      const store = await createFreshStore()
       await store.create({ title: 'Task 1', assignedTo: 'agent-1' })
       await store.create({ title: 'Task 2', assignedTo: 'agent-2' })
 
@@ -245,7 +371,7 @@ describe('TasksStore', () => {
     })
 
     it('should filter by priority', async () => {
-      const store = new TasksStore(testFile)
+      const store = await createFreshStore()
       await store.create({ title: 'Task 1', priority: 'P0' })
       await store.create({ title: 'Task 2', priority: 'P1' })
 
@@ -258,7 +384,7 @@ describe('TasksStore', () => {
 
   describe('deletion', async () => {
     it('should delete a task', async () => {
-      const store = new TasksStore(testFile)
+      const store = await createFreshStore()
       const task = await store.create({ title: 'Task' })
 
       const deleted = await store.delete(task.id)
@@ -295,7 +421,7 @@ describe('TasksStore', () => {
 
   describe('persistence', async () => {
     it('should persist tasks to file', async () => {
-      const store = new TasksStore(testFile)
+      const store = await createFreshStore()
       await store.create({ title: 'Task 1' })
       await store.create({ title: 'Task 2' })
 
