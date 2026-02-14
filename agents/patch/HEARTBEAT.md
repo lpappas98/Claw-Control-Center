@@ -19,9 +19,11 @@ Pick highest priority first:
 
 ### 3. Execute Task
 When you find a task:
-1. Move to development: `PUT /api/tasks/{id}` with `{"lane": "development"}`
-2. Execute the work described in the task
-3. On completion: Move to review
+1. **LOG WHICH TASK YOU SELECTED** - State the task ID and title before starting work (prevents confusion with similar tasks)
+2. Move to development: `PUT /api/tasks/{id}` with `{"lane": "development"}`
+3. Execute the work described in the task
+4. Verify task lane changed to "review" after completion (don't just assume it worked)
+5. Report completion with task ID in your summary
 
 ### 4. No Tasks
 If no tasks assigned to you, reply: `HEARTBEAT_OK`
