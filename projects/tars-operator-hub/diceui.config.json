@@ -1,0 +1,17 @@
+{
+  "$schema": "https://diceui.com/schema.json",
+  "style": "default",
+  "tsx": true,
+  "tailwind": {
+    "config": "tailwind.config.js",
+    "css": "src/index.css",
+    "baseColor": "neutral"
+  },
+  "iconLibrary": "lucide",
+  "aliases": {
+    "@/components": "src/components",
+    "@/components/ui": "src/components/ui",
+    "@/lib": "src/lib",
+    "@/hooks": "src/hooks"
+  }
+}

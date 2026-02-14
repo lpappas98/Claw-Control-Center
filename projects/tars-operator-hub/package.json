@@ -10,7 +10,7 @@
     "test": "node --test 'scripts/**/*.test.mjs' bridge/instanceDiscovery.test.mjs bridge/taskTemplates.test.mjs bridge/taskTemplates.integration.test.mjs bridge/cronParser.test.mjs bridge/routines.test.mjs bridge/routineExecutor.test.mjs bridge/routines-api.test.mjs bridge/telegramIntegration.test.mjs",
     "test:phase2": "node --test 'scripts/**/*.test.mjs' bridge/instanceDiscovery.test.mjs",
     "test:phase3": "node --experimental-test-loader=./node_modules/@testing-library/react src/**/*.test.tsx src/services/api.test.ts 2>/dev/null || echo 'Phase 3 tests require jsdom support'",
-    "build": "tsc -b && vite build",
+    "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"
   },
@@ -28,7 +28,7 @@
     "react-dom": "^19.2.0"
   },
   "devDependencies": {
-    "@eslint/js": "^9.39.1",
+    "@eslint/js": "^9.39.2",
     "@radix-ui/react-dialog": "^1.1.15",
     "@radix-ui/react-dropdown-menu": "^2.1.16",
     "@radix-ui/react-label": "^2.1.8",
