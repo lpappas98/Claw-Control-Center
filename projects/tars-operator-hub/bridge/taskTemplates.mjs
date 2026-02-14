@@ -148,13 +148,13 @@ export class TaskTemplatesStore {
   }
 }
 
-// Singleton instance
-let store = null
+// Singleton instances per file path
+const stores = new Map()
 export function getTaskTemplatesStore(filePath) {
-  if (!store) {
-    store = new TaskTemplatesStore(filePath)
+  if (!stores.has(filePath)) {
+    stores.set(filePath, new TaskTemplatesStore(filePath))
   }
-  return store
+  return stores.get(filePath)
 }
 
 // Export legacy functions for backward compatibility
