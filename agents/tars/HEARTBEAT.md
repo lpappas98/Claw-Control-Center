@@ -37,8 +37,13 @@ curl -X PUT http://192.168.1.51:8787/api/tasks/{taskId} \
   -d '{"lane": "development"}'
 ```
 
-### 6. Execute the work
-Follow the problem, scope, and acceptance criteria in the task
+### 6. Execute the work DIRECTLY (DO NOT SPAWN SUB-AGENTS)
+**CRITICAL:** Do the work YOURSELF in this heartbeat session. DO NOT use sessions_spawn or any delegation.
+
+- Read the problem, scope, and acceptance criteria
+- Use exec, read, write, edit tools to complete the task
+- Test your changes before moving to review
+- Commit your changes to git
 
 ### 7. Verify lane changed successfully
 Check that task is now in "development" lane before proceeding
