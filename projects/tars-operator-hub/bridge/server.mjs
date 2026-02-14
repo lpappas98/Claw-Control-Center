@@ -49,6 +49,9 @@ import { autoAssignTask, getAssignmentSuggestions } from './taskAssignment.mjs'
 import { generateTasksFromPrompt, getProjectContext } from './aiTaskGeneration.mjs'
 import { getRoutinesStore } from './routines.mjs'
 import { getRoutineExecutor } from './routineExecutor.mjs'
+import { getCalendarIntegration } from './calendarIntegration.mjs'
+import { GitHubIntegration } from './githubIntegration.mjs'
+import { sendTelegramNotification, sendTestNotification, formatTaskNotification, loadTelegramConfig } from './telegramIntegration.mjs'
 
 const execFileAsync = promisify(execFile)
 
@@ -69,6 +72,34 @@ const NEW_TASKS_FILE = process.env.OPERATOR_HUB_NEW_TASKS_FILE ?? path.join(WORK
 const NOTIFICATIONS_FILE = process.env.OPERATOR_HUB_NOTIFICATIONS_FILE ?? path.join(WORKSPACE, '.clawhub', 'notifications.json')
 const TEMPLATES_FILE = process.env.OPERATOR_HUB_TEMPLATES_FILE ?? path.join(WORKSPACE, '.clawhub', 'taskTemplates.json')
 const ROUTINES_FILE = process.env.OPERATOR_HUB_ROUTINES_FILE ?? path.join(WORKSPACE, '.clawhub', 'routines.json')
+const CONFIG_FILE = process.env.OPERATOR_HUB_CONFIG_FILE ?? path.join(WORKSPACE, '.clawhub', 'config.json')
+
+// Load GitHub config
+async function loadGitHubConfig() {
+  try {
+    const raw = await fs.readFile(CONFIG_FILE, 'utf8')
+    const config = JSON.parse(raw)
+    return config?.integrations?.github ?? {}
+  } catch {
+    return {}
+  }
+}
+
+const gitHubConfig = await loadGitHubConfig()
+const github = new GitHubIntegration(gitHubConfig)
+
+async function loadCalendarConfig() {
+  try {
+    const raw = await fs.readFile(CONFIG_FILE, 'utf8')
+    const config = JSON.parse(raw)
+    return config?.integrations?.googleCalendar ?? {}
+  } catch {
+    return {}
+  }
+}
+
+const calendarConfig = await loadCalendarConfig()
+const calendar = getCalendarIntegration(calendarConfig)
 
 /** @type {import('../src/types').ActivityEvent[]} */
 let activity = await loadActivity(ACTIVITY_FILE)
@@ -1894,6 +1925,376 @@ app.post('/api/ai/tasks/generate', async (req, res) => {
     res.json(result)
   } catch (err) {
     res.status(400).send(err?.message ?? 'failed to generate tasks')
+  }
+})
+
+// ====== GITHUB INTEGRATION ======
+
+/**
+ * Create a GitHub issue for a task
+ * POST /api/tasks/:id/github
+ */
+app.post('/api/tasks/:id/github', async (req, res) => {
+  try {
+    const taskId = req.params.id
+    const repo = req.body?.repo || null
+
+    // Get the task
+    const task = await newTasksStore.getTask(taskId)
+    if (!task) return res.status(404).send('task not found')
+
+    // Create GitHub issue
+    const issueInfo = await github.createGitHubIssue(task, repo)
+    if (!issueInfo) {
+      return res.status(400).send('failed to create GitHub issue (token may not be configured)')
+    }
+
+    // Update task with GitHub issue info
+    const updated = await newTasksStore.update(taskId, {
+      githubIssue: issueInfo,
+    }, 'api')
+
+    res.json({ task: updated, issue: issueInfo })
+  } catch (err) {
+    res.status(400).send(err?.message ?? 'failed to create GitHub issue')
+  }
+})
+
+/**
+ * Get commits linked to a task
+ * GET /api/tasks/:id/commits
+ */
+app.get('/api/tasks/:id/commits', async (req, res) => {
+  try {
+    const taskId = req.params.id
+    const task = await newTasksStore.getTask(taskId)
+    if (!task) return res.status(404).send('task not found')
+
+    const commits = task.commits || []
+    res.json({ taskId, commits })
+  } catch (err) {
+    res.status(400).send(err?.message ?? 'failed to get commits')
+  }
+})
+
+/**
+ * Link a commit to a task
+ * POST /api/tasks/:id/link-commit
+ */
+app.post('/api/tasks/:id/link-commit', async (req, res) => {
+  try {
+    const taskId = req.params.id
+    const { commitMessage, commitSha, commitUrl } = req.body
+
+    if (!commitMessage || !commitSha || !commitUrl) {
+      return res.status(400).send('commitMessage, commitSha, and commitUrl required')
+    }
+
+    const task = await newTasksStore.getTask(taskId)
+    if (!task) return res.status(404).send('task not found')
+
+    const commitLink = github.linkCommitToTask(commitMessage, commitSha, commitUrl)
+    if (!commitLink) {
+      return res.status(400).send('no task ID found in commit message')
+    }
+
+    // Add to task's commits array
+    const commits = task.commits || []
+    commits.push(commitLink)
+
+    const updated = await newTasksStore.update(taskId, { commits }, 'api')
+
+    res.json({ task: updated, commit: commitLink })
+  } catch (err) {
+    res.status(400).send(err?.message ?? 'failed to link commit')
+  }
+})
+
+/**
+ * GitHub webhook handler for PR merge events
+ * POST /api/github/webhook
+ * 
+ * Validates signature and processes PR merge events to auto-move tasks to done
+ */
+app.post('/api/github/webhook', async (req, res) => {
+  try {
+    // Get raw body for signature validation
+    const rawBody = req.rawBody || JSON.stringify(req.body)
+    const signature = req.headers['x-hub-signature-256']
+
+    // Validate webhook signature
+    if (!github.validateWebhookSignature(rawBody, signature)) {
+      console.warn('Invalid GitHub webhook signature')
+      return res.status(401).send('unauthorized')
+    }
+
+    // Parse webhook payload
+    const event = github.parseWebhookPayload(req.body)
+    if (!event) {
+      // Not a PR merge event, just acknowledge
+      return res.json({ received: true, processed: false })
+    }
+
+    // Extract task IDs from PR body
+    const taskIds = github.extractTaskIdsFromPR(event.pr.body)
+
+    if (taskIds.length === 0) {
+      return res.json({ received: true, processed: false, reason: 'no task IDs found in PR' })
+    }
+
+    // Move tasks to done
+    const updated = []
+    for (const taskId of taskIds) {
+      try {
+        const task = await newTasksStore.update(taskId, {
+          lane: 'done',
+          githubPRMerged: {
+            number: event.pr.number,
+            url: event.pr.url,
+            mergedAt: event.mergedAt,
+            mergedBy: event.mergedBy,
+          },
+        }, 'github-webhook')
+
+        if (task) {
+          updated.push(task)
+
+          // Close GitHub issue if enabled
+          if (github.autoCloseOnDone && task.githubIssue) {
+            await github.closeGitHubIssue(task)
+          }
+        }
+      } catch (err) {
+        console.error(`Failed to update task ${taskId}:`, err.message)
+      }
+    }
+
+    res.json({
+      received: true,
+      processed: true,
+      pr: {
+        number: event.pr.number,
+        url: event.pr.url,
+      },
+      tasksUpdated: updated.length,
+      tasks: updated.map(t => ({ id: t.id, lane: t.lane })),
+    })
+  } catch (err) {
+    console.error('Webhook error:', err.message)
+    res.status(400).send(err?.message ?? 'webhook processing failed')
+  }
+})
+
+// Add rawBody middleware for webhook signature validation
+const rawBodyMiddleware = express.raw({ type: 'application/json' })
+app.use((req, res, next) => {
+  if (req.method === 'POST' && req.path === '/api/github/webhook') {
+    rawBodyMiddleware(req, res, next)
+  } else {
+    next()
+  }
+})
+
+app.post('/api/calendar/sync', async (req, res) => {
+  try {
+    const allTasks = newTasksStore.data ?? []
+    const result = await calendar.syncAllTaskDeadlines(allTasks)
+    res.json(result)
+  } catch (err) {
+    res.status(400).json({ success: false, reason: err.message })
+  }
+})
+
+app.post('/api/tasks/:id/calendar', async (req, res) => {
+  try {
+    const taskId = req.params.id
+    const task = await newTasksStore.get(taskId)
+    
+    if (!task) {
+      return res.status(404).json({ success: false, reason: 'Task not found' })
+    }
+
+    const result = await calendar.syncTaskToCalendar(task)
+    res.json(result)
+  } catch (err) {
+    res.status(400).json({ success: false, reason: err.message })
+  }
+})
+
+app.post('/api/tasks/:id/calendar/block', async (req, res) => {
+  try {
+    const taskId = req.params.id
+    const hours = req.body?.hours ?? 1
+    const task = await newTasksStore.get(taskId)
+    
+    if (!task) {
+      return res.status(404).json({ success: false, reason: 'Task not found' })
+    }
+
+    const result = await calendar.blockTimeOnCalendar(task, hours)
+    res.json(result)
+  } catch (err) {
+    res.status(400).json({ success: false, reason: err.message })
+  }
+})
+
+app.delete('/api/tasks/:id/calendar', async (req, res) => {
+  try {
+    const taskId = req.params.id
+    const task = await newTasksStore.get(taskId)
+    
+    if (!task) {
+      return res.status(404).json({ success: false, reason: 'Task not found' })
+    }
+
+    const result = await calendar.removeTaskFromCalendar(task)
+    res.json(result)
+  } catch (err) {
+    res.status(400).json({ success: false, reason: err.message })
+  }
+})
+
+app.post('/api/calendar/setup', async (req, res) => {
+  try {
+    const configured = calendar.isConfigured()
+    res.json({
+      success: true,
+      message: configured ? 'Calendar is configured' : 'Calendar not yet configured',
+      configured,
+      calendarId: calendar.calendarId
+    })
+  } catch (err) {
+    res.status(400).json({ success: false, reason: err.message })
+  }
+})
+
+// Telegram Integration Endpoints
+
+/**
+ * Test Telegram integration
+ * POST /api/integrations/telegram/test
+ */
+app.post('/api/integrations/telegram/test', async (req, res) => {
+  try {
+    // Load config
+    const configPath = path.join(WORKSPACE, '.clawhub', 'config.json')
+    let config = {}
+    try {
+      const raw = await fs.readFile(configPath, 'utf8')
+      config = JSON.parse(raw)
+    } catch {
+      // Config file might not exist
+    }
+
+    const telegramConfig = loadTelegramConfig(config)
+
+    if (!telegramConfig) {
+      return res.status(400).json({
+        success: false,
+        error: 'Telegram not configured. Add botToken and channels to .clawhub/config.json'
+      })
+    }
+
+    const { chatId } = req.body || {}
+    const targetChatId = chatId || telegramConfig.channels?.default
+
+    if (!targetChatId) {
+      return res.status(400).json({
+        success: false,
+        error: 'No chat ID specified and no default channel configured'
+      })
+    }
+
+    // Send test notification
+    const result = await sendTestNotification(telegramConfig.botToken, targetChatId)
+
+    if (result.success) {
+      res.json({
+        success: true,
+        messageId: result.messageId,
+        message: 'Test notification sent to Telegram'
+      })
+    } else {
+      res.status(400).json({
+        success: false,
+        error: result.error
+      })
+    }
+  } catch (err) {
+    console.error('[Telegram] Test error:', err.message)
+    res.status(500).json({
+      success: false,
+      error: err.message
+    })
+  }
+})
+
+/**
+ * Send manual notification to Telegram
+ * POST /api/integrations/telegram/notify
+ */
+app.post('/api/integrations/telegram/notify', async (req, res) => {
+  try {
+    const { chatId, message, type, task } = req.body
+
+    // Load config
+    const configPath = path.join(WORKSPACE, '.clawhub', 'config.json')
+    let config = {}
+    try {
+      const raw = await fs.readFile(configPath, 'utf8')
+      config = JSON.parse(raw)
+    } catch {
+      // Config file might not exist
+    }
+
+    const telegramConfig = loadTelegramConfig(config)
+
+    if (!telegramConfig) {
+      return res.status(400).json({
+        success: false,
+        error: 'Telegram not configured'
+      })
+    }
+
+    if (!chatId || (!message && !task)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required parameters: chatId and (message or task)'
+      })
+    }
+
+    let finalMessage = message
+
+    // If task provided, format as task notification
+    if (task && !message) {
+      finalMessage = formatTaskNotification(task, type || 'info', '')
+    }
+
+    const result = await sendTelegramNotification(
+      telegramConfig.botToken,
+      chatId,
+      finalMessage,
+      type || 'info'
+    )
+
+    if (result.success) {
+      res.json({
+        success: true,
+        messageId: result.messageId,
+        message: 'Notification sent to Telegram'
+      })
+    } else {
+      res.status(400).json({
+        success: false,
+        error: result.error
+      })
+    }
+  } catch (err) {
+    console.error('[Telegram] Notification error:', err.message)
+    res.status(500).json({
+      success: false,
+      error: err.message
+    })
   }
 })
 

@@ -1,0 +1,41 @@
+[
+  {
+    "id": "template-da61d7a2cffb1-1771039340319",
+    "name": "New Feature",
+    "description": "Standard workflow for new feature implementation",
+    "tasks": [
+      {
+        "title": "Design mockup",
+        "description": "",
+        "role": "designer",
+        "estimatedHours": 4,
+        "dependsOn": []
+      },
+      {
+        "title": "Implement backend",
+        "description": "",
+        "role": "backend-dev",
+        "estimatedHours": 8,
+        "dependsOn": []
+      }
+    ],
+    "createdAt": 1771039340319,
+    "updatedAt": 1771039340319
+  },
+  {
+    "id": "template-cfda09d884b3c-1771039340327",
+    "name": "Search Template",
+    "description": "",
+    "tasks": [
+      {
+        "title": "Task",
+        "description": "",
+        "role": "dev",
+        "estimatedHours": null,
+        "dependsOn": []
+      }
+    ],
+    "createdAt": 1771039340327,
+    "updatedAt": 1771039340327
+  }
+]

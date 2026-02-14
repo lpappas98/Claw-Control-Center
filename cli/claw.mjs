@@ -544,5 +544,243 @@ program
     console.log()
   })
 
+/**
+ * claw cal:sync
+ */
+program
+  .command('cal:sync')
+  .description('Sync all tasks with deadlines to calendar')
+  .action(async () => {
+    console.log('📅 Syncing tasks to calendar...')
+    
+    const result = await apiRequest('POST', '/api/calendar/sync')
+    
+    if (!result.success) {
+      console.error(`❌ Sync failed: ${result.reason}`)
+      return
+    }
+
+    console.log(`✅ Calendar sync complete`)
+    console.log(`   Synced: ${result.synced} tasks`)
+    if (result.failed > 0) {
+      console.log(`   Failed: ${result.failed} tasks`)
+    }
+  })
+
+/**
+ * claw cal:block <taskId> <hours>
+ */
+program
+  .command('cal:block <taskId> <hours>')
+  .description('Block focused work time on calendar')
+  .action(async (taskId, hoursStr) => {
+    const hours = parseFloat(hoursStr)
+    
+    if (isNaN(hours) || hours <= 0 || hours > 24) {
+      console.error('❌ Hours must be a number between 1 and 24')
+      return
+    }
+
+    console.log(`🔗 Blocking ${hours} hours on calendar for task ${taskId}...`)
+    
+    const result = await apiRequest('POST', `/api/tasks/${taskId}/calendar/block`, { hours })
+    
+    if (!result.success) {
+      console.error(`❌ Failed to block time: ${result.reason}`)
+      return
+    }
+
+    console.log(`✅ Focus time blocked on calendar`)
+    console.log(`   Event ID: ${result.eventId}`)
+    console.log(`   Start: ${new Date(result.startTime).toLocaleString()}`)
+    console.log(`   End: ${new Date(result.endTime).toLocaleString()}`)
+    console.log(`   Duration: ${result.hours} hours`)
+  })
+
+/**
+ * claw cal:setup
+ */
+program
+  .command('cal:setup')
+  .description('Setup OAuth2 authentication for Google Calendar')
+  .action(async () => {
+    console.log('📅 Google Calendar OAuth2 Setup')
+    console.log('====================================\n')
+    
+    console.log('To enable calendar integration:')
+    console.log('')
+    console.log('1. Go to Google Cloud Console:')
+    console.log('   https://console.cloud.google.com/')
+    console.log('')
+    console.log('2. Create a new project (or select existing)')
+    console.log('')
+    console.log('3. Enable Google Calendar API:')
+    console.log('   - Search for "Google Calendar API"')
+    console.log('   - Click "Enable"')
+    console.log('')
+    console.log('4. Create OAuth2 credentials:')
+    console.log('   - Go to "Credentials" section')
+    console.log('   - Click "Create Credentials" > "OAuth 2.0 Client ID"')
+    console.log('   - Choose "Web application"')
+    console.log('   - Add authorized redirect URI:')
+    console.log('     http://localhost:8787/api/calendar/oauth/callback')
+    console.log('')
+    console.log('5. Download credentials JSON and place at:')
+    console.log('   ~/.claw/google-credentials.json')
+    console.log('')
+    console.log('6. Run this command again to complete setup')
+    console.log('')
+    console.log('Learn more: https://developers.google.com/calendar/api')
+    
+    const result = await apiRequest('POST', '/api/calendar/setup')
+    
+    if (result.success) {
+      console.log('\n✅ Calendar setup complete!')
+      console.log(`   Calendar ID: ${result.calendarId}`)
+    } else {
+      console.log(`\n⚠️  Setup status: ${result.message}`)
+    }
+  })
+
+/**
+ * claw task:github <id>
+ * 
+ * Create a GitHub issue for a task
+ */
+program
+  .command('task:github <id>')
+  .description('Create a GitHub issue for a task')
+  .option('-r, --repo <repo>', 'GitHub repo (owner/repo)')
+  .action(async (id, options) => {
+    try {
+      const result = await apiRequest('POST', `/api/tasks/${id}/github`, {
+        repo: options.repo || null
+      })
+
+      if (!result) {
+        console.error('❌ Failed to create GitHub issue (check token configuration)')
+        return
+      }
+
+      console.log(`✅ GitHub issue created!`)
+      console.log(`   Issue: #${result.issue.number}`)
+      console.log(`   URL: ${result.issue.url}`)
+      console.log(`   Task: ${id}`)
+    } catch (err) {
+      console.error(`❌ ${err.message}`)
+    }
+  })
+
+/**
+ * claw task:link-commit <id> <sha>
+ * 
+ * Link a commit to a task
+ */
+program
+  .command('task:link-commit <id> <sha>')
+  .description('Link a commit to a task')
+  .option('-m, --message <message>', 'Commit message')
+  .option('-u, --url <url>', 'Commit URL')
+  .action(async (id, sha, options) => {
+    try {
+      if (!options.message || !options.url) {
+        console.error('❌ --message and --url are required')
+        console.error('   Usage: claw task:link-commit <id> <sha> --message "..." --url "..."')
+        return
+      }
+
+      const result = await apiRequest('POST', `/api/tasks/${id}/link-commit`, {
+        commitMessage: options.message,
+        commitSha: sha,
+        commitUrl: options.url
+      })
+
+      if (!result) {
+        console.error('❌ Failed to link commit (no task ID found in commit message)')
+        return
+      }
+
+      console.log(`✅ Commit linked to task!`)
+      console.log(`   Commit: ${sha.substring(0, 7)}`)
+      console.log(`   Task: ${result.commit.taskId}`)
+      console.log(`   URL: ${result.commit.url}`)
+    } catch (err) {
+      console.error(`❌ ${err.message}`)
+    }
+  })
+
+/**
+ * claw task:commits <id>
+ * 
+ * Show commits linked to a task
+ */
+program
+  .command('task:commits <id>')
+  .description('Show commits linked to a task')
+  .action(async (id) => {
+    try {
+      const result = await apiRequest('GET', `/api/tasks/${id}/commits`)
+
+      if (!result || !result.commits) {
+        console.error('❌ Failed to get commits')
+        return
+      }
+
+      if (result.commits.length === 0) {
+        console.log(`📝 No commits linked to task ${id}`)
+        return
+      }
+
+      console.log(`\n📝 Commits for task ${id}:\n`)
+
+      for (const commit of result.commits) {
+        console.log(`   ${commit.sha.substring(0, 7)} - ${commit.message}`)
+        console.log(`   ${commit.url}`)
+        console.log('')
+      }
+    } catch (err) {
+      console.error(`❌ ${err.message}`)
+    }
+  })
+
+/**
+ * claw notify:test
+ * 
+ * Send test notification to Telegram
+ */
+program
+  .command('notify:test')
+  .description('Send test notification to Telegram')
+  .option('-c, --chat <id>', 'Telegram chat ID (optional, uses default if not provided)')
+  .action(async (options) => {
+    try {
+      const config = await loadConfig()
+      
+      if (!config) {
+        console.error('❌ Not authenticated. Run: claw auth')
+        process.exit(1)
+      }
+
+      // Prepare request
+      const body = {}
+      if (options.chat) {
+        body.chatId = options.chat
+      }
+
+      const result = await apiRequest('POST', '/api/integrations/telegram/test', body)
+
+      if (result.success) {
+        console.log('✅ Test notification sent to Telegram!')
+        console.log(`   Message ID: ${result.messageId}`)
+      } else {
+        console.error(`❌ Failed to send test notification: ${result.error}`)
+        process.exit(1)
+      }
+    } catch (err) {
+      console.error(`❌ ${err.message}`)
+      process.exit(1)
+    }
+  })
+
 // Parse CLI arguments
 program.parse()

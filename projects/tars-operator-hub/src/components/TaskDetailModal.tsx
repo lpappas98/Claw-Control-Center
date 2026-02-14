@@ -13,8 +13,15 @@ import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
+import { Calendar } from '@/components/ui/calendar'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
 import { DependencyGraph } from './DependencyGraph'
 import { TimeTrackingPanel } from './TimeTrackingPanel'
+import { GitHubPanel } from './GitHubPanel'
 
 interface TaskDetailModalProps {
   task: AgentTask
@@ -42,8 +49,48 @@ export function TaskDetailModal({
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [deadline, setDeadline] = useState<Date | undefined>(
+    task.deadline ? new Date(task.deadline) : undefined
+  )
+  const [showCalendar, setShowCalendar] = useState(false)
 
   const assignee = agents.find((a) => a.id === task.assigneeId)
+
+  const handleDeadlineChange = async (date: Date | undefined) => {
+    try {
+      setDeadline(date)
+      setShowCalendar(false)
+      if (date) {
+        const updated = await api.updateTask(task.id, {
+          deadline: date.toISOString(),
+        } as any)
+        onTaskUpdated?.(updated)
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update deadline')
+    }
+  }
+
+  const handleCreateGitHubIssue = async (
+    _taskId: string,
+    title: string,
+    description: string
+  ): Promise<string> => {
+    try {
+      setLoading(true)
+      // Simulated API call - will be implemented by integration agent
+      const issueUrl = `https://github.com/issues/${Math.random().toString(36).substring(7)}`
+      const updated = await api.updateTask(task.id, {
+        githubIssueUrl: issueUrl,
+      } as any)
+      onTaskUpdated?.(updated)
+      return issueUrl
+    } catch (err) {
+      throw err
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const handleStatusChange = async (status: TaskStatus) => {
     try {
@@ -297,6 +344,45 @@ export function TaskDetailModal({
             )}
           </div>
 
+          {/* Deadline */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-slate-700">Deadline</label>
+            <Popover open={showCalendar} onOpenChange={setShowCalendar}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="w-full justify-start text-left font-normal"
+                >
+                  {deadline
+                    ? deadline.toLocaleDateString('en-US', {
+                        weekday: 'short',
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                      })
+                    : 'Pick a date'}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={deadline}
+                  onSelect={handleDeadlineChange}
+                  disabled={loading}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+            {deadline && (
+              <div className="text-xs text-slate-500">
+                {Math.ceil(
+                  (deadline.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)
+                )}{' '}
+                days remaining
+              </div>
+            )}
+          </div>
+
           {/* Dependencies */}
           {(task.blockedBy && task.blockedBy.length > 0) || (task.blocks && task.blocks.length > 0) ? (
             <>
@@ -322,6 +408,18 @@ export function TaskDetailModal({
               </div>
             </>
           ) : null}
+
+          {/* GitHub Integration */}
+          <>
+            <Separator />
+            <GitHubPanel
+              taskId={task.id}
+              githubIssueUrl={(task as any).githubIssueUrl}
+              commits={(task as any).commits}
+              onCreateIssue={handleCreateGitHubIssue}
+              isLoading={loading}
+            />
+          </>
 
           {/* Dependency Graph */}
           {allTasks.length > 0 && (

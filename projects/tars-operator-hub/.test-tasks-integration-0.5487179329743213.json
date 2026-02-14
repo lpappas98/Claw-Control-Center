@@ -1,0 +1,219 @@
+[
+  {
+    "id": "task-7291b7a2126f1-1771039378351",
+    "title": "Design mockup",
+    "description": "",
+    "lane": "queued",
+    "priority": "P2",
+    "assignedTo": null,
+    "createdBy": null,
+    "parentId": null,
+    "projectId": null,
+    "tags": [
+      "from-template"
+    ],
+    "estimatedHours": 4,
+    "actualHours": 0,
+    "timeEntries": [],
+    "dependsOn": [],
+    "blocks": [],
+    "statusHistory": [
+      {
+        "at": 1771039378351,
+        "to": "queued",
+        "note": "created",
+        "by": null
+      }
+    ],
+    "comments": [],
+    "metadata": {},
+    "createdAt": 1771039378351,
+    "updatedAt": 1771039378351
+  },
+  {
+    "id": "task-2575a4f00856a-1771039378352",
+    "title": "Implement backend",
+    "description": "",
+    "lane": "queued",
+    "priority": "P2",
+    "assignedTo": null,
+    "createdBy": null,
+    "parentId": null,
+    "projectId": null,
+    "tags": [
+      "from-template"
+    ],
+    "estimatedHours": 8,
+    "actualHours": 0,
+    "timeEntries": [],
+    "dependsOn": [
+      "task-7291b7a2126f1-1771039378351"
+    ],
+    "blocks": [],
+    "statusHistory": [
+      {
+        "at": 1771039378352,
+        "to": "queued",
+        "note": "created",
+        "by": null
+      }
+    ],
+    "comments": [],
+    "metadata": {},
+    "createdAt": 1771039378352,
+    "updatedAt": 1771039378353
+  },
+  {
+    "id": "task-0aad7aba92842-1771039378353",
+    "title": "Implement frontend",
+    "description": "",
+    "lane": "queued",
+    "priority": "P2",
+    "assignedTo": null,
+    "createdBy": null,
+    "parentId": null,
+    "projectId": null,
+    "tags": [
+      "from-template"
+    ],
+    "estimatedHours": 8,
+    "actualHours": 0,
+    "timeEntries": [],
+    "dependsOn": [
+      "task-2575a4f00856a-1771039378352"
+    ],
+    "blocks": [],
+    "statusHistory": [
+      {
+        "at": 1771039378353,
+        "to": "queued",
+        "note": "created",
+        "by": null
+      }
+    ],
+    "comments": [],
+    "metadata": {},
+    "createdAt": 1771039378353,
+    "updatedAt": 1771039378354
+  },
+  {
+    "id": "task-f641150332e5d-1771039378355",
+    "title": "Task A",
+    "description": "",
+    "lane": "queued",
+    "priority": "P2",
+    "assignedTo": null,
+    "createdBy": null,
+    "parentId": null,
+    "projectId": null,
+    "tags": [],
+    "estimatedHours": null,
+    "actualHours": 0,
+    "timeEntries": [],
+    "dependsOn": [],
+    "blocks": [],
+    "statusHistory": [
+      {
+        "at": 1771039378355,
+        "to": "queued",
+        "note": "created",
+        "by": null
+      }
+    ],
+    "comments": [],
+    "metadata": {},
+    "createdAt": 1771039378355,
+    "updatedAt": 1771039378355
+  },
+  {
+    "id": "task-14e4493fa07e7-1771039378355",
+    "title": "Task B",
+    "description": "",
+    "lane": "queued",
+    "priority": "P2",
+    "assignedTo": null,
+    "createdBy": null,
+    "parentId": null,
+    "projectId": null,
+    "tags": [],
+    "estimatedHours": null,
+    "actualHours": 0,
+    "timeEntries": [],
+    "dependsOn": [],
+    "blocks": [],
+    "statusHistory": [
+      {
+        "at": 1771039378355,
+        "to": "queued",
+        "note": "created",
+        "by": null
+      }
+    ],
+    "comments": [],
+    "metadata": {},
+    "createdAt": 1771039378355,
+    "updatedAt": 1771039378355
+  },
+  {
+    "id": "task-73be72598f4f3-1771039378357",
+    "title": "Design",
+    "description": "",
+    "lane": "queued",
+    "priority": "P2",
+    "assignedTo": "pixel",
+    "createdBy": null,
+    "parentId": null,
+    "projectId": null,
+    "tags": [
+      "designer"
+    ],
+    "estimatedHours": null,
+    "actualHours": 0,
+    "timeEntries": [],
+    "dependsOn": [],
+    "blocks": [],
+    "statusHistory": [
+      {
+        "at": 1771039378357,
+        "to": "queued",
+        "note": "created",
+        "by": null
+      }
+    ],
+    "comments": [],
+    "metadata": {},
+    "createdAt": 1771039378357,
+    "updatedAt": 1771039378357
+  },
+  {
+    "id": "task-90a6eb510a6ca-1771039378358",
+    "title": "Implement API",
+    "description": "",
+    "lane": "queued",
+    "priority": "P2",
+    "assignedTo": "dev-backend",
+    "createdBy": null,
+    "parentId": null,
+    "projectId": null,
+    "tags": [
+      "backend-dev"
+    ],
+    "estimatedHours": null,
+    "actualHours": 0,
+    "timeEntries": [],
+    "dependsOn": [],
+    "blocks": [],
+    "statusHistory": [
+      {
+        "at": 1771039378358,
+        "to": "queued",
+        "note": "created",
+        "by": null
+      }
+    ],
+    "comments": [],
+    "metadata": {},
+    "createdAt": 1771039378358,
+    "updatedAt": 1771039378358
+  }
+]

@@ -333,3 +333,57 @@ export type Notification = {
   read: boolean
   createdAt: string
 }
+
+// ---- Integration Types ----
+export type IntegrationStatus = 'connected' | 'not_configured' | 'error'
+
+export type GitHubIntegration = {
+  id: string
+  status: IntegrationStatus
+  enabled: boolean
+  token?: string
+  username?: string
+  linkedIssues?: Record<string, string> // taskId -> issueUrl
+  commits?: Array<{
+    taskId: string
+    sha: string
+    message: string
+    date: string
+  }>
+}
+
+export type TelegramIntegration = {
+  id: string
+  status: IntegrationStatus
+  enabled: boolean
+  botToken?: string
+  chatIds: Record<string, string> // eventType -> chatId
+  eventMappings?: Record<string, string[]> // channelId -> eventTypes
+}
+
+export type CalendarIntegration = {
+  id: string
+  status: IntegrationStatus
+  enabled: boolean
+  token?: string
+  calendarId?: string
+  syncedDeadlines?: Record<string, string> // taskId -> eventId
+}
+
+export type IntegrationConfig = {
+  github?: GitHubIntegration
+  telegram?: TelegramIntegration
+  calendar?: CalendarIntegration
+}
+
+// Extended AgentTask with integration fields
+export type AgentTaskWithIntegrations = AgentTask & {
+  deadline?: string // ISO date string
+  githubIssueUrl?: string
+  calendarEventId?: string
+  commits?: Array<{
+    sha: string
+    message: string
+    date: string
+  }>
+}
