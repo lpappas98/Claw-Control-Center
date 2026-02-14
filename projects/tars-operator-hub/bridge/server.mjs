@@ -1639,11 +1639,13 @@ app.post('/api/templates', async (req, res) => {
 app.put('/api/templates/:id', async (req, res) => {
   try {
     const body = req.body ?? {}
-    const template = await templatesStore.updateTemplate(req.params.id, {
-      name: body.name,
-      description: body.description,
-      tasks: body.tasks
-    })
+    const updates = {}
+    
+    if (body.name !== undefined) updates.name = body.name
+    if (body.description !== undefined) updates.description = body.description
+    if (body.tasks !== undefined) updates.tasks = body.tasks
+    
+    const template = await templatesStore.updateTemplate(req.params.id, updates)
     if (!template) return res.status(404).send('template not found')
     res.json(template)
   } catch (err) {

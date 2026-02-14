@@ -7,7 +7,7 @@
     "dev": "vite",
     "bridge": "node bridge/server.mjs",
     "beats": "node bridge/slot-heartbeats.mjs",
-    "test": "node --test 'scripts/**/*.test.mjs' bridge/instanceDiscovery.test.mjs",
+    "test": "node --test 'scripts/**/*.test.mjs' bridge/instanceDiscovery.test.mjs bridge/taskTemplates.test.mjs bridge/taskTemplates.integration.test.mjs",
     "test:phase2": "node --test 'scripts/**/*.test.mjs' bridge/instanceDiscovery.test.mjs",
     "test:phase3": "node --experimental-test-loader=./node_modules/@testing-library/react src/**/*.test.tsx src/services/api.test.ts 2>/dev/null || echo 'Phase 3 tests require jsdom support'",
     "build": "tsc -b && vite build",
