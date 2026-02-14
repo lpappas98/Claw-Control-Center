@@ -1,9 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Alert } from "@/components/ui/alert"
 import type { Adapter } from '../adapters/adapter'
 import type { Rule, RuleChange } from '../types'
 import { CopyButton } from '../components/CopyButton'
-import { Button } from '@/components/ui/button'
 
 function fmtWhen(iso: string) {
   try {
@@ -163,23 +161,23 @@ export function Rules({ adapter }: { adapter: Adapter }) {
             </p>
           </div>
           <div className="right stack-h">
-            <Button variant="default" onClick={() => setCreateOpen((v) => !v)} type="button" disabled={loading}>
+            <button className="btn" onClick={() => setCreateOpen((v) => !v)} type="button" disabled={loading}>
               {createOpen ? 'Close' : 'New rule'}
-            </Button>
-            <Button variant="ghost" onClick={refresh} type="button" disabled={loading}>
+            </button>
+            <button className="btn ghost" onClick={refresh} type="button" disabled={loading}>
               {loading ? 'Refreshing…' : 'Refresh'}
-            </Button>
+            </button>
           </div>
         </div>
 
         {createOpen && (
-          <Alert>
+          <div className="callout">
             <div className="stack">
               <div className="stack-h" style={{ justifyContent: 'space-between', alignItems: 'center' }}>
                 <strong>Create rule</strong>
-                <Button variant="default" type="button" onClick={createRule} disabled={busyId === '__create__' || !createTitle.trim()}>
+                <button className="btn" type="button" onClick={createRule} disabled={busyId === '__create__' || !createTitle.trim()}>
                   {busyId === '__create__' ? 'Creating…' : 'Create'}
-                </Button>
+                </button>
               </div>
 
               <label className="field">
@@ -210,13 +208,13 @@ export function Rules({ adapter }: { adapter: Adapter }) {
                 </select>
               </label>
             </div>
-          </Alert>
+          </div>
         )}
 
         {error && (
-          <Alert variant="destructive">
+          <div className="callout warn">
             <strong>Rules error:</strong> {error}
-          </Alert>
+          </div>
         )}
 
         <div className="table-like">
@@ -224,15 +222,15 @@ export function Rules({ adapter }: { adapter: Adapter }) {
             <div className="row" key={r.id}>
               <div className="row-main">
                 <div className="row-title">
-                  <Button
+                  <button
                     type="button"
-                    variant="ghost"
+                    className={`btn ghost`}
                     style={{ padding: '4px 8px' }}
                     onClick={() => setSelectedId(r.id)}
                     title={r.id}
                   >
                     <strong>{r.title}</strong>
-                  </Button>
+                  </button>
                   <span className={`pill ${r.enabled ? 'sev-low' : ''}`} title={r.enabled ? 'enabled' : 'disabled'}>
                     {r.enabled ? 'Enabled' : 'Disabled'}
                   </span>
@@ -241,9 +239,9 @@ export function Rules({ adapter }: { adapter: Adapter }) {
               </div>
               <div className="row-side">
                 <div className="muted">updated: {fmtWhen(r.updatedAt)}</div>
-                <Button variant="default" type="button" onClick={() => toggle(r)} disabled={busyId === r.id}>
+                <button className="btn" type="button" onClick={() => toggle(r)} disabled={busyId === r.id}>
                   {busyId === r.id ? 'Working…' : r.enabled ? 'Disable' : 'Enable'}
-                </Button>
+                </button>
               </div>
             </div>
           ))}
@@ -266,13 +264,13 @@ export function Rules({ adapter }: { adapter: Adapter }) {
             <div className="stack-h" style={{ justifyContent: 'space-between', alignItems: 'center' }}>
               <div className="muted">id: <code>{selected.id}</code></div>
               <div className="stack-h">
-                <Button variant="default" type="button" onClick={removeSelected} disabled={busyId === selected.id}>
+                <button className="btn" type="button" onClick={removeSelected} disabled={busyId === selected.id}>
                   Delete
-                </Button>
+                </button>
                 <CopyButton text={selected.content} label="Copy body" />
-                <Button variant="default" type="button" disabled={!dirty || busyId === selected.id} onClick={save}>
+                <button className="btn" type="button" disabled={!dirty || busyId === selected.id} onClick={save}>
                   {busyId === selected.id ? 'Saving…' : dirty ? 'Save' : 'Saved'}
-                </Button>
+                </button>
               </div>
             </div>
 

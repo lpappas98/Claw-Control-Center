@@ -1,5 +1,35 @@
 [
   {
+    "id": "task-ee47afdffdadc-1771051493683",
+    "title": "QA: Verify task overflow fix and TaskModal dark theme styling",
+    "lane": "queued",
+    "priority": "P0",
+    "owner": "qa",
+    "problem": "Need to verify two UI fixes: 1) Task title overflow in Mission Control task board, 2) TaskModal dark theme styling matches rest of UI",
+    "scope": "Load UI in browser, test both fixes visually, verify professional appearance",
+    "acceptanceCriteria": [
+      "Open http://192.168.1.51:5173 in browser",
+      "Mission Control: Long task titles show ellipsis (...) instead of overflowing",
+      "Mission Control: Task cards maintain proper width without text wrapping weirdly",
+      "Click any task to open TaskModal",
+      "TaskModal: Dark theme background (#0d1426)",
+      "TaskModal: Inputs/textareas have dark backgrounds (#161b2f)",
+      "TaskModal: Text is light colored and readable",
+      "TaskModal: Borders match UI theme (#33406a)",
+      "TaskModal: Overall appearance is professional and consistent with Mission Control",
+      "Take screenshots and report back with PASS/FAIL for each criterion"
+    ],
+    "createdAt": "2026-02-14T06:44:53.683Z",
+    "updatedAt": "2026-02-14T06:44:53.683Z",
+    "statusHistory": [
+      {
+        "at": "2026-02-14T06:44:53.683Z",
+        "to": "queued",
+        "note": "created"
+      }
+    ]
+  },
+  {
     "id": "task-27a231773fa02-1771040618474",
     "title": "Load Test Task 15",
     "lane": "queued",
