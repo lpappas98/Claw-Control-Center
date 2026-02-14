@@ -571,14 +571,17 @@ app.get('/api/workers', async (_req, res) => {
   const agents = await agentsStore.getAll()
   
   // Transform agents to worker format
-  const workers = agents.map(agent => ({
-    slot: agent.id,
-    label: agent.name,
-    status: agent.status === 'online' ? 'active' : agent.status === 'busy' ? 'active' : 'offline',
-    task: agent.currentTask || null,
-    lastBeatAt: agent.lastHeartbeat ? new Date(agent.lastHeartbeat).toISOString() : null,
-    beats: [],
-  }))
+  const workers = agents.map(agent => {
+    const lastBeatIso = agent.lastHeartbeat ? new Date(agent.lastHeartbeat).toISOString() : null
+    return {
+      slot: agent.id,
+      label: agent.name,
+      status: agent.status === 'online' ? 'active' : agent.status === 'busy' ? 'active' : 'offline',
+      task: agent.currentTask || null,
+      lastBeatAt: lastBeatIso,
+      beats: lastBeatIso ? [{ at: lastBeatIso }] : [],
+    }
+  })
   
   res.json(workers)
 })
