@@ -1,17 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Alert } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
-import { Alert } from "@/components/ui/alert"
 import type { Adapter } from '../adapters/adapter'
-import { Alert } from "@/components/ui/alert"
 import { usePoll } from '../lib/usePoll'
-import { Alert } from "@/components/ui/alert"
+import { useWebSocket } from '../lib/useWebSocket'
 import { Badge } from '../components/Badge'
-import { Alert } from "@/components/ui/alert"
 import { TaskModal } from '../components/TaskModal'
-import { Alert } from "@/components/ui/alert"
 import type { ActivityEvent, BoardLane, LiveSnapshot, Priority, SystemStatus, Task, WorkerHeartbeat } from '../types'
-import { Alert } from "@/components/ui/alert"
 
 type HomeTask = {
   id: string
@@ -127,6 +122,20 @@ export function MissionControl({
 
   const [openTask, setOpenTask] = useState<Task | null>(null)
   const [creating, setCreating] = useState(false)
+
+  // WebSocket for real-time updates
+  useWebSocket({
+    url: 'ws://localhost:8787/ws',
+    onMessage: (msg) => {
+      if (msg.type === 'task-updated' || msg.type === 'task-created') {
+        persisted.refetch()
+      }
+      if (msg.type === 'agent-updated') {
+        live.refetch()
+      }
+    },
+    enabled: true
+  })
 
   useEffect(() => {
     if (!openTask) return
