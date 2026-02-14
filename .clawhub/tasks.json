@@ -2,7 +2,7 @@
   {
     "id": "task-0250129edfd02-1771108460860",
     "title": "Replace TaskModal with new task detail modal design",
-    "lane": "development",
+    "lane": "done",
     "priority": "P0",
     "owner": "dev-2",
     "problem": "Current TaskModal needs to be replaced with the new task detail modal design. The new modal should provide full task editing capabilities with a clean, modern UI.",
@@ -26,8 +26,20 @@
       "Code pushed to GitHub and Docker container updated"
     ],
     "createdAt": "2026-02-14T22:34:20.860Z",
-    "updatedAt": "2026-02-14T22:34:30.278Z",
+    "updatedAt": "2026-02-14T22:40:09.428Z",
     "statusHistory": [
+      {
+        "at": "2026-02-14T22:40:09.428Z",
+        "from": "review",
+        "to": "done",
+        "note": "updated"
+      },
+      {
+        "at": "2026-02-14T22:37:00.969Z",
+        "from": "development",
+        "to": "review",
+        "note": "updated"
+      },
       {
         "at": "2026-02-14T22:34:30.278Z",
         "from": "queued",
