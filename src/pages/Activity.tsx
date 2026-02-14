@@ -260,7 +260,7 @@ export function Activity({ adapter }: { adapter: Adapter }) {
           </div>
         </div>
 
-        {error && <Alert variant="destructive">{error.message}</div>}
+        {error && <Alert variant="destructive">{error.message}</Alert>}
 
         <div className="activity-split">
           <div className="activity-list">
@@ -369,7 +369,7 @@ export function Activity({ adapter }: { adapter: Adapter }) {
               </div>
             )}
           </aside>
-        </div>
+        </Alert>
       </section>
     </main>
   )

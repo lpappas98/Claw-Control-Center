@@ -214,13 +214,13 @@ export function Rules({ adapter }: { adapter: Adapter }) {
                 </select>
               </label>
             </div>
-          </div>
+          </Alert>
         )}
 
         {error && (
           <Alert variant="destructive">
             <strong>Rules error:</strong> {error}
-          </div>
+          </Alert>
         )}
 
         <div className="table-like">
@@ -331,7 +331,7 @@ export function Rules({ adapter }: { adapter: Adapter }) {
             </div>
           ))}
           {!loading && (history?.length ?? 0) === 0 && <div className="muted">No history yet.</div>}
-        </div>
+        </Alert>
       </section>
     </main>
   )

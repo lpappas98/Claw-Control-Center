@@ -425,7 +425,7 @@ export function MissionControl({
             )
           })}
           {!activity.loading && (activity.data?.length ?? 0) === 0 && <div className="muted">No activity yet.</div>}
-        </div>
+        </Alert>
       </section>
 
       {openTask && (

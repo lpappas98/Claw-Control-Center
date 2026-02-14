@@ -1420,7 +1420,7 @@ export function Projects({ adapter: _adapter }: { adapter: Adapter }) {
             <div className="projects-main-footer">
               <TabBar tab={tab} setTab={setTab} />
             </div>
-          </div>
+          </Alert>
         )}
       </section>
 
