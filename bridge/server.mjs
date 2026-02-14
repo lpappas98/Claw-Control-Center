@@ -591,11 +591,19 @@ app.get('/api/workers', async (_req, res) => {
   // Transform agents to worker format
   const workers = agents.map(agent => {
     const lastBeatIso = agent.lastHeartbeat ? new Date(agent.lastHeartbeat).toISOString() : null
+    
+    // Determine status: idle (online but no task) vs working (has currentTask) vs offline
+    let workerStatus = 'offline'
+    if (agent.status === 'online') {
+      workerStatus = agent.currentTask ? 'working' : 'idle'
+    }
+    
     return {
       slot: agent.id,
       label: agent.name,
-      status: agent.status === 'online' ? 'active' : agent.status === 'busy' ? 'active' : 'offline',
-      task: agent.currentTask || null,
+      status: workerStatus, // 'idle' | 'working' | 'offline'
+      task: agent.currentTask ? (typeof agent.currentTask === 'object' ? agent.currentTask.title : agent.currentTask) : null,
+      taskId: agent.currentTask ? (typeof agent.currentTask === 'object' ? agent.currentTask.id : null) : null,
       lastBeatAt: lastBeatIso,
       beats: lastBeatIso ? [{ at: lastBeatIso }] : [],
     }

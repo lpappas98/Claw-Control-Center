@@ -50,7 +50,16 @@ function agentProfile(slot: string, fallback?: string) {
 }
 
 function homeStatus(status: string) {
-  return status === 'active' ? 'working' : 'sleeping'
+  // Map worker status to home display status
+  // 'working' and 'idle' both show as online, 'offline' shows as offline
+  if (status === 'working' || status === 'idle' || status === 'active') return 'working'
+  if (status === 'offline') return 'sleeping'
+  return 'sleeping'
+}
+
+function isAgentWorking(status: string): boolean {
+  // Check if agent is actively working on a task
+  return status === 'working'
 }
 
 const PINNED_SLOTS: Array<{ slot: string; name: string; role: string; emoji: string }> = [
@@ -71,6 +80,9 @@ function unknownSystemStatus(now: string): SystemStatus {
 }
 
 function taskLaneFromWorker(w: WorkerHeartbeat): BoardLane {
+  // Map worker status to task lane for display
+  if (w.status === 'working') return 'development'
+  if (w.status === 'idle') return 'queued'
   if (w.status === 'active') return 'development'
   if (w.status === 'waiting') return 'queued'
   if (w.status === 'stale') return 'blocked'

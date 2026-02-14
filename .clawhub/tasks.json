@@ -63,7 +63,7 @@
       "Project header: name, status badge, tagline, tags, owner, updated time",
       "Progress stats: Open/Blocked/Done counts with colors + percentage bar",
       "Features grid (2 columns): feature cards with priority, status, description, progress bar",
-      "Click feature card → navigate to /projects/:projectId/features/:featureId",
+      "Click feature card \u2192 navigate to /projects/:projectId/features/:featureId",
       "Right sidebar (280px): Description (editable textarea), Quick Links (GitHub/Docs/API), Activity feed",
       "Backend integration: GET /api/pm/projects (list), GET /api/pm/projects/:id (detail), PATCH /api/pm/projects/:id/description (update)",
       "Backend integration: GET /api/pm/projects/:id/features (feature list)",
@@ -273,7 +273,7 @@
   {
     "id": "task-454d2a9718497-1771056177712",
     "title": "Add idle/working status distinction for agents in UI",
-    "lane": "queued",
+    "lane": "development",
     "priority": "P1",
     "owner": "dev-2",
     "problem": "Agents show as online even when idle. No way to tell if an agent is actively working on a task vs just heartbeating",
@@ -285,11 +285,11 @@
       "Color coding: idle=gray/neutral, working=blue/active, offline=red (only when truly offline)",
       "Agent tile shows current task title when working",
       "Status updates within 30 seconds of task pickup/completion",
-      "Test: assign task to agent, verify status changes from idle → working",
+      "Test: assign task to agent, verify status changes from idle \u2192 working",
       "Test: complete task, verify status changes back to idle"
     ],
     "createdAt": "2026-02-14T08:02:57.712Z",
-    "updatedAt": "2026-02-14T12:05:05.839Z",
+    "updatedAt": "2026-02-14T13:28:41.640065Z",
     "statusHistory": [
       {
         "at": "2026-02-14T12:05:05.839Z",
@@ -313,6 +313,12 @@
         "at": "2026-02-14T08:02:57.712Z",
         "to": "queued",
         "note": "created"
+      },
+      {
+        "at": "2026-02-14T13:28:41.640086Z",
+        "from": "queued",
+        "to": "development",
+        "note": "picked up by Patch"
       }
     ]
   },
@@ -483,7 +489,7 @@
     "acceptanceCriteria": [
       "New doc: docs/TASK_WORKFLOW.md covering complete lifecycle",
       "Explain task schema (id, title, lane, priority, owner, problem, scope, acceptanceCriteria)",
-      "Explain lane values (queued → development → review → done, blocked)",
+      "Explain lane values (queued \u2192 development \u2192 review \u2192 done, blocked)",
       "Explain owner field maps to agent IDs (pm, dev-1, dev-2, qa, architect)",
       "Document task creation via POST /api/tasks with examples",
       "Document how agents query: GET /api/tasks?lane=queued&owner={agentId}",
@@ -615,11 +621,11 @@
     "scope": "Update Sentinel SOUL.md and create QA verification checklist",
     "acceptanceCriteria": [
       "Update /home/openclaw/.openclaw/workspace/agents/sentinel/SOUL.md with QA standards",
-      "Add rule: Code review ≠ verification",
+      "Add rule: Code review \u2260 verification",
       "Add rule: Must test in actual browser with screenshots",
       "Add rule: Verify computed styles, not just CSS source",
       "Add checklist for UI verification tasks",
-      "Document: Changed code → Compiled → Tested → Verified → Complete"
+      "Document: Changed code \u2192 Compiled \u2192 Tested \u2192 Verified \u2192 Complete"
     ],
     "createdAt": "2026-02-14T07:34:12.804Z",
     "updatedAt": "2026-02-14T09:49:01.575Z",
@@ -769,7 +775,7 @@
     "lane": "done",
     "priority": "P0",
     "owner": "architect",
-    "problem": "Orchestrate import flow: clone/upload → analyze → generate",
+    "problem": "Orchestrate import flow: clone/upload \u2192 analyze \u2192 generate",
     "scope": "Build main import endpoint that coordinates all steps",
     "acceptanceCriteria": [
       "Accept {name, description?, gitUrl?, files?}",
@@ -865,7 +871,7 @@
     "acceptanceCriteria": [
       "Parse README.md for description, features, tech stack",
       "Analyze package.json/requirements.txt for dependencies",
-      "Extract folder structure (src/auth → Auth feature)",
+      "Extract folder structure (src/auth \u2192 Auth feature)",
       "Find TODOs in comments",
       "Detect architecture patterns",
       "Generate recommendations (missing tests, docs, etc)",
@@ -958,7 +964,7 @@
       "API contract: POST /api/pm/projects/import {name, gitUrl?, files?}",
       "Response schema: {project, analysis, features, recommendations}",
       "AI prompt template for codebase analysis",
-      "Feature extraction heuristics (folders→features)",
+      "Feature extraction heuristics (folders\u2192features)",
       "Document in IMPORT-PROJECT-DESIGN.md"
     ],
     "parentId": "epic-import-project-1770877949",
@@ -997,7 +1003,7 @@
     "priority": "P0",
     "owner": "pm",
     "problem": "Users want to import existing projects from GitHub or local files. AI should analyze the codebase, extract features, generate project structure, and provide recommendations.",
-    "scope": "Build complete import flow: GitHub clone OR file upload → AI analysis → feature tree generation → cards + recommendations → ready to work",
+    "scope": "Build complete import flow: GitHub clone OR file upload \u2192 AI analysis \u2192 feature tree generation \u2192 cards + recommendations \u2192 ready to work",
     "acceptanceCriteria": [
       "Accept GitHub URL (public repos) or local files/folder",
       "Clone/extract and validate project structure",
@@ -1261,8 +1267,8 @@
     "problem": "Current project intake asks batch questions that may be redundant. Need conversational flow that adapts based on user answers.",
     "scope": "Replace batch question generation with one-at-a-time conversational questioning. AI generates next question based on all previous context to avoid repetition. Strategic phase focus (problem, users, competition, value prop).",
     "acceptanceCriteria": [
-      "User enters idea → gets first strategic question",
-      "Answer submitted → AI generates next question based on context",
+      "User enters idea \u2192 gets first strategic question",
+      "Answer submitted \u2192 AI generates next question based on context",
       "Questions dont repeat info already provided",
       "~5-8 strategic questions before phase completes",
       "Skip button allows skipping questions",
@@ -2004,7 +2010,7 @@
       "Task owner displays as \"Forge\" not \"dev-1\"",
       "Task owner displays as \"Blueprint\" not \"architect\"",
       "Task owner displays as \"TARS\" not \"pm\"",
-      "Map covers all slots: pm→TARS, architect→Blueprint, dev-1→Forge, dev-2→Patch, qa→Sentinel",
+      "Map covers all slots: pm\u2192TARS, architect\u2192Blueprint, dev-1\u2192Forge, dev-2\u2192Patch, qa\u2192Sentinel",
       "Works in task cards, task drawer, and all views",
       "Fallback to slot ID if name not found"
     ],
@@ -2382,8 +2388,8 @@
       "Bridge API: GET/POST/PATCH/DELETE /api/rules",
       "Config page reads/writes through adapter",
       "PM reads rules on startup/heartbeat",
-      "Adding rule in UI → PM sees it",
-      "PM adding rule from chat → UI shows it"
+      "Adding rule in UI \u2192 PM sees it",
+      "PM adding rule from chat \u2192 UI shows it"
     ],
     "createdAt": "2026-02-12T02:10:56.072Z",
     "updatedAt": "2026-02-12T02:14:12.353Z",

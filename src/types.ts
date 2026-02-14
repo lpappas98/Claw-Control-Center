@@ -31,14 +31,15 @@ export type LiveSnapshot = {
   watchdog: WatchdogDiagnostics
 }
 
-export type WorkerStatus = 'active' | 'waiting' | 'stale' | 'offline'
+export type WorkerStatus = 'idle' | 'working' | 'offline' | 'active' | 'waiting' | 'stale'
 
 export type WorkerHeartbeat = {
   slot: string
   /** Optional human-friendly label (may differ from slot). */
   label?: string
   status: WorkerStatus
-  task?: string
+  task?: string | null
+  taskId?: string | null
   lastBeatAt?: string
   beats: Array<{ at: string }>
 }
