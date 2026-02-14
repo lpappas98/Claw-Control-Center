@@ -566,7 +566,7 @@ app.get('/api/projects', async (_req, res) => {
 app.get('/api/workers', async (_req, res) => {
   // Return agents in worker format for UI compatibility
   const agentsStore = getAgentsStore()
-  const agents = await agentsStore.list()
+  const agents = await agentsStore.getAll()
   
   // Transform agents to worker format
   const workers = agents.map(agent => ({
