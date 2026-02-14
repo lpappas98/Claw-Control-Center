@@ -1203,6 +1203,8 @@ button.home-task.clickable:focus {
   border-radius: 12px;
   padding: 0.65rem;
   background: #0b0f1f;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .kanban-card:hover {
