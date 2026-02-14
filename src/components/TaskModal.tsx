@@ -1,11 +1,23 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { Adapter } from '../adapters/adapter'
 import type { BoardLane, Priority, Task } from '../types'
-import { CopyButton } from './CopyButton'
 import { Button } from '@/components/ui/button'
 
-const LANES: BoardLane[] = ['proposed', 'queued', 'development', 'review', 'blocked', 'done']
+const LANES: BoardLane[] = ['proposed', 'queued', 'development', 'review', 'done']
 const PRIORITIES: Priority[] = ['P0', 'P1', 'P2', 'P3']
+const LANE_DISPLAY: { [key in BoardLane]: string } = {
+  proposed: 'Proposed',
+  queued: 'Queued',
+  development: 'Development',
+  review: 'Review',
+  done: 'Done',
+}
+
+interface Agent {
+  id: string
+  name: string
+  emoji?: string
+}
 
 function fmtWhen(iso: string) {
   try {
@@ -62,7 +74,7 @@ const Select = ({ label, value, options, onChange }: { label: string; value: str
         className="w-full appearance-none bg-slate-800/50 border border-slate-700/60 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/40 pr-8 transition-all cursor-pointer"
       >
         {options.map((o) => (
-          <option key={o} value={o}>{o}</option>
+          <option key={o} value={o}>{o || '—'}</option>
         ))}
       </select>
       <svg className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -99,6 +111,7 @@ export function TaskModal({
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<'details' | 'history'>('details')
+  const [agents, setAgents] = useState<Agent[]>([])
 
   const [draftTitle, setDraftTitle] = useState(String(task.title ?? ''))
   const [draftLane, setDraftLane] = useState<BoardLane>(task.lane)
@@ -107,6 +120,14 @@ export function TaskModal({
   const [draftProblem, setDraftProblem] = useState(String(task.problem ?? ''))
   const [draftScope, setDraftScope] = useState(String(task.scope ?? ''))
   const [draftAcceptanceRaw, setDraftAcceptanceRaw] = useState((task.acceptanceCriteria ?? []).join('\n'))
+
+  // Fetch agents on mount
+  useEffect(() => {
+    fetch('/api/agents')
+      .then((res) => res.json())
+      .then((data) => setAgents(data))
+      .catch((err) => console.error('Failed to fetch agents:', err))
+  }, [])
 
   useEffect(() => {
     setDraftTitle(String(task.title ?? ''))
@@ -155,6 +176,20 @@ export function TaskModal({
     return priority === 'P0' ? 'p0' : 'default'
   }
 
+  const getTagVariant = (tag?: string) => {
+    if (!tag) return 'default'
+    const variants: { [key: string]: string } = {
+      Epic: 'epic',
+      UI: 'default',
+      Backend: 'default',
+      QA: 'default',
+      Arch: 'default',
+      Frontend: 'default',
+      Docs: 'default',
+    }
+    return variants[tag] || 'default'
+  }
+
   return (
     <div className="fixed inset-0 flex items-center justify-center p-4 z-50">
       <div 
@@ -171,6 +206,7 @@ export function TaskModal({
         <div className="flex items-start justify-between px-6 pt-5 pb-4 border-b border-slate-700/40 flex-shrink-0">
           <div className="flex-1 min-w-0 pr-4">
             <div className="flex items-center gap-2 mb-2">
+              {task.tag && <Badge variant={getTagVariant(task.tag)}>{task.tag}</Badge>}
               <Badge variant={getPriorityVariant(task.priority)}>{task.priority}</Badge>
               <span className="text-xs text-slate-500 font-mono">{task.id}</span>
             </div>
@@ -222,10 +258,10 @@ export function TaskModal({
                 <Select 
                   label="Status" 
                   value={draftLane} 
-                  options={LANES.map(l => l.charAt(0).toUpperCase() + l.slice(1))}
+                  options={LANES.map(l => LANE_DISPLAY[l])}
                   onChange={(e) => {
-                    const lane = LANES[LANES.findIndex(l => l.charAt(0).toUpperCase() + l.slice(1) === e.target.value)]
-                    setDraftLane(lane)
+                    const laneKey = Object.entries(LANE_DISPLAY).find(([, display]) => display === e.target.value)?.[0] as BoardLane
+                    if (laneKey) setDraftLane(laneKey)
                   }}
                 />
                 <Select 
@@ -234,12 +270,24 @@ export function TaskModal({
                   options={PRIORITIES}
                   onChange={(e) => setDraftPriority(e.target.value as Priority)}
                 />
-                <Input 
-                  label="Owner" 
-                  value={draftOwner} 
-                  placeholder="Assign owner..."
-                  onChange={(e) => setDraftOwner(e.target.value)}
-                />
+                <div>
+                  <FieldLabel>Owner</FieldLabel>
+                  <div className="relative">
+                    <select 
+                      value={draftOwner}
+                      onChange={(e) => setDraftOwner(e.target.value)}
+                      className="w-full appearance-none bg-slate-800/50 border border-slate-700/60 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/40 pr-8 transition-all cursor-pointer"
+                    >
+                      <option value="">—</option>
+                      {agents.map(a => (
+                        <option key={a.id} value={a.id}>{a.name}</option>
+                      ))}
+                    </select>
+                    <svg className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                </div>
               </div>
 
               <div className="border-t border-slate-700/30" />
@@ -306,8 +354,7 @@ export function TaskModal({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between px-6 py-4 border-t border-slate-700/40 bg-slate-900/80 flex-shrink-0">
-          <CopyButton label="Copy JSON" text={JSON.stringify(task, null, 2)} />
+        <div className="flex items-center justify-end px-6 py-4 border-t border-slate-700/40 bg-slate-900/80 flex-shrink-0">
           <div className="flex items-center gap-2">
             <button 
               onClick={onClose}

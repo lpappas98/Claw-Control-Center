@@ -1,8 +1,50 @@
 [
   {
+    "id": "task-0250129edfd02-1771108460860",
+    "title": "Replace TaskModal with new task detail modal design",
+    "lane": "development",
+    "priority": "P0",
+    "owner": "dev-2",
+    "problem": "Current TaskModal needs to be replaced with the new task detail modal design. The new modal should provide full task editing capabilities with a clean, modern UI.",
+    "scope": "Replace src/components/TaskModal.tsx with new implementation:\n- Tabbed interface (Details, History)\n- Full form fields: Status (lane), Priority, Owner (agent names), Problem, Scope, Acceptance Criteria\n- Status dropdown: Proposed, Queued, Development, Review, Done (maps to lane field)\n- Owner dropdown: Shows agent names (TARS, Forge, Patch, Sentinel, Blueprint) not IDs\n- History tab shows statusHistory array with lane transitions\n- Save Changes calls PUT /api/tasks/:id\n- Remove Copy JSON button\n- Open modal when clicking any task card",
+    "acceptanceCriteria": [
+      "TaskModal.tsx completely replaced with new design",
+      "Modal opens when clicking any task card on the board",
+      "Tabs: Details and History (active tab highlighted with blue underline)",
+      "Details tab shows: Status dropdown (lane values), Priority dropdown (P0-P3), Owner dropdown (agent names)",
+      "Details tab shows: Problem textarea, Scope textarea, Acceptance Criteria textarea",
+      "All fields load current task data from API",
+      "Save Changes button calls PUT /api/tasks/:id with all modified fields",
+      "Status dropdown maps to lane field (Proposed→proposed, Queued→queued, Development→development, Review→review, Done→done)",
+      "Owner dropdown shows agent names (fetch from /api/agents, display name field, save as agent.id)",
+      "History tab displays statusHistory array showing lane transitions with timestamps",
+      "Modal header shows task type badge (Epic, UI, Backend, etc.) and task ID",
+      "Footer shows: Cancel button (closes modal), Save Changes button (saves and closes)",
+      "Copy JSON button removed from footer",
+      "Styling matches reference file (dark theme, rounded corners, smooth animations)",
+      "Modal closes on backdrop click or X button",
+      "Code pushed to GitHub and Docker container updated"
+    ],
+    "createdAt": "2026-02-14T22:34:20.860Z",
+    "updatedAt": "2026-02-14T22:34:30.278Z",
+    "statusHistory": [
+      {
+        "at": "2026-02-14T22:34:30.278Z",
+        "from": "queued",
+        "to": "development",
+        "note": "updated"
+      },
+      {
+        "at": "2026-02-14T22:34:20.860Z",
+        "to": "queued",
+        "note": "created"
+      }
+    ]
+  },
+  {
     "id": "task-ad7a4d29d949f-1771107837993",
     "title": "Redesign Mission Control UI with new design system",
-    "lane": "queued",
+    "lane": "done",
     "priority": "P0",
     "owner": "dev-1",
     "problem": "Current Mission Control UI needs to match the new design specification provided by Logan. The UI must be fully functional with real data from our APIs, not placeholders.",
@@ -22,8 +64,14 @@
       "Code pushed to GitHub and Docker container updated"
     ],
     "createdAt": "2026-02-14T22:23:57.993Z",
-    "updatedAt": "2026-02-14T22:23:57.993Z",
+    "updatedAt": "2026-02-14T22:27:13.403Z",
     "statusHistory": [
+      {
+        "at": "2026-02-14T22:27:13.403Z",
+        "from": "queued",
+        "to": "done",
+        "note": "updated"
+      },
       {
         "at": "2026-02-14T22:23:57.993Z",
         "to": "queued",
