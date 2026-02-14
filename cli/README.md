@@ -34,6 +34,12 @@ claw task:start task-123
 # Stop working (logs time)
 claw task:stop task-123
 
+# View time entries for a task
+claw task:time task-123
+
+# Manually log time
+claw task:log task-123 2.5 "Completed implementation"
+
 # Mark task as done
 claw task:done task-123
 ```
@@ -82,6 +88,12 @@ claw task:start <task-id>
 
 # Stop working (logs time)
 claw task:stop <task-id>
+
+# Manually log time
+claw task:log <task-id> <hours> [note]
+
+# View time entries
+claw task:time <task-id>
 
 # Update status
 claw task:status <task-id> <status>
@@ -185,13 +197,41 @@ claw project:view proj-123
 
 ## Time Tracking
 
-When you `claw task:start`, a local timer starts.  
-When you `claw task:stop` or `claw task:done`, time is logged to the bridge.
+### Automatic Timer
+
+When you `claw task:start`, a local timer starts and is saved to `~/.claw/timer.json`.  
+When you `claw task:stop` or `claw task:done`, elapsed time is calculated and logged to the bridge.
+
+### Manual Time Logging
+
+You can manually log time without using the timer:
+
+```bash
+# Log 2.5 hours for a task
+claw task:log task-123 2.5
+
+# Log with a note
+claw task:log task-123 1.5 "Fixed critical bug"
+```
+
+### View Time Entries
+
+```bash
+# See all time logged for a task
+claw task:time task-123
+```
+
+Shows:
+- Date and time of each entry
+- Agent who logged the time
+- Hours worked
+- Any notes added
 
 Time entries include:
 - Agent ID
 - Start/end timestamps
 - Hours worked (calculated)
+- Optional notes
 
 ## Integration with Bridge
 
@@ -202,7 +242,8 @@ The CLI communicates with the Bridge API:
 - `GET /api/tasks/:id` - Get task details
 - `PUT /api/tasks/:id` - Update task
 - `POST /api/tasks/:id/comment` - Add comment
-- `POST /api/tasks/:id/time` - Log time
+- `POST /api/tasks/:id/time` - Log time entry
+- `GET /api/tasks/:id/time` - Get all time entries for a task
 - `GET /api/agents/:id/notifications` - Get notifications
 
 ## Development
