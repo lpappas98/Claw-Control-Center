@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "id": "p0-epic-projects-backend",
+  "name": "P0 Epic: Projects Backend",
+  "summary": "Complete implementation of Projects CRUD with persistence",
+  "status": "active",
+  "tags": [
+    "backend",
+    "api",
+    "persistence",
+    "critical"
+  ],
+  "owner": "pm",
+  "links": [
+    {
+      "label": "GitHub",
+      "url": "https://github.com/example/project"
+    }
+  ],
+  "createdAt": "2026-02-14T11:16:33.705Z",
+  "updatedAt": "2026-02-14T11:16:33.826Z"
+}

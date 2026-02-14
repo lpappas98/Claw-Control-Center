@@ -1,5 +1,32 @@
 [
   {
+    "id": "task-started-5edb02ad91cc4-1771067730817",
+    "at": "2026-02-14T11:15:30.816Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: P0 Epic: Projects backend (bridge persistence + APIs) → Blueprint",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "P0 Epic: Projects backend (bridge persistence + APIs)",
+      "workerSlot": "architect",
+      "worker": "Blueprint",
+      "startedAt": "2026-02-14T11:15:30.816Z"
+    }
+  },
+  {
+    "id": "task-created-4fa8ec5343818-1771067730817",
+    "at": "2026-02-14T11:15:30.816Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: P0 Epic: Projects backend (bridge persistence + APIs)",
+    "meta": {
+      "eventType": "task.created",
+      "task": "P0 Epic: Projects backend (bridge persistence + APIs)",
+      "workerSlot": "architect",
+      "worker": "Blueprint"
+    }
+  },
+  {
     "id": "task-started-47bb0cc28d333-1771066808371",
     "at": "2026-02-14T11:00:08.371Z",
     "level": "info",
@@ -5502,33 +5529,6 @@
       "task": "Designing permanent agent runtime model",
       "workerSlot": "architect",
       "worker": "Blueprint"
-    }
-  },
-  {
-    "id": "task-started-45a550b2c51bb-1770780114106",
-    "at": "2026-02-11T03:21:52.922Z",
-    "level": "info",
-    "source": "tasks",
-    "message": "task assigned: Orchestrating Operator Hub delivery → TARS",
-    "meta": {
-      "eventType": "task.assigned",
-      "task": "Orchestrating Operator Hub delivery",
-      "workerSlot": "pm",
-      "worker": "TARS",
-      "startedAt": "2026-02-11T03:21:52.922Z"
-    }
-  },
-  {
-    "id": "task-created-6d5a9d1fc06dd-1770780114106",
-    "at": "2026-02-11T03:21:52.922Z",
-    "level": "info",
-    "source": "tasks",
-    "message": "task created: Orchestrating Operator Hub delivery",
-    "meta": {
-      "eventType": "task.created",
-      "task": "Orchestrating Operator Hub delivery",
-      "workerSlot": "pm",
-      "worker": "TARS"
     }
   }
 ]

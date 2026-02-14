@@ -1,0 +1,102 @@
+{
+  "idea": [
+    {
+      "id": "idea-1771067793737",
+      "at": "2026-02-14T11:16:33.737Z",
+      "author": "human",
+      "text": "Build a scalable projects management system with full persistence"
+    }
+  ],
+  "analysis": [
+    {
+      "id": "ana-1771067793774",
+      "at": "2026-02-14T11:16:33.774Z",
+      "type": "hybrid",
+      "tags": [
+        "scalability",
+        "reliability"
+      ],
+      "risks": [
+        "data loss",
+        "concurrency"
+      ],
+      "summary": "System must handle 10k+ projects"
+    }
+  ],
+  "questions": [
+    {
+      "id": "q-2189a01d6d83e-1771067793742",
+      "category": "Goal",
+      "prompt": "What problem are we solving, and for whom (primary user persona)?",
+      "answer": {
+        "text": "We need multi-user support with role-based access",
+        "at": "2026-02-14T11:16:33.761Z",
+        "author": "human"
+      }
+    },
+    {
+      "id": "q-cad2a3357ebfa-1771067793742",
+      "category": "Goal",
+      "prompt": "How will we measure success (metrics / outcomes)?",
+      "answer": null
+    },
+    {
+      "id": "q-72c651333a4f-1771067793742",
+      "category": "Users",
+      "prompt": "Who are the user roles, and what permissions do they need?",
+      "answer": null
+    },
+    {
+      "id": "q-9ef8d84dd8ecb-1771067793742",
+      "category": "Workflow",
+      "prompt": "Describe the happy-path workflow step-by-step from start to finish.",
+      "answer": null
+    },
+    {
+      "id": "q-e33a241e09b6b-1771067793742",
+      "category": "Scope",
+      "prompt": "What is explicitly out of scope for v1?",
+      "answer": null
+    },
+    {
+      "id": "q-b467c9934a163-1771067793742",
+      "category": "Data",
+      "prompt": "What entities/data must be stored? Any retention or audit requirements?",
+      "answer": null
+    },
+    {
+      "id": "q-3e906cd39b55b-1771067793742",
+      "category": "UX",
+      "prompt": "What are the key screens/views we need for v1?",
+      "answer": null
+    },
+    {
+      "id": "q-2f2fc14bb042f-1771067793742",
+      "category": "Constraints",
+      "prompt": "Any deadlines, dependencies, or constraints (tech/legal/security)?",
+      "answer": null
+    },
+    {
+      "id": "q-f45e05cbc341-1771067793742",
+      "category": "Edge cases",
+      "prompt": "What are the top 5 edge cases or failure modes we must handle?",
+      "answer": null
+    }
+  ],
+  "requirements": [
+    {
+      "id": "req-1771067793770",
+      "at": "2026-02-14T11:16:33.770Z",
+      "source": "human",
+      "kind": "constraint",
+      "text": "No circular dependencies in feature tree"
+    },
+    {
+      "id": "req-1771067793766",
+      "at": "2026-02-14T11:16:33.766Z",
+      "source": "human",
+      "kind": "goal",
+      "text": "Support atomic writes for data consistency"
+    }
+  ]
+}

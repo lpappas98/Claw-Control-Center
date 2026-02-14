@@ -1,0 +1,31 @@
+[
+  {
+    "id": "c-9176c3-1771067793821",
+    "title": "Write persistence layer",
+    "featureId": "disk-persistence",
+    "owner": "pm",
+    "priority": "p0",
+    "column": "in_progress",
+    "createdAt": "2026-02-14T11:16:33.821Z",
+    "updatedAt": "2026-02-14T11:16:33.821Z"
+  },
+  {
+    "id": "c-53b9bd-1771067793818",
+    "title": "Implement endpoints",
+    "featureId": "core-crud-operations",
+    "owner": "pm",
+    "priority": "p0",
+    "column": "in_progress",
+    "createdAt": "2026-02-14T11:16:33.818Z",
+    "updatedAt": "2026-02-14T11:16:33.818Z"
+  },
+  {
+    "id": "c-4f77a9-1771067793814",
+    "title": "Design API schema",
+    "owner": "pm",
+    "priority": "p0",
+    "column": "todo",
+    "createdAt": "2026-02-14T11:16:33.814Z",
+    "updatedAt": "2026-02-14T11:16:33.814Z"
+  }
+]

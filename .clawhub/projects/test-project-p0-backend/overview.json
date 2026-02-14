@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "id": "test-project-p0-backend",
+  "name": "Test Project - P0 Backend",
+  "summary": "Testing the P0 epic implementation",
+  "status": "active",
+  "tags": [
+    "backend",
+    "api",
+    "testing"
+  ],
+  "owner": "tars",
+  "links": [],
+  "createdAt": "2026-02-14T11:16:03.034Z",
+  "updatedAt": "2026-02-14T11:16:03.034Z"
+}

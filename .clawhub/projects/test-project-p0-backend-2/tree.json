@@ -1,0 +1,9 @@
+[
+  {
+    "id": "implement-crud-operations",
+    "title": "Implement CRUD operations",
+    "summary": "Create endpoints for creating, reading, updating, deleting projects",
+    "status": "in_progress",
+    "priority": "p0"
+  }
+]

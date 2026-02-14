@@ -1,0 +1,23 @@
+[
+  {
+    "id": "markdown-export",
+    "title": "Markdown Export",
+    "summary": "Export projects to markdown",
+    "status": "planned",
+    "priority": "p0"
+  },
+  {
+    "id": "disk-persistence",
+    "title": "Disk Persistence",
+    "summary": "Atomic file writes with JSON",
+    "status": "in_progress",
+    "priority": "p0"
+  },
+  {
+    "id": "core-crud-operations",
+    "title": "Core CRUD Operations",
+    "summary": "Implement all CRUD endpoints",
+    "status": "in_progress",
+    "priority": "p0"
+  }
+]

@@ -2707,7 +2707,7 @@
   {
     "id": "task-93f341f1fb706-1770789048862",
     "title": "P1 Epic: Projects types + adapter contract",
-    "lane": "queued",
+    "lane": "done",
     "priority": "P1",
     "owner": "dev-1",
     "problem": "Align types + adapters for Projects endpoints",
@@ -2718,8 +2718,14 @@
       "Bridge adapter implements Projects methods"
     ],
     "createdAt": "2026-02-11T05:50:48.862Z",
-    "updatedAt": "2026-02-14T11:04:11.194Z",
+    "updatedAt": "2026-02-14T11:12:56.774Z",
     "statusHistory": [
+      {
+        "at": "2026-02-14T11:12:56.774Z",
+        "from": "queued",
+        "to": "done",
+        "note": "updated"
+      },
       {
         "at": "2026-02-14T11:04:11.194Z",
         "from": "proposed",
@@ -2778,7 +2784,7 @@
   {
     "id": "task-50ff48a80b91-1770789048858",
     "title": "P0 Epic: Projects backend (bridge persistence + APIs)",
-    "lane": "queued",
+    "lane": "review",
     "priority": "P0",
     "owner": "architect",
     "problem": "Implement real storage + endpoints for Projects flow",
@@ -2790,8 +2796,20 @@
       "Export markdown"
     ],
     "createdAt": "2026-02-11T05:50:48.857Z",
-    "updatedAt": "2026-02-14T11:04:10.845Z",
+    "updatedAt": "2026-02-14T11:18:14.738Z",
     "statusHistory": [
+      {
+        "at": "2026-02-14T11:17:17.776Z",
+        "from": "development",
+        "to": "review",
+        "note": "updated"
+      },
+      {
+        "at": "2026-02-14T11:15:28.876Z",
+        "from": "queued",
+        "to": "development",
+        "note": "updated"
+      },
       {
         "at": "2026-02-14T11:04:10.845Z",
         "from": "proposed",
