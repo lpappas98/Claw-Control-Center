@@ -140,28 +140,27 @@ export function KanbanBoard({
   )
 
   return (
-    <div className="stack" style={{ gap: 12 }}>
+    <div className="space-y-3">
       {/* Filters and Search */}
-      <div className="panel" style={{ padding: 14 }}>
-        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'flex-end' }}>
-          <div className="field" style={{ flex: '1 1 200px', margin: 0 }}>
-            <label className="muted" style={{ fontSize: 12 }}>Search</label>
+      <div className="bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
+        <div className="flex gap-3 flex-wrap items-end">
+          <div className="flex-1 min-w-[200px]">
+            <label className="text-xs text-slate-500 block mb-1">Search</label>
             <input
-              className="input"
+              type="text"
+              className="w-full h-10 px-3 py-2 rounded-md border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-950 text-sm"
               placeholder="Search tasks..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              style={{ fontSize: 13 }}
             />
           </div>
 
-          <div className="field" style={{ flex: '0 1 150px', margin: 0 }}>
-            <label className="muted" style={{ fontSize: 12 }}>Priority</label>
+          <div className="flex-shrink-0">
+            <label className="text-xs text-slate-500 block mb-1">Priority</label>
             <select
-              className="input"
+              className="h-10 px-3 py-2 rounded-md border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-950 text-sm"
               value={filterPriority}
               onChange={(e) => setFilterPriority(e.target.value)}
-              style={{ fontSize: 13 }}
             >
               <option value="">All priorities</option>
               <option value="P0">P0 - Critical</option>
@@ -172,9 +171,9 @@ export function KanbanBoard({
           </div>
 
           {allTags.length > 0 && (
-            <div className="field" style={{ flex: '0 1 auto', margin: 0 }}>
-              <label className="muted" style={{ fontSize: 12 }}>Tags</label>
-              <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+            <div className="flex-shrink-0">
+              <label className="text-xs text-slate-500 block mb-1">Tags</label>
+              <div className="flex gap-1 flex-wrap">
                 {allTags.map((tag) => (
                   <button
                     key={tag}
@@ -186,18 +185,11 @@ export function KanbanBoard({
                           : [...prev, tag],
                       )
                     }
-                    style={{
-                      padding: '4px 8px',
-                      fontSize: 11,
-                      backgroundColor: filterTags.includes(tag)
-                        ? '#3b82f6'
-                        : 'rgba(100, 116, 139, 0.2)',
-                      color: filterTags.includes(tag) ? '#fff' : '#cbd5e1',
-                      border: 'none',
-                      borderRadius: 3,
-                      cursor: 'pointer',
-                      transition: 'all 0.2s',
-                    }}
+                    className={`px-2 py-1 rounded text-xs transition-colors cursor-pointer ${
+                      filterTags.includes(tag)
+                        ? 'bg-slate-900 text-white'
+                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                    }`}
                   >
                     {tag}
                   </button>
@@ -213,47 +205,46 @@ export function KanbanBoard({
               setFilterPriority('')
               setFilterTags([])
             }}
-            className="btn ghost"
-            style={{ padding: '6px 12px' }}
+            className="h-10 px-4 py-2 rounded-md border border-slate-200 hover:bg-slate-100 text-sm transition-colors"
           >
             Clear
           </button>
         </div>
 
         {error && (
-          <div style={{ color: '#ef4444', marginTop: 10, fontSize: 12 }}>
+          <div className="text-red-600 text-xs mt-2">
             {error}
           </div>
         )}
 
         {filteredByAgentId && (
-          <div style={{ color: '#60a5fa', marginTop: 10, fontSize: 12 }}>
+          <div className="text-blue-600 text-xs mt-2">
             Filtering by selected agent
           </div>
         )}
       </div>
 
       {/* Kanban Board */}
-      <div className="panel" style={{ padding: 14 }}>
+      <div className="bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}
           onDragEnd={handleDragEnd}
         >
-          <div className="kanban-grid">
+          <div className="grid grid-cols-5 gap-4">
             {COLUMNS.map((col) => (
-              <div key={col.id} className="kanban-col">
-                <div className="kanban-col-head">
+              <div key={col.id} className="flex flex-col bg-slate-50 rounded p-3 border border-slate-200">
+                <div className="mb-4 pb-3 border-b border-slate-200">
                   <div>
-                    <strong>{col.title}</strong>
-                    <div className="muted" style={{ fontSize: 12 }}>
+                    <strong className="text-sm">{col.title}</strong>
+                    <div className="text-xs text-slate-500">
                       {col.hint}
                     </div>
                   </div>
-                  <span className="muted">{tasksByColumn[col.id].length}</span>
+                  <span className="text-xs text-slate-500 inline-block mt-2">{tasksByColumn[col.id].length}</span>
                 </div>
 
-                <div className="kanban-cards">
+                <div className="space-y-2 flex-1">
                   <SortableContext
                     items={tasksByColumn[col.id].map((t) => t.id)}
                     strategy={verticalListSortingStrategy}
@@ -280,12 +271,7 @@ export function KanbanBoard({
 
         {filteredTasks.length === 0 && (
           <div
-            style={{
-              textAlign: 'center',
-              padding: 20,
-              color: '#94a3b8',
-              fontSize: 14,
-            }}
+            className="text-center py-8 text-slate-500 text-sm"
           >
             No tasks match your filters
           </div>

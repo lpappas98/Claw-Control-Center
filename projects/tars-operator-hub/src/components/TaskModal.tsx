@@ -2,6 +2,16 @@ import { useEffect, useMemo, useState } from 'react'
 import type { Adapter } from '../adapters/adapter'
 import type { BoardLane, Priority, Task } from '../types'
 import { CopyButton } from './CopyButton'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Button } from '@/components/ui/button'
 
 const LANES: BoardLane[] = ['proposed', 'queued', 'development', 'review', 'blocked', 'done']
 const PRIORITIES: Priority[] = ['P0', 'P1', 'P2', 'P3']
@@ -87,119 +97,141 @@ export function TaskModal({
   }
 
   return (
-    <div className="modal-backdrop" role="presentation" onMouseDown={(e) => (e.target === e.currentTarget ? onClose() : null)}>
-      <div className="modal" role="dialog" aria-modal="true" aria-label={`Task details ${task.title}`}
-        onMouseDown={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <div style={{ minWidth: 0 }}>
-            <div className="muted" style={{ fontSize: 12 }}>
-              task <code>{task.id}</code>
+    <Dialog open={true} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <div className="space-y-2">
+            <div className="text-xs text-slate-500">
+              task <code className="bg-slate-100 px-2 py-1 rounded">{task.id}</code>
             </div>
-            <h3 style={{ margin: '6px 0 0' }}>{task.title}</h3>
+            <DialogTitle>{task.title}</DialogTitle>
           </div>
-          <div className="stack-h">
-            <CopyButton label="Copy JSON" text={JSON.stringify(task, null, 2)} />
-            <button className="btn ghost" type="button" onClick={onClose}>
-              Close
-            </button>
-          </div>
-        </div>
+        </DialogHeader>
 
         {error && (
-          <div className="callout warn" style={{ marginBottom: 10 }}>
+          <div className="bg-red-50 border border-red-200 rounded p-3 text-sm text-red-800">
             <strong>Task error:</strong> {error}
           </div>
         )}
 
-        <div className="modal-body">
-          <div className="task-grid">
-            <label className="field">
-              <div className="muted">Title</div>
-              <input value={draftTitle} onChange={(e) => setDraftTitle(e.target.value)} />
-            </label>
+        <div className="space-y-4 py-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-700">Title</label>
+              <Input value={draftTitle} onChange={(e) => setDraftTitle(e.target.value)} />
+            </div>
 
-            <label className="field">
-              <div className="muted">Lane</div>
-              <select value={draftLane} onChange={(e) => setDraftLane(e.target.value as BoardLane)}>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-700">Lane</label>
+              <select
+                value={draftLane}
+                onChange={(e) => setDraftLane(e.target.value as BoardLane)}
+                className="h-10 w-full px-3 py-2 rounded-md border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-950 text-sm"
+              >
                 {LANES.map((l) => (
                   <option value={l} key={l}>
                     {l}
                   </option>
                 ))}
               </select>
-            </label>
+            </div>
 
-            <label className="field">
-              <div className="muted">Priority</div>
-              <select value={draftPriority} onChange={(e) => setDraftPriority(e.target.value as Priority)}>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-700">Priority</label>
+              <select
+                value={draftPriority}
+                onChange={(e) => setDraftPriority(e.target.value as Priority)}
+                className="h-10 w-full px-3 py-2 rounded-md border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-950 text-sm"
+              >
                 {PRIORITIES.map((p) => (
                   <option value={p} key={p}>
                     {p}
                   </option>
                 ))}
               </select>
-            </label>
-
-            <label className="field">
-              <div className="muted">Owner</div>
-              <input value={draftOwner} onChange={(e) => setDraftOwner(e.target.value)} placeholder="optional" />
-            </label>
-
-            <label className="field" style={{ gridColumn: '1 / -1' }}>
-              <div className="muted">Problem</div>
-              <textarea value={draftProblem} onChange={(e) => setDraftProblem(e.target.value)} rows={3} placeholder="why does this task exist?" />
-            </label>
-
-            <label className="field" style={{ gridColumn: '1 / -1' }}>
-              <div className="muted">Scope</div>
-              <textarea value={draftScope} onChange={(e) => setDraftScope(e.target.value)} rows={4} placeholder="what is in/out?" />
-            </label>
-
-            <label className="field" style={{ gridColumn: '1 / -1' }}>
-              <div className="muted">Acceptance criteria (one per line)</div>
-              <textarea value={draftAcceptanceRaw} onChange={(e) => setDraftAcceptanceRaw(e.target.value)} rows={6} />
-            </label>
-
-            <div className="task-meta" style={{ gridColumn: '1 / -1' }}>
-              <div className="muted" style={{ fontSize: 12 }}>
-                created: {fmtWhen(task.createdAt)} · updated: {fmtWhen(task.updatedAt)} · history: {task.statusHistory?.length ?? 0} events
-              </div>
             </div>
 
-            <details className="task-history" style={{ gridColumn: '1 / -1' }} open>
-              <summary className="muted">Status history</summary>
-              <div className="table-like" style={{ marginTop: 8 }}>
-                {(task.statusHistory ?? []).map((h, idx) => (
-                  <div className="row" key={`${h.at}-${idx}`}>
-                    <div className="row-main">
-                      <div className="row-title">
-                        <strong>{h.to}</strong>
-                        {h.from ? <span className="muted">(from {h.from})</span> : null}
-                      </div>
-                      <div className="muted">{h.note ?? '—'}</div>
-                    </div>
-                    <div className="row-side">
-                      <div className="muted">{fmtWhen(h.at)}</div>
-                    </div>
-                  </div>
-                ))}
-                {(task.statusHistory?.length ?? 0) === 0 && <div className="muted">No history recorded.</div>}
-              </div>
-            </details>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-700">Owner</label>
+              <Input
+                value={draftOwner}
+                onChange={(e) => setDraftOwner(e.target.value)}
+                placeholder="optional"
+              />
+            </div>
           </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-slate-700">Problem</label>
+            <Textarea
+              value={draftProblem}
+              onChange={(e) => setDraftProblem(e.target.value)}
+              rows={3}
+              placeholder="why does this task exist?"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-slate-700">Scope</label>
+            <Textarea
+              value={draftScope}
+              onChange={(e) => setDraftScope(e.target.value)}
+              rows={4}
+              placeholder="what is in/out?"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-slate-700">Acceptance criteria (one per line)</label>
+            <Textarea
+              value={draftAcceptanceRaw}
+              onChange={(e) => setDraftAcceptanceRaw(e.target.value)}
+              rows={6}
+            />
+          </div>
+
+          <div className="text-xs text-slate-500 bg-slate-50 p-3 rounded">
+            created: {fmtWhen(task.createdAt)} · updated: {fmtWhen(task.updatedAt)} · history: {task.statusHistory?.length ?? 0} events
+          </div>
+
+          <details className="space-y-2" open>
+            <summary className="font-medium text-sm cursor-pointer">Status history</summary>
+            <div className="space-y-2 mt-2">
+              {(task.statusHistory ?? []).map((h, idx) => (
+                <div key={`${h.at}-${idx}`} className="border border-slate-200 rounded p-2 text-sm">
+                  <div className="font-medium">
+                    {h.to}
+                    {h.from ? <span className="text-slate-500 font-normal"> (from {h.from})</span> : null}
+                  </div>
+                  <div className="text-slate-600">{h.note ?? '—'}</div>
+                  <div className="text-xs text-slate-500">{fmtWhen(h.at)}</div>
+                </div>
+              ))}
+              {(task.statusHistory?.length ?? 0) === 0 && (
+                <div className="text-slate-500 text-sm">No history recorded.</div>
+              )}
+            </div>
+          </details>
         </div>
 
-        <div className="modal-footer">
-          <div className="muted" style={{ fontSize: 12 }}>
-            Saving lane changes will append a history entry.
+        <DialogFooter>
+          <div className="w-full">
+            <div className="text-xs text-slate-500 mb-3">
+              Saving lane changes will append a history entry.
+            </div>
+            <div className="flex gap-2 justify-end">
+              <CopyButton label="Copy JSON" text={JSON.stringify(task, null, 2)} />
+              <Button
+                variant="default"
+                onClick={save}
+                disabled={busy || !dirty}
+              >
+                {busy ? 'Saving…' : dirty ? 'Save changes' : 'Saved'}
+              </Button>
+            </div>
           </div>
-          <div className="stack-h">
-            <button className="btn" type="button" onClick={save} disabled={busy || !dirty}>
-              {busy ? 'Saving…' : dirty ? 'Save changes' : 'Saved'}
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   )
 }

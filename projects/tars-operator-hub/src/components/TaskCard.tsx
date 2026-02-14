@@ -1,4 +1,6 @@
 import type { AgentTask, TaskPriority } from '../types'
+import { Card } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
 
 interface TaskCardProps {
   task: AgentTask
@@ -7,88 +9,63 @@ interface TaskCardProps {
   onDragStart?: (e: React.DragEvent) => void
 }
 
-function getPriorityColor(priority: TaskPriority): string {
+function getPriorityVariant(priority: TaskPriority): 'default' | 'secondary' | 'destructive' {
   switch (priority) {
     case 'P0':
-      return '#ef4444' // red
+      return 'destructive' // red
     case 'P1':
-      return '#f97316' // orange
+      return 'secondary' // orange/amber
     case 'P2':
-      return '#eab308' // yellow
+      return 'secondary' // yellow
     case 'P3':
-      return '#9ca3af' // gray
+      return 'outline' // gray
     default:
-      return '#6b7280'
+      return 'outline'
   }
 }
 
 export function TaskCard({ task, onClick, draggable = true, onDragStart }: TaskCardProps) {
-  const priorityColor = getPriorityColor(task.priority)
+  const priorityVariant = getPriorityVariant(task.priority)
 
   return (
-    <div
-      className="kanban-card"
+    <Card
+      className="kanban-card p-3 cursor-pointer hover:shadow-md transition-shadow"
       onClick={onClick}
       draggable={draggable}
       onDragStart={onDragStart}
       style={{ cursor: draggable ? 'grab' : 'pointer' }}
       title="Click to view details, drag to move"
     >
-      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'baseline' }}>
-        <strong style={{ lineHeight: 1.2, flex: 1 }}>{task.title}</strong>
-        <div
-          style={{
-            width: 16,
-            height: 16,
-            borderRadius: '50%',
-            backgroundColor: priorityColor,
-            flexShrink: 0,
-          }}
-          title={`Priority: ${task.priority}`}
-        />
+      <div className="flex justify-between gap-2 items-start mb-2">
+        <strong className="line-clamp-2 flex-1">{task.title}</strong>
+        <Badge variant={priorityVariant} className="shrink-0">
+          {task.priority}
+        </Badge>
       </div>
 
       {task.description && (
         <div
-          className="muted"
-          style={{
-            marginTop: 6,
-            fontSize: 12,
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            display: '-webkit-box',
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: 'vertical',
-          }}
+          className="text-sm text-slate-500 mb-2 line-clamp-2"
         >
           {task.description}
         </div>
       )}
 
       {task.assignee && (
-        <div className="muted" style={{ marginTop: 6, fontSize: 12 }}>
+        <div className="text-sm text-slate-500 mb-2">
           <span>{task.assignee.emoji}</span> {task.assignee.name}
         </div>
       )}
 
       {(task.tags && task.tags.length > 0) && (
-        <div style={{ marginTop: 6, display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+        <div className="mt-2 flex gap-1 flex-wrap">
           {task.tags.slice(0, 3).map((tag) => (
-            <span
-              key={tag}
-              style={{
-                fontSize: 10,
-                padding: '2px 6px',
-                backgroundColor: 'rgba(100, 116, 139, 0.3)',
-                borderRadius: 3,
-                color: '#cbd5e1',
-              }}
-            >
+            <Badge key={tag} variant="outline" className="text-xs">
               {tag}
-            </span>
+            </Badge>
           ))}
           {task.tags.length > 3 && (
-            <span style={{ fontSize: 10, color: '#94a3b8' }}>
+            <span className="text-xs text-slate-500">
               +{task.tags.length - 3}
             </span>
           )}
@@ -97,14 +74,7 @@ export function TaskCard({ task, onClick, draggable = true, onDragStart }: TaskC
 
       {(task.estimatedHours || task.actualHours || task.commentCount || task.subtaskCount) && (
         <div
-          className="muted"
-          style={{
-            marginTop: 8,
-            fontSize: 11,
-            display: 'flex',
-            gap: 8,
-            flexWrap: 'wrap',
-          }}
+          className="text-xs text-slate-500 mt-2 flex gap-2 flex-wrap"
         >
           {task.estimatedHours && (
             <span title="Estimated hours">⏱ {task.estimatedHours}h est</span>
@@ -120,6 +90,6 @@ export function TaskCard({ task, onClick, draggable = true, onDragStart }: TaskC
           ) : null}
         </div>
       )}
-    </div>
+    </Card>
   )
 }

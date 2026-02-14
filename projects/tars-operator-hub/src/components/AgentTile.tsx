@@ -1,4 +1,6 @@
 import type { Agent, AgentTask } from '../types'
+import { Card } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
 
 interface AgentTileProps {
   agent: Agent
@@ -7,132 +9,80 @@ interface AgentTileProps {
   isSelected?: boolean
 }
 
-function getStatusColor(status: Agent['status']): string {
+function getStatusVariant(status: Agent['status']): 'default' | 'secondary' | 'destructive' {
   switch (status) {
     case 'online':
-      return '#22c55e' // green
+      return 'default' // green
     case 'busy':
-      return '#f59e0b' // amber
+      return 'secondary' // amber
     case 'offline':
-      return '#9ca3af' // gray
+      return 'destructive' // gray
     default:
-      return '#9ca3af'
+      return 'secondary'
   }
 }
 
 export function AgentTile({ agent, currentTask, onClick, isSelected = false }: AgentTileProps) {
-  const statusColor = getStatusColor(agent.status)
+  const statusVariant = getStatusVariant(agent.status)
 
   return (
-    <div
+    <Card
       onClick={onClick}
-      style={{
-        padding: 16,
-        backgroundColor: isSelected ? 'rgba(59, 130, 246, 0.1)' : 'rgba(51, 65, 85, 0.5)',
-        border: isSelected ? '2px solid #3b82f6' : '1px solid #475569',
-        borderRadius: 8,
-        cursor: 'pointer',
-        transition: 'all 0.2s ease',
-      }}
-      className="agent-tile"
+      className={`p-4 cursor-pointer transition-all hover:shadow-md ${
+        isSelected ? 'ring-2 ring-blue-500' : ''
+      }`}
       title={`Agent: ${agent.name} (${agent.status})`}
     >
       {/* Avatar */}
-      <div
-        style={{
-          fontSize: 48,
-          marginBottom: 12,
-          textAlign: 'center',
-        }}
-      >
+      <div className="text-4xl mb-3 text-center">
         {agent.emoji}
       </div>
 
       {/* Name and role */}
-      <div style={{ marginBottom: 8 }}>
-        <div style={{ fontWeight: 600, fontSize: 16 }}>{agent.name}</div>
-        <div style={{ fontSize: 12, color: '#94a3b8' }}>{agent.role}</div>
+      <div className="mb-2">
+        <div className="font-semibold text-base">{agent.name}</div>
+        <div className="text-xs text-slate-500">{agent.role}</div>
       </div>
 
-      {/* Status dot */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
-        <div
-          style={{
-            width: 8,
-            height: 8,
-            borderRadius: '50%',
-            backgroundColor: statusColor,
-          }}
-        />
-        <span style={{ fontSize: 12, color: '#cbd5e1' }}>{agent.status}</span>
+      {/* Status badge */}
+      <div className="mb-3">
+        <Badge variant={statusVariant}>
+          {agent.status}
+        </Badge>
       </div>
 
       {/* Current task */}
-      {currentTask ? (
-        <div
-          style={{
-            padding: 8,
-            backgroundColor: 'rgba(30, 41, 59, 0.8)',
-            borderRadius: 4,
-            marginBottom: 12,
-            fontSize: 12,
-            lineHeight: 1.4,
-          }}
-        >
-          <div style={{ color: '#94a3b8', marginBottom: 4 }}>Current task:</div>
-          <div style={{ color: '#e2e8f0', fontWeight: 500 }}>{currentTask.title}</div>
-        </div>
-      ) : (
-        <div
-          style={{
-            padding: 8,
-            backgroundColor: 'rgba(30, 41, 59, 0.8)',
-            borderRadius: 4,
-            marginBottom: 12,
-            fontSize: 12,
-            color: '#94a3b8',
-          }}
-        >
-          No active task
-        </div>
-      )}
+      <div className="bg-slate-100 rounded p-2 mb-3 text-sm">
+        {currentTask ? (
+          <>
+            <div className="text-xs text-slate-500 mb-1">Current task:</div>
+            <div className="font-medium text-slate-900 line-clamp-2">{currentTask.title}</div>
+          </>
+        ) : (
+          <div className="text-xs text-slate-500">
+            No active task
+          </div>
+        )}
+      </div>
 
       {/* Workload */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <span style={{ fontSize: 12, color: '#cbd5e1' }}>Workload:</span>
-        <span
-          style={{
-            padding: '2px 8px',
-            backgroundColor: 'rgba(59, 130, 246, 0.2)',
-            color: '#60a5fa',
-            borderRadius: 4,
-            fontSize: 12,
-            fontWeight: 500,
-          }}
-        >
+      <div className="flex items-center gap-2 mb-3">
+        <span className="text-xs text-slate-600">Workload:</span>
+        <Badge variant="outline">
           {agent.workload} task{agent.workload !== 1 ? 's' : ''}
-        </span>
+        </Badge>
       </div>
 
       {/* Tags */}
       {agent.tags && agent.tags.length > 0 && (
-        <div style={{ marginTop: 12, display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+        <div className="mt-3 flex gap-1 flex-wrap">
           {agent.tags.map((tag) => (
-            <span
-              key={tag}
-              style={{
-                fontSize: 10,
-                padding: '2px 6px',
-                backgroundColor: 'rgba(100, 116, 139, 0.3)',
-                borderRadius: 3,
-                color: '#cbd5e1',
-              }}
-            >
+            <Badge key={tag} variant="outline" className="text-xs">
               {tag}
-            </span>
+            </Badge>
           ))}
         </div>
       )}
-    </div>
+    </Card>
   )
 }

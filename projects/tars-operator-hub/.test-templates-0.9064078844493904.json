@@ -1,0 +1,73 @@
+[
+  {
+    "id": "template-30f00ff157523-1771038889601",
+    "name": "New Feature",
+    "description": "Standard workflow for new feature implementation",
+    "tasks": [
+      {
+        "title": "Design mockup",
+        "description": "",
+        "role": "designer",
+        "estimatedHours": 4,
+        "dependsOn": []
+      },
+      {
+        "title": "Implement backend",
+        "description": "",
+        "role": "backend-dev",
+        "estimatedHours": 8,
+        "dependsOn": []
+      }
+    ],
+    "createdAt": 1771038889601,
+    "updatedAt": 1771038889601
+  },
+  {
+    "id": "template-c7e04c14183b7-1771038889605",
+    "name": "Search Template",
+    "description": "",
+    "tasks": [
+      {
+        "title": "Task",
+        "description": "",
+        "role": "dev",
+        "estimatedHours": null,
+        "dependsOn": []
+      }
+    ],
+    "createdAt": 1771038889605,
+    "updatedAt": 1771038889605
+  },
+  {
+    "id": "template-40bd7783f2d57-1771038889606",
+    "name": "Updated Name",
+    "description": "Updated description",
+    "tasks": [
+      {
+        "title": "Task",
+        "description": "",
+        "role": "dev",
+        "estimatedHours": null,
+        "dependsOn": []
+      }
+    ],
+    "createdAt": 1771038889606,
+    "updatedAt": 1771038889608
+  },
+  {
+    "id": "template-6d7f24d5c3f61-1771038889612",
+    "name": "Persistent Template",
+    "description": "",
+    "tasks": [
+      {
+        "title": "Task",
+        "description": "",
+        "role": "dev",
+        "estimatedHours": null,
+        "dependsOn": []
+      }
+    ],
+    "createdAt": 1771038889612,
+    "updatedAt": 1771038889612
+  }
+]

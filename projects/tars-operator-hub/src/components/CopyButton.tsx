@@ -1,12 +1,14 @@
 import { useState } from 'react'
+import { Button } from '@/components/ui/button'
 
 export function CopyButton({ text, label = 'Copy' }: { text: string; label?: string }) {
   const [copied, setCopied] = useState(false)
   const [failed, setFailed] = useState(false)
 
   return (
-    <button
-      className={`btn ghost ${copied ? 'copied' : ''}`}
+    <Button
+      variant="ghost"
+      size="sm"
       onClick={async () => {
         setFailed(false)
         try {
@@ -24,6 +26,6 @@ export function CopyButton({ text, label = 'Copy' }: { text: string; label?: str
       title={failed ? 'Clipboard unavailable — using manual copy prompt.' : undefined}
     >
       {copied ? 'Copied' : failed ? 'Copy (manual)' : label}
-    </button>
+    </Button>
   )
 }

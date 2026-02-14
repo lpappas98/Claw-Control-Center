@@ -1,0 +1,84 @@
+[
+  {
+    "id": "template-36cd4a52a8976-1771038889603",
+    "name": "Feature Development",
+    "description": "",
+    "tasks": [
+      {
+        "title": "Design mockup",
+        "description": "",
+        "role": "designer",
+        "estimatedHours": 4,
+        "dependsOn": []
+      },
+      {
+        "title": "Implement backend",
+        "description": "",
+        "role": "backend-dev",
+        "estimatedHours": 8,
+        "dependsOn": [
+          "Design mockup"
+        ]
+      },
+      {
+        "title": "Implement frontend",
+        "description": "",
+        "role": "frontend-dev",
+        "estimatedHours": 8,
+        "dependsOn": [
+          "Implement backend"
+        ]
+      }
+    ],
+    "createdAt": 1771038889603,
+    "updatedAt": 1771038889603
+  },
+  {
+    "id": "template-022b2dd5d5717-1771038889607",
+    "name": "Partial Dependencies",
+    "description": "",
+    "tasks": [
+      {
+        "title": "Task A",
+        "description": "",
+        "role": "dev",
+        "estimatedHours": null,
+        "dependsOn": [
+          "Missing Task"
+        ]
+      },
+      {
+        "title": "Task B",
+        "description": "",
+        "role": "dev",
+        "estimatedHours": null,
+        "dependsOn": []
+      }
+    ],
+    "createdAt": 1771038889607,
+    "updatedAt": 1771038889607
+  },
+  {
+    "id": "template-e3685220f0133-1771038889611",
+    "name": "Feature",
+    "description": "",
+    "tasks": [
+      {
+        "title": "Design",
+        "description": "",
+        "role": "designer",
+        "estimatedHours": null,
+        "dependsOn": []
+      },
+      {
+        "title": "Implement API",
+        "description": "",
+        "role": "backend-dev",
+        "estimatedHours": null,
+        "dependsOn": []
+      }
+    ],
+    "createdAt": 1771038889611,
+    "updatedAt": 1771038889611
+  }
+]

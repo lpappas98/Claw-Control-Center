@@ -7,11 +7,12 @@ import { Rules } from './pages/Rules'
 import { Config } from './pages/Config'
 import { KanbanPage } from './pages/KanbanPage'
 import { AgentsPage } from './pages/AgentsPage'
+import { RecurringTasksPage } from './pages/RecurringTasksPage'
 import { loadAdapterConfig, saveAdapterConfig, toAdapter, type AdapterConfig } from './lib/adapterState'
 
-type NavTab = 'Mission Control' | 'Projects' | 'Activity' | 'Kanban' | 'Agents' | 'Rules' | 'Config' | 'Docs'
+type NavTab = 'Mission Control' | 'Projects' | 'Activity' | 'Kanban' | 'Agents' | 'Recurring' | 'Rules' | 'Config' | 'Docs'
 
-const tabs: NavTab[] = ['Mission Control', 'Projects', 'Activity', 'Kanban', 'Agents', 'Rules', 'Config', 'Docs']
+const tabs: NavTab[] = ['Mission Control', 'Projects', 'Activity', 'Kanban', 'Agents', 'Recurring', 'Rules', 'Config', 'Docs']
 
 const NAV_TAB_KEY = 'tars.operatorHub.navTab'
 
@@ -100,6 +101,7 @@ export default function App() {
           }}
         />
       )}
+      {tab === 'Recurring' && <RecurringTasksPage />}
       {tab === 'Rules' && <Rules adapter={adapter} />}
       {tab === 'Config' && <Config adapter={adapter} />}
       {tab === 'Docs' && (

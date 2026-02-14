@@ -47,6 +47,8 @@ import { getNotificationsStore } from './notificationsStore.mjs'
 import { getTaskTemplatesStore } from './taskTemplates.mjs'
 import { autoAssignTask, getAssignmentSuggestions } from './taskAssignment.mjs'
 import { generateTasksFromPrompt, getProjectContext } from './aiTaskGeneration.mjs'
+import { getRoutinesStore } from './routines.mjs'
+import { getRoutineExecutor } from './routineExecutor.mjs'
 
 const execFileAsync = promisify(execFile)
 
@@ -66,6 +68,7 @@ const AGENTS_FILE = process.env.OPERATOR_HUB_AGENTS_FILE ?? path.join(WORKSPACE,
 const NEW_TASKS_FILE = process.env.OPERATOR_HUB_NEW_TASKS_FILE ?? path.join(WORKSPACE, '.clawhub', 'new-tasks.json')
 const NOTIFICATIONS_FILE = process.env.OPERATOR_HUB_NOTIFICATIONS_FILE ?? path.join(WORKSPACE, '.clawhub', 'notifications.json')
 const TEMPLATES_FILE = process.env.OPERATOR_HUB_TEMPLATES_FILE ?? path.join(WORKSPACE, '.clawhub', 'taskTemplates.json')
+const ROUTINES_FILE = process.env.OPERATOR_HUB_ROUTINES_FILE ?? path.join(WORKSPACE, '.clawhub', 'routines.json')
 
 /** @type {import('../src/types').ActivityEvent[]} */
 let activity = await loadActivity(ACTIVITY_FILE)
@@ -95,12 +98,18 @@ const agentsStore = getAgentsStore(AGENTS_FILE)
 const newTasksStore = getTasksStore(NEW_TASKS_FILE)
 const notificationsStore = getNotificationsStore(NOTIFICATIONS_FILE)
 const templatesStore = getTaskTemplatesStore(TEMPLATES_FILE)
+const routinesStore = getRoutinesStore(ROUTINES_FILE)
 
 // Ensure stores are loaded
 await agentsStore.load()
 await newTasksStore.load()
 await notificationsStore.load()
 await templatesStore.load()
+await routinesStore.load()
+
+// Initialize routine executor
+const routineExecutor = getRoutineExecutor(routinesStore, newTasksStore, agentsStore, notificationsStore)
+routineExecutor.start()
 
 let lastGatewayHealth = null
 let lastGatewaySummary = null
@@ -1734,6 +1743,118 @@ app.post('/api/tasks/from-template', async (req, res) => {
   }
 })
 
+// ====== ROUTINES ENDPOINTS ======
+
+app.get('/api/routines', async (_req, res) => {
+  try {
+    const routines = await routinesStore.getAll()
+    const sorted = routines.sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0))
+    res.json(sorted)
+  } catch (err) {
+    res.status(400).send(err?.message ?? 'failed to fetch routines')
+  }
+})
+
+app.get('/api/routines/:id', async (req, res) => {
+  try {
+    const routine = await routinesStore.getRoutine(req.params.id)
+    if (!routine) return res.status(404).send('routine not found')
+    res.json(routine)
+  } catch (err) {
+    res.status(400).send(err?.message ?? 'failed to fetch routine')
+  }
+})
+
+app.post('/api/routines', async (req, res) => {
+  try {
+    const body = req.body ?? {}
+    const name = typeof body.name === 'string' ? body.name.trim() : ''
+    const schedule = typeof body.schedule === 'string' ? body.schedule.trim() : ''
+
+    if (!name) return res.status(400).send('name required')
+    if (!schedule) return res.status(400).send('schedule required')
+
+    const routine = await routinesStore.createRoutine({
+      name,
+      description: typeof body.description === 'string' ? body.description : '',
+      schedule,
+      taskTemplate: body.taskTemplate || {},
+      enabled: body.enabled !== false
+    })
+
+    res.status(201).json(routine)
+  } catch (err) {
+    res.status(400).send(err?.message ?? 'failed to create routine')
+  }
+})
+
+app.put('/api/routines/:id', async (req, res) => {
+  try {
+    const routine = await routinesStore.updateRoutine(req.params.id, req.body)
+    if (!routine) return res.status(404).send('routine not found')
+    res.json(routine)
+  } catch (err) {
+    res.status(400).send(err?.message ?? 'failed to update routine')
+  }
+})
+
+app.delete('/api/routines/:id', async (req, res) => {
+  try {
+    const deleted = await routinesStore.deleteRoutine(req.params.id)
+    if (!deleted) return res.status(404).send('routine not found')
+    res.json({ id: req.params.id, deleted: true })
+  } catch (err) {
+    res.status(400).send(err?.message ?? 'failed to delete routine')
+  }
+})
+
+app.post('/api/routines/:id/run', async (req, res) => {
+  try {
+    const routine = await routinesStore.getRoutine(req.params.id)
+    if (!routine) return res.status(404).send('routine not found')
+
+    const taskData = {
+      title: routine.taskTemplate.title,
+      description: routine.taskTemplate.description || `Manual trigger from routine: ${routine.name}`,
+      lane: normalizeLane('queued'),
+      priority: normalizePriority('P2'),
+      tags: routine.taskTemplate.tags || [],
+      estimatedHours: routine.taskTemplate.estimatedHours,
+      createdBy: 'api'
+    }
+
+    let task = await newTasksStore.create(taskData)
+
+    if (routine.taskTemplate.assignedTo) {
+      const assignedTo = routine.taskTemplate.assignedTo
+      if (assignedTo.startsWith('agent-') || assignedTo.startsWith('dev-')) {
+        task = await newTasksStore.update(task.id, { assignedTo }, 'api')
+
+        if (task.assignedTo) {
+          await notificationsStore.create({
+            agentId: task.assignedTo,
+            type: 'task-assigned',
+            title: 'New task from routine',
+            text: `Task manually triggered from routine: ${routine.name}`,
+            taskId: task.id
+          })
+        }
+      } else {
+        task = await newTasksStore.update(task.id, {
+          tags: [...(task.tags || []), assignedTo]
+        }, 'api')
+        await autoAssignTask(task, agentsStore, newTasksStore, notificationsStore)
+      }
+    } else {
+      await autoAssignTask(task, agentsStore, newTasksStore, notificationsStore)
+    }
+
+    res.json(task)
+  } catch (err) {
+    res.status(400).send(err?.message ?? 'failed to run routine')
+  }
+})
+
 // ====== LEGACY TASK ENDPOINTS (BACKWARD COMPATIBILITY) ======
 
 // Enhanced legacy POST /api/tasks to support lane -> done transition with auto-unblock
@@ -1779,6 +1900,8 @@ app.post('/api/ai/tasks/generate', async (req, res) => {
 app.get('/healthz', (_req, res) => res.send('ok'))
 
 async function flushActivityOnExit() {
+  routineExecutor.stop()
+  
   try {
     await activitySaver.flush()
   } catch {
@@ -1797,6 +1920,7 @@ async function flushActivityOnExit() {
     await newTasksStore.save()
     await notificationsStore.save()
     await templatesStore.save()
+    await routinesStore.save()
   } catch {
     // best-effort
   }

@@ -235,3 +235,9 @@ export async function logTime(taskId: string, agentId: string, hours: number, no
   if (!res.ok) throw new Error(`Failed to log time: ${res.statusText}`)
   return res.json()
 }
+
+export async function addTimeLog(taskId: string, hours: number, note: string): Promise<AgentTask> {
+  // Use current user's agent ID (in a real app, would get from auth context)
+  const agentId = localStorage.getItem('currentAgentId') || 'agent-1'
+  return logTime(taskId, agentId, hours, note)
+}

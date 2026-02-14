@@ -1,0 +1,30 @@
+[
+  {
+    "id": "pixel",
+    "name": "Pixel",
+    "emoji": "🎨",
+    "roles": [
+      "designer",
+      "ui"
+    ],
+    "status": "online",
+    "createdAt": 1771038889609,
+    "updatedAt": 1771038889609,
+    "activeTasks": [],
+    "metadata": {}
+  },
+  {
+    "id": "dev-backend",
+    "name": "Backend Dev",
+    "emoji": "🔧",
+    "roles": [
+      "backend-dev",
+      "api"
+    ],
+    "status": "online",
+    "createdAt": 1771038889610,
+    "updatedAt": 1771038889610,
+    "activeTasks": [],
+    "metadata": {}
+  }
+]

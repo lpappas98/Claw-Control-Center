@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import type { AgentTask, Agent } from '../types'
 import { KanbanBoard } from '../components/KanbanBoard'
 import { TaskDetailModal } from '../components/TaskDetailModal'
+import { TemplatePickerModal } from '../components/TemplatePickerModal'
+import { AITaskGeneratorModal } from '../components/AITaskGeneratorModal'
 import * as api from '../services/api'
 import { usePoll } from '../lib/usePoll'
 
@@ -15,6 +17,8 @@ export function KanbanPage({ selectedAgentId }: KanbanPageProps) {
   const [selectedTask, setSelectedTask] = useState<AgentTask | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [showTemplates, setShowTemplates] = useState(false)
+  const [showAIGenerator, setShowAIGenerator] = useState(false)
 
   // Fetch agents
   useEffect(() => {
@@ -56,6 +60,37 @@ export function KanbanPage({ selectedAgentId }: KanbanPageProps) {
     setSelectedTask(null)
   }
 
+  const handleUseTemplate = async (template: any) => {
+    // Create tasks from template
+    const newTasks = template.tasks.map((t: any, idx: number) => ({
+      title: t.title,
+      description: t.description,
+      estimatedHours: t.estimatedHours,
+      priority: 'P1' as const,
+      status: 'queued' as const,
+    }))
+
+    for (const taskData of newTasks) {
+      try {
+        const created = await api.createTask(taskData)
+        setTasks((prev) => [...prev, created])
+      } catch (err) {
+        console.error('Failed to create task from template:', err)
+      }
+    }
+  }
+
+  const handleCreateAITasks = async (aiTasks: any[]) => {
+    for (const taskData of aiTasks) {
+      try {
+        const created = await api.createTask(taskData)
+        setTasks((prev) => [...prev, created])
+      } catch (err) {
+        console.error('Failed to create AI task:', err)
+      }
+    }
+  }
+
   return (
     <main className="main-grid">
       <div className="panel span-4" style={{ padding: 14 }}>
@@ -64,9 +99,17 @@ export function KanbanPage({ selectedAgentId }: KanbanPageProps) {
             <h2 style={{ margin: 0 }}>Kanban Board</h2>
             <div className="muted" style={{ marginTop: 4 }}>Manage tasks across workflow stages</div>
           </div>
-          <button className="btn" type="button" onClick={() => alert('(wireframe) Create new task')}>
-            + New Task
-          </button>
+          <div className="stack-h" style={{ gap: 8 }}>
+            <button className="btn ghost" type="button" onClick={() => setShowTemplates(true)}>
+              📋 Use Template
+            </button>
+            <button className="btn ghost" type="button" onClick={() => setShowAIGenerator(true)}>
+              ✨ AI Generate
+            </button>
+            <button className="btn" type="button" onClick={() => alert('(wireframe) Create new task')}>
+              + New Task
+            </button>
+          </div>
         </div>
 
         {error && (
@@ -93,9 +136,24 @@ export function KanbanPage({ selectedAgentId }: KanbanPageProps) {
         <TaskDetailModal
           task={selectedTask}
           agents={agents}
+          allTasks={tasks}
           onClose={() => setSelectedTask(null)}
           onTaskUpdated={handleTaskUpdated}
           onTaskDeleted={handleTaskDeleted}
+        />
+      )}
+
+      {showTemplates && (
+        <TemplatePickerModal
+          onSelect={handleUseTemplate}
+          onClose={() => setShowTemplates(false)}
+        />
+      )}
+
+      {showAIGenerator && (
+        <AITaskGeneratorModal
+          onCreateTasks={handleCreateAITasks}
+          onClose={() => setShowAIGenerator(false)}
         />
       )}
     </main>
