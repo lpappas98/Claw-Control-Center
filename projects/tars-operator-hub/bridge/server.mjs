@@ -57,6 +57,7 @@ import { createHealthChecker } from './healthChecks.mjs'
 
 const execFileAsync = promisify(execFile)
 const healthChecker = createHealthChecker()
+const startTime = Date.now()
 
 const app = express()
 app.use(cors())
@@ -2343,18 +2344,75 @@ app.post('/api/integrations/telegram/notify', async (req, res) => {
 // Health endpoints for monitoring
 app.get('/health', async (_req, res) => {
   try {
-    const agents = await agentsStore.getAll()
+    // Get stats from current data
+    const taskStats = {
+      total: Array.isArray(tasks) ? tasks.length : 0,
+      byStatus: Array.isArray(tasks) ? tasks.reduce((acc, task) => {
+        const status = task.lane || 'queued'
+        acc[status] = (acc[status] || 0) + 1
+        return acc
+      }, {}) : {},
+    }
     
-    healthChecker.updateTaskStats(tasks)
-    healthChecker.updateAgentStats(agents || [])
+    let agentList = []
+    try {
+      const agents = await agentsStore.getAll()
+      agentList = Array.isArray(agents) ? agents : (agents?.agents ? agents.agents : [])
+    } catch (e) {
+      logger.warn('Failed to load agents for health check', { error: e.message })
+    }
+    
+    const agentStats = {
+      total: agentList.length,
+      online: Array.isArray(agentList) ? agentList.filter(a => a?.status === 'online').length : 0,
+      offline: Array.isArray(agentList) ? agentList.filter(a => a?.status !== 'online').length : 0,
+    }
     
     const integrations = {
       github: !!gitHubConfig?.token,
       telegram: !!process.env.TELEGRAM_BOT_TOKEN,
-      calendar: !!process.env.GOOGLE_CALENDAR_PRIVATE_KEY,
+      googleCalendar: !!process.env.GOOGLE_CALENDAR_PRIVATE_KEY,
     }
     
-    const status = healthChecker.getDetailedStatus(WORKSPACE, integrations)
+    const memoryUsage = process.memoryUsage()
+    const systemInfo = {
+      platform: process.platform,
+      nodeVersion: process.version,
+      cpuCount: os.cpus().length,
+      totalMemory: Math.round(os.totalmem() / 1024 / 1024),
+      freeMemory: Math.round(os.freemem() / 1024 / 1024),
+      loadAverage: os.loadavg(),
+    }
+    
+    const status = {
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      uptime: Math.floor((Date.now() - startTime) / 1000),
+      version: '6.3',
+      service: 'operator-hub-bridge',
+      stats: {
+        tasks: taskStats,
+        agents: agentStats,
+        errors: healthChecker.errorCount,
+      },
+      memory: {
+        heapUsed: Math.round(memoryUsage.heapUsed / 1024 / 1024),
+        heapTotal: Math.round(memoryUsage.heapTotal / 1024 / 1024),
+        external: Math.round(memoryUsage.external / 1024 / 1024),
+        rss: Math.round(memoryUsage.rss / 1024 / 1024),
+      },
+      system: systemInfo,
+      integrations,
+      readiness: {
+        ready: existsSync(TASKS_FILE) && existsSync(AGENTS_FILE) && existsSync(ACTIVITY_FILE),
+        checks: {
+          tasksFileExists: existsSync(TASKS_FILE),
+          agentsFileExists: existsSync(AGENTS_FILE),
+          activityFileExists: existsSync(ACTIVITY_FILE),
+        },
+      },
+    }
+    
     res.json(status)
   } catch (err) {
     logger.error('Health check error', { error: err.message, stack: err.stack })

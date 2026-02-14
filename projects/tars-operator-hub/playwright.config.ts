@@ -7,7 +7,7 @@ const config = {
   workers: process.env.CI ? 1 : 1,
   reporter: 'html',
   use: {
-    baseURL: 'http://localhost:5173',
+    baseURL: 'http://localhost:8787',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
   },
@@ -25,13 +25,7 @@ const config = {
   webServer: [
     {
       command: 'npm run bridge',
-      port: 3000,
-      reuseExistingServer: !process.env.CI,
-      timeout: 120 * 1000,
-    },
-    {
-      command: 'npm run dev',
-      port: 5173,
+      port: 8787,
       reuseExistingServer: !process.env.CI,
       timeout: 120 * 1000,
     },
