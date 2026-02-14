@@ -6,7 +6,7 @@ import { usePoll } from '../lib/usePoll'
 import { useWebSocket } from '../lib/useWebSocket'
 import { Badge } from '../components/Badge'
 import { TaskModal } from '../components/TaskModal'
-import { LaneOverflowModal } from '../components/LaneOverflowModal'
+import { TaskListModal } from '../components/TaskListModal'
 import type { ActivityEvent, BoardLane, LiveSnapshot, Priority, SystemStatus, Task, WorkerHeartbeat } from '../types'
 
 const MAX_TASKS_PER_LANE = 5
@@ -728,11 +728,12 @@ export function MissionControl({
       )}
 
       {overflowLane && (
-        <LaneOverflowModal
-          lane={overflowLane.lane}
+        <TaskListModal
+          title={`${overflowLane.lane.charAt(0).toUpperCase() + overflowLane.lane.slice(1)} (${overflowLane.tasks.length})`}
           tasks={overflowLane.tasks}
           onTaskClick={(task) => setOpenTask(task)}
           onClose={() => setOverflowLane(null)}
+          highlightLane={overflowLane.lane}
         />
       )}
     </main>

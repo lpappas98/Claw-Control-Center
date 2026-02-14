@@ -1,5 +1,75 @@
 [
   {
+    "id": "task-started-390261ac21a0e-1771069256887",
+    "at": "2026-02-14T11:40:56.886Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Redesign LaneOverflowModal with search, sort, and priority summary → Patch",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Redesign LaneOverflowModal with search, sort, and priority summary",
+      "workerSlot": "dev-2",
+      "worker": "Patch",
+      "startedAt": "2026-02-14T11:40:56.886Z"
+    }
+  },
+  {
+    "id": "task-completed-7b60a0b3d727a-1771069256886",
+    "at": "2026-02-14T11:40:56.886Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task completed: Agent Heartbeat Test - Query Parameter Verification · Patch · took 40m 49s",
+    "meta": {
+      "eventType": "task.completed",
+      "task": "Agent Heartbeat Test - Query Parameter Verification",
+      "workerSlot": "dev-2",
+      "worker": "Patch",
+      "durationMs": 2448515,
+      "startedAt": "2026-02-14T11:00:08.371Z",
+      "completedAt": "2026-02-14T11:40:56.886Z"
+    }
+  },
+  {
+    "id": "task-created-947266ffef42b-1771069256886",
+    "at": "2026-02-14T11:40:56.886Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: Redesign LaneOverflowModal with search, sort, and priority summary",
+    "meta": {
+      "eventType": "task.created",
+      "task": "Redesign LaneOverflowModal with search, sort, and priority summary",
+      "workerSlot": "dev-2",
+      "worker": "Patch"
+    }
+  },
+  {
+    "id": "task-started-b6f944fcdbcd7-1771069256886",
+    "at": "2026-02-14T11:40:56.886Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Implement redesigned TaskModal component following UI/UX guide → Forge",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Implement redesigned TaskModal component following UI/UX guide",
+      "workerSlot": "dev-1",
+      "worker": "Forge",
+      "startedAt": "2026-02-14T11:40:56.886Z"
+    }
+  },
+  {
+    "id": "task-created-5d7cf6b3c40ed-1771069256886",
+    "at": "2026-02-14T11:40:56.886Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: Implement redesigned TaskModal component following UI/UX guide",
+    "meta": {
+      "eventType": "task.created",
+      "task": "Implement redesigned TaskModal component following UI/UX guide",
+      "workerSlot": "dev-1",
+      "worker": "Forge"
+    }
+  },
+  {
     "id": "task-started-5edb02ad91cc4-1771067730817",
     "at": "2026-02-14T11:15:30.816Z",
     "level": "info",
@@ -5462,73 +5532,6 @@
       "workerSlot": "dev-1",
       "worker": "Forge",
       "startedAt": "2026-02-11T03:21:52.922Z"
-    }
-  },
-  {
-    "id": "task-created-d0905dfdc4684-1770780114106",
-    "at": "2026-02-11T03:21:52.922Z",
-    "level": "info",
-    "source": "tasks",
-    "message": "task created: Implementing Home board and agent UX",
-    "meta": {
-      "eventType": "task.created",
-      "task": "Implementing Home board and agent UX",
-      "workerSlot": "dev-1",
-      "worker": "Forge"
-    }
-  },
-  {
-    "id": "task-started-52d88069329a4-1770780114106",
-    "at": "2026-02-11T03:21:52.922Z",
-    "level": "info",
-    "source": "tasks",
-    "message": "task assigned: Preparing hub verification checks → Sentinel",
-    "meta": {
-      "eventType": "task.assigned",
-      "task": "Preparing hub verification checks",
-      "workerSlot": "qa",
-      "worker": "Sentinel",
-      "startedAt": "2026-02-11T03:21:52.922Z"
-    }
-  },
-  {
-    "id": "task-created-7caafe9af73d3-1770780114106",
-    "at": "2026-02-11T03:21:52.922Z",
-    "level": "info",
-    "source": "tasks",
-    "message": "task created: Preparing hub verification checks",
-    "meta": {
-      "eventType": "task.created",
-      "task": "Preparing hub verification checks",
-      "workerSlot": "qa",
-      "worker": "Sentinel"
-    }
-  },
-  {
-    "id": "task-started-1aeb00e8e83e3-1770780114106",
-    "at": "2026-02-11T03:21:52.922Z",
-    "level": "info",
-    "source": "tasks",
-    "message": "task assigned: Designing permanent agent runtime model → Blueprint",
-    "meta": {
-      "eventType": "task.assigned",
-      "task": "Designing permanent agent runtime model",
-      "workerSlot": "architect",
-      "worker": "Blueprint",
-      "startedAt": "2026-02-11T03:21:52.922Z"
-    }
-  },
-  {
-    "id": "task-created-2b3a78078b438-1770780114106",
-    "at": "2026-02-11T03:21:52.922Z",
-    "level": "info",
-    "source": "tasks",
-    "message": "task created: Designing permanent agent runtime model",
-    "meta": {
-      "eventType": "task.created",
-      "task": "Designing permanent agent runtime model",
-      "workerSlot": "architect",
-      "worker": "Blueprint"
     }
   }
 ]

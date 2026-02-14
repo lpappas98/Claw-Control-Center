@@ -1,8 +1,42 @@
 [
   {
+    "id": "task-95e830ae4e5e4-1771069249845",
+    "title": "Redesign LaneOverflowModal with search, sort, and priority summary",
+    "lane": "development",
+    "priority": "P0",
+    "owner": "dev-2",
+    "problem": "Current LaneOverflowModal is basic. Need polished design from file_114 with search, sort, priority summary bar, smooth animations, and proper dark theme",
+    "scope": "Replace src/components/LaneOverflowModal.tsx with file_114 design - exact UI match including search/sort dropdowns, priority summary bar with P0-P3 counts, priority dots, avatar/unassigned indicators, smooth animations",
+    "acceptanceCriteria": [
+      "Search filters tasks by title, prefix, and id",
+      "Sort dropdown with priority/type/name options",
+      "Priority summary bar shows counts for P0-P3",
+      "Smooth fadeIn and slideUp animations",
+      "Avatar for assigned tasks, dotted circle for unassigned",
+      "Exact color scheme from file_114 reference",
+      "Mobile responsive layout",
+      "Screenshot matches file_114 design"
+    ],
+    "createdAt": "2026-02-14T11:40:49.845Z",
+    "updatedAt": "2026-02-14T11:40:56.117Z",
+    "statusHistory": [
+      {
+        "at": "2026-02-14T11:40:56.117Z",
+        "from": "queued",
+        "to": "development",
+        "note": "updated"
+      },
+      {
+        "at": "2026-02-14T11:40:49.845Z",
+        "to": "queued",
+        "note": "created"
+      }
+    ]
+  },
+  {
     "id": "task-474a86df1401e-1771057723644",
     "title": "Redesign Mission Control page with improved agent cards and task board",
-    "lane": "development",
+    "lane": "review",
     "priority": "P0",
     "owner": "dev-1",
     "problem": "Current Mission Control layout is cluttered and hard to scan. Agent status unclear, task board cramped, no clear visual hierarchy",
@@ -21,8 +55,14 @@
       "Take screenshot showing new Mission Control layout"
     ],
     "createdAt": "2026-02-14T08:28:43.644Z",
-    "updatedAt": "2026-02-14T11:04:11.297Z",
+    "updatedAt": "2026-02-14T11:27:47.375Z",
     "statusHistory": [
+      {
+        "at": "2026-02-14T11:27:47.375Z",
+        "from": "development",
+        "to": "review",
+        "note": "updated"
+      },
       {
         "at": "2026-02-14T09:45:03.462Z",
         "from": "queued",
@@ -111,7 +151,7 @@
   {
     "id": "task-76841ad6cd267-1771056030147",
     "title": "Implement redesigned task search/list modal with better UX",
-    "lane": "blocked",
+    "lane": "development",
     "priority": "P0",
     "owner": "dev-2",
     "problem": "Current task search modal (screenshot from Logan) has unreadable dark text on dark background, no visual hierarchy, cramped list, no metadata visible, full-screen modal instead of focused overlay",
@@ -135,8 +175,20 @@
       "Take screenshot showing new list modal"
     ],
     "createdAt": "2026-02-14T08:00:30.147Z",
-    "updatedAt": "2026-02-14T08:25:19.871Z",
+    "updatedAt": "2026-02-14T11:41:43.021Z",
     "statusHistory": [
+      {
+        "at": "2026-02-14T11:41:43.021Z",
+        "from": "queued",
+        "to": "development",
+        "note": "updated"
+      },
+      {
+        "at": "2026-02-14T11:40:58.144Z",
+        "from": "blocked",
+        "to": "queued",
+        "note": "updated"
+      },
       {
         "at": "2026-02-14T08:25:19.871Z",
         "from": "development",
@@ -161,26 +213,40 @@
     "title": "Implement redesigned TaskModal component following UI/UX guide",
     "lane": "review",
     "priority": "P0",
-    "owner": "dev-2",
-    "problem": "Current TaskModal has poor UX: all-caps section headers (BASIC INFORMATION, DETAILS, METADATA), cramped spacing, no visual hierarchy, metadata too prominent, no tabs for organization",
-    "scope": "Replace src/components/TaskModal.tsx with redesigned version following UI/UX guide. Use shadcn Dialog, Tabs, Badge components. Implement: header with badge+inline-editable title, Details+History tabs, grid layout for fields, subtle dividers, de-emphasized metadata, proper spacing (space-y-5), footer with actions",
+    "owner": "dev-1",
+    "problem": "Current TaskModal has inconsistent styling. Need to implement the polished design from file_115 with tabs, proper form fields, and clean blue accents",
+    "scope": "Redesign TaskModal.tsx following file_115 - tabs (details/history), form fields for status/priority/owner, problem/scope/acceptance criteria, metadata footer",
     "acceptanceCriteria": [
-      "Header: type badge (Epic/Task) + ID + inline-editable title + close button",
-      "Tabs: Details and History (like the example component)",
-      "Details tab: grid layout for Status/Priority/Owner fields",
-      "Problem, Scope, Acceptance Criteria fields with proper labels",
-      "Subtle border-t dividers between sections (not bold headers)",
-      "Metadata (created/updated/history count) at bottom as de-emphasized text",
-      "Footer: Copy JSON button (left) + Cancel + Save Changes (right)",
-      "Backdrop: bg-black/60 backdrop-blur-sm with fadeIn animation",
-      "Modal: slideUp animation on open",
-      "Reference: /home/openclaw/.openclaw/media/inbound/file_105 for exact styling",
-      "Test by opening existing tasks in Mission Control",
-      "Take screenshot showing new modal design"
+      "Tab navigation between details/history works",
+      "All form fields styled per file_115",
+      "Blue accent colors throughout",
+      "Smooth animations (fadeIn, slideUp)",
+      "Save/Cancel buttons functional",
+      "Copy JSON button",
+      "Exact color scheme from reference",
+      "Screenshot matches file_115"
     ],
     "createdAt": "2026-02-14T08:00:13.768Z",
-    "updatedAt": "2026-02-14T11:20:45.514Z",
+    "updatedAt": "2026-02-14T11:42:21.825Z",
     "statusHistory": [
+      {
+        "at": "2026-02-14T11:42:21.825Z",
+        "from": "development",
+        "to": "review",
+        "note": "updated"
+      },
+      {
+        "at": "2026-02-14T11:40:53.922Z",
+        "from": "queued",
+        "to": "development",
+        "note": "updated"
+      },
+      {
+        "at": "2026-02-14T11:40:35.490Z",
+        "from": "review",
+        "to": "queued",
+        "note": "updated"
+      },
       {
         "at": "2026-02-14T11:20:45.514Z",
         "from": "development",

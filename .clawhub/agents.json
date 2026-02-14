@@ -16,8 +16,8 @@
     "activeTasks": [],
     "metadata": {},
     "createdAt": 1771047212861,
-    "updatedAt": 1771068441450,
-    "lastHeartbeat": 1771068441449
+    "updatedAt": 1771069402271,
+    "lastHeartbeat": 1771069402270
   },
   {
     "id": "dev-1",
@@ -33,12 +33,15 @@
     "status": "online",
     "instanceId": "openclaw-bozeman1",
     "tailscaleIP": "",
-    "currentTask": null,
+    "currentTask": {
+      "id": "task-ccb64a8dbb329-1771056013768",
+      "title": "Implement redesigned TaskModal component following UI/UX guide"
+    },
     "activeTasks": [],
     "metadata": {},
     "createdAt": 1771047212866,
-    "updatedAt": 1771068443366,
-    "lastHeartbeat": 1771068443365
+    "updatedAt": 1771069404008,
+    "lastHeartbeat": 1771069404007
   },
   {
     "id": "dev-2",
@@ -55,14 +58,14 @@
     "instanceId": "openclaw-bozeman1",
     "tailscaleIP": "",
     "currentTask": {
-      "id": "task-1c8c72a058663-1771061600632",
-      "title": "Agent Heartbeat Test - Query Parameter Verification"
+      "id": "task-95e830ae4e5e4-1771069249845",
+      "title": "Redesign LaneOverflowModal with search, sort, and priority summary"
     },
     "activeTasks": [],
     "metadata": {},
     "createdAt": 1771047212870,
-    "updatedAt": 1771068445450,
-    "lastHeartbeat": 1771068445449
+    "updatedAt": 1771069406231,
+    "lastHeartbeat": 1771069406231
   },
   {
     "id": "qa",
@@ -82,8 +85,8 @@
     "activeTasks": [],
     "metadata": {},
     "createdAt": 1771047212875,
-    "updatedAt": 1771068447464,
-    "lastHeartbeat": 1771068447464
+    "updatedAt": 1771069378183,
+    "lastHeartbeat": 1771069378182
   },
   {
     "id": "architect",
@@ -106,7 +109,7 @@
     "activeTasks": [],
     "metadata": {},
     "createdAt": 1771047212879,
-    "updatedAt": 1771068449390,
-    "lastHeartbeat": 1771068449389
+    "updatedAt": 1771069380110,
+    "lastHeartbeat": 1771069380109
   }
 ]
