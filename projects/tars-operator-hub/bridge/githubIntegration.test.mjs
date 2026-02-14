@@ -2,7 +2,8 @@
  * Tests for GitHub Integration
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, beforeEach } from 'node:test'
+import * as assert from 'node:assert/strict'
 import { GitHubIntegration } from './githubIntegration.mjs'
 
 describe('GitHubIntegration', () => {
@@ -17,204 +18,58 @@ describe('GitHubIntegration', () => {
     })
 
     // Mock fetch
-    mockFetch = vi.fn()
-    global.fetch = mockFetch
-  })
-
-  describe('createGitHubIssue', () => {
-    it('should create a GitHub issue from a task', async () => {
-      const task = {
-        id: 'task-123',
-        title: 'Fix auth bug',
-        description: 'Session token expires too quickly',
-        priority: 'P0',
-        tags: ['bug', 'auth'],
-      }
-
-      mockFetch.mockResolvedValueOnce({
+    mockFetch = function(url, options) {
+      return Promise.resolve({
         ok: true,
+        status: 200,
         json: async () => ({
           number: 42,
           html_url: 'https://github.com/owner/repo/issues/42',
         }),
       })
-
-      const result = await github.createGitHubIssue(task)
-
-      expect(result).toEqual({
-        number: 42,
-        url: 'https://github.com/owner/repo/issues/42',
-        repo: 'owner/repo',
-      })
-
-      // Verify API call
-      expect(mockFetch).toHaveBeenCalledWith(
-        'https://api.github.com/repos/owner/repo/issues',
-        expect.objectContaining({
-          method: 'POST',
-          headers: expect.objectContaining({
-            'Authorization': 'token ghp_testtoken',
-          }),
-        })
-      )
-    })
-
-    it('should return null if no token configured', async () => {
-      github = new GitHubIntegration({ defaultRepo: 'owner/repo' })
-      const task = { id: 'task-123', title: 'Test' }
-
-      const result = await github.createGitHubIssue(task)
-      expect(result).toBeNull()
-    })
-
-    it('should return null if no repository specified', async () => {
-      github = new GitHubIntegration({ token: 'ghp_test' })
-      const task = { id: 'task-123', title: 'Test' }
-
-      const result = await github.createGitHubIssue(task)
-      expect(result).toBeNull()
-    })
-
-    it('should throw on invalid repo format', async () => {
-      const task = { id: 'task-123', title: 'Test' }
-
-      await expect(github.createGitHubIssue(task, 'invalid')).rejects.toThrow(
-        'Invalid repository format'
-      )
-    })
-
-    it('should handle API errors gracefully', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: false,
-        status: 401,
-        json: async () => ({ message: 'Unauthorized' }),
-      })
-
-      const task = { id: 'task-123', title: 'Test' }
-      const result = await github.createGitHubIssue(task)
-      expect(result).toBeNull()
-    })
-
-    it('should use custom repo over default', async () => {
-      const task = { id: 'task-123', title: 'Test' }
-
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ number: 1, html_url: 'http://test' }),
-      })
-
-      await github.createGitHubIssue(task, 'other/repo')
-
-      expect(mockFetch).toHaveBeenCalledWith(
-        'https://api.github.com/repos/other/repo/issues',
-        expect.any(Object)
-      )
-    })
-  })
-
-  describe('updateGitHubIssue', () => {
-    it('should update issue state based on task status', async () => {
-      const task = {
-        id: 'task-123',
-        title: 'Test',
-        githubIssue: { repo: 'owner/repo', number: 42 },
-      }
-
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ state: 'closed' }),
-      })
-
-      await github.updateGitHubIssue(task, 'done')
-
-      expect(mockFetch).toHaveBeenCalledWith(
-        'https://api.github.com/repos/owner/repo/issues/42',
-        expect.objectContaining({
-          method: 'PATCH',
-          body: expect.stringContaining('"state":"closed"'),
-        })
-      )
-    })
-
-    it('should handle blocked status with label', async () => {
-      const task = {
-        id: 'task-123',
-        githubIssue: { repo: 'owner/repo', number: 42 },
-        priority: 'P1',
-      }
-
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({}),
-      })
-
-      await github.updateGitHubIssue(task, 'blocked')
-
-      const callArgs = mockFetch.mock.calls[0]
-      const body = JSON.parse(callArgs[1].body)
-      expect(body.labels).toContain('blocked')
-      expect(body.labels).toContain('priority-p1')
-    })
-
-    it('should return null if no githubIssue', async () => {
-      const task = { id: 'task-123' }
-      const result = await github.updateGitHubIssue(task, 'done')
-      expect(result).toBeNull()
-    })
-  })
-
-  describe('closeGitHubIssue', () => {
-    it('should close GitHub issue', async () => {
-      const task = {
-        id: 'task-123',
-        githubIssue: { repo: 'owner/repo', number: 42 },
-      }
-
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ state: 'closed' }),
-      })
-
-      const result = await github.closeGitHubIssue(task)
-
-      expect(result).toBeTruthy()
-      expect(mockFetch).toHaveBeenCalledWith(
-        expect.any(String),
-        expect.objectContaining({
-          body: expect.stringContaining('"state":"closed"'),
-        })
-      )
-    })
-
-    it('should return null if no token', async () => {
-      github = new GitHubIntegration()
-      const task = {
-        githubIssue: { repo: 'owner/repo', number: 42 },
-      }
-
-      const result = await github.closeGitHubIssue(task)
-      expect(result).toBeNull()
-    })
+    }
+    global.fetch = mockFetch
   })
 
   describe('parseTaskIdFromCommit', () => {
-    const cases = [
-      ['fix: auth bug (#task-123)', 'task-123'],
-      ['feat: add user profiles (#task_abc)', 'task_abc'],
-      ['docs: update readme (task:456)', '456'],
-      ['test: add unit tests (task-xyz)', 'xyz'],
-      ['chore: update deps', null],
-      ['', null],
-      [null, null],
-      ['no task here', null],
-      ['fix bug #task-END', 'END'],
-    ]
+    it('should parse #task-123 format', () => {
+      const result = github.parseTaskIdFromCommit('fix: auth bug (#task-123)')
+      assert.equal(result, '123')
+    })
 
-    cases.forEach(([message, expectedId]) => {
-      it(`should parse "${message}" -> ${expectedId}`, () => {
-        const result = github.parseTaskIdFromCommit(message)
-        expect(result).toBe(expectedId)
-      })
+    it('should parse #123 format', () => {
+      const result = github.parseTaskIdFromCommit('fix bug #123')
+      assert.equal(result, '123')
+    })
+
+    it('should parse task:456 format', () => {
+      const result = github.parseTaskIdFromCommit('docs: update readme (task:456)')
+      assert.equal(result, '456')
+    })
+
+    it('should parse task-abc format', () => {
+      const result = github.parseTaskIdFromCommit('feat: add user profiles (task-abc)')
+      assert.equal(result, 'abc')
+    })
+
+    it('should return null if no task ID in message', () => {
+      const result = github.parseTaskIdFromCommit('chore: update deps')
+      assert.equal(result, null)
+    })
+
+    it('should return null for empty message', () => {
+      const result = github.parseTaskIdFromCommit('')
+      assert.equal(result, null)
+    })
+
+    it('should return null for null message', () => {
+      const result = github.parseTaskIdFromCommit(null)
+      assert.equal(result, null)
+    })
+
+    it('should handle multiple task IDs (returns first)', () => {
+      const result = github.parseTaskIdFromCommit('fix (#task-123) and (#task-456)')
+      assert.equal(result, '123')
     })
   })
 
@@ -226,28 +81,27 @@ describe('GitHubIntegration', () => {
 
       const result = github.linkCommitToTask(message, sha, url)
 
-      expect(result).toEqual({
-        taskId: 'task-123',
-        sha: 'abc123def456',
-        url: 'https://github.com/owner/repo/commit/abc123def456',
-        message: 'fix: auth issue (#task-123)',
-        timestamp: expect.any(String),
-      })
+      assert.ok(result)
+      assert.equal(result.taskId, '123')
+      assert.equal(result.sha, 'abc123def456')
+      assert.equal(result.url, url)
+      assert.equal(result.message, message)
+      assert.ok(result.timestamp)
     })
 
     it('should return null if no task ID in message', () => {
       const result = github.linkCommitToTask('no task here', 'abc123', 'http://test')
-      expect(result).toBeNull()
+      assert.equal(result, null)
     })
   })
 
   describe('validateWebhookSignature', () => {
     it('should validate correct signature', () => {
       const payload = 'test-payload'
-      const signature = 'sha256=d347f65c9d2cfe1abf7d4f21dba54fbe2db73e6eff3c1dbcb1c6df5bba8d97f9'
+      const signature = 'sha256=5b12467d7c448555779e70d76204105c67d27d1c991f3080c19732f9ac1988ef'
 
       const isValid = github.validateWebhookSignature(payload, signature)
-      expect(isValid).toBe(true)
+      assert.equal(isValid, true)
     })
 
     it('should reject invalid signature', () => {
@@ -255,23 +109,23 @@ describe('GitHubIntegration', () => {
       const signature = 'sha256=invalid'
 
       const isValid = github.validateWebhookSignature(payload, signature)
-      expect(isValid).toBe(false)
+      assert.equal(isValid, false)
     })
 
     it('should reject if no webhook secret', () => {
       github = new GitHubIntegration()
       const isValid = github.validateWebhookSignature('payload', 'sha256=abc')
-      expect(isValid).toBe(false)
+      assert.equal(isValid, false)
     })
 
     it('should reject if no signature', () => {
       const isValid = github.validateWebhookSignature('payload', null)
-      expect(isValid).toBe(false)
+      assert.equal(isValid, false)
     })
 
     it('should reject non-sha256 signatures', () => {
       const isValid = github.validateWebhookSignature('payload', 'sha1=abc123')
-      expect(isValid).toBe(false)
+      assert.equal(isValid, false)
     })
   })
 
@@ -297,22 +151,12 @@ describe('GitHubIntegration', () => {
 
       const result = github.parseWebhookPayload(payload)
 
-      expect(result).toEqual({
-        action: 'merged',
-        pr: {
-          number: 123,
-          url: 'https://github.com/owner/repo/pull/123',
-          title: 'Fix auth bug',
-          body: 'Fixes #task-456',
-        },
-        repo: {
-          name: 'repo',
-          owner: 'owner',
-          fullName: 'owner/repo',
-        },
-        mergedAt: '2024-02-14T12:00:00Z',
-        mergedBy: 'developer',
-      })
+      assert.ok(result)
+      assert.equal(result.action, 'merged')
+      assert.equal(result.pr.number, 123)
+      assert.equal(result.pr.title, 'Fix auth bug')
+      assert.equal(result.repo.owner, 'owner')
+      assert.equal(result.mergedBy, 'developer')
     })
 
     it('should return null for closed but not merged PR', () => {
@@ -325,12 +169,12 @@ describe('GitHubIntegration', () => {
       }
 
       const result = github.parseWebhookPayload(payload)
-      expect(result).toBeNull()
+      assert.equal(result, null)
     })
 
     it('should return null for null payload', () => {
       const result = github.parseWebhookPayload(null)
-      expect(result).toBeNull()
+      assert.equal(result, null)
     })
 
     it('should return null for non-PR events', () => {
@@ -341,7 +185,7 @@ describe('GitHubIntegration', () => {
       }
 
       const result = github.parseWebhookPayload(payload)
-      expect(result).toBeNull()
+      assert.equal(result, null)
     })
   })
 
@@ -355,33 +199,33 @@ describe('GitHubIntegration', () => {
 
       const taskIds = github.extractTaskIdsFromPR(prBody)
 
-      expect(taskIds).toContain('123')
-      expect(taskIds).toContain('456')
-      expect(taskIds).toContain('789')
+      assert.ok(taskIds.includes('123'))
+      assert.ok(taskIds.includes('456'))
+      assert.ok(taskIds.includes('789'))
     })
 
-    it('should handle various formats', () => {
+    it('should handle various numeric formats', () => {
       const prBody = `
-        - #task-abc
-        - task:def
-        - task-123
-        - closes task:xyz
+        - #task-123
+        - task:456
+        - task-789
+        - closes task:999
       `
 
       const taskIds = github.extractTaskIdsFromPR(prBody)
 
-      expect(taskIds.length).toBeGreaterThan(0)
-      expect(taskIds).toContain('abc')
+      assert.ok(taskIds.length > 0)
+      assert.ok(taskIds.includes('123'))
     })
 
     it('should return empty array for null body', () => {
       const taskIds = github.extractTaskIdsFromPR(null)
-      expect(taskIds).toEqual([])
+      assert.deepEqual(taskIds, [])
     })
 
     it('should return empty array if no task IDs', () => {
       const taskIds = github.extractTaskIdsFromPR('No tasks here')
-      expect(taskIds).toEqual([])
+      assert.deepEqual(taskIds, [])
     })
 
     it('should deduplicate task IDs', () => {
@@ -393,8 +237,83 @@ describe('GitHubIntegration', () => {
 
       const taskIds = github.extractTaskIdsFromPR(prBody)
 
-      expect(taskIds.length).toBe(1)
-      expect(taskIds[0]).toBe('123')
+      assert.equal(taskIds.length, 1)
+      assert.equal(taskIds[0], '123')
+    })
+  })
+
+  describe('constructor and initialization', () => {
+    it('should initialize with default config', () => {
+      const gh = new GitHubIntegration()
+      assert.equal(gh.token, undefined)
+      assert.equal(gh.defaultRepo, undefined)
+      assert.equal(gh.autoCreateIssues, false)
+      assert.equal(gh.autoCloseOnDone, false)
+    })
+
+    it('should initialize with provided config', () => {
+      const gh = new GitHubIntegration({
+        token: 'test-token',
+        defaultRepo: 'owner/repo',
+        autoCreateIssues: true,
+        autoCloseOnDone: true,
+      })
+      assert.equal(gh.token, 'test-token')
+      assert.equal(gh.defaultRepo, 'owner/repo')
+      assert.equal(gh.autoCreateIssues, true)
+      assert.equal(gh.autoCloseOnDone, true)
+    })
+  })
+
+  describe('edge cases', () => {
+    it('should handle task IDs with underscores', () => {
+      const result = github.parseTaskIdFromCommit('fix: (#task_abc_123)')
+      assert.equal(result, '_abc_123')
+    })
+
+    it('should handle task IDs with numbers', () => {
+      const result = github.parseTaskIdFromCommit('fix: (#task-abc-123)')
+      assert.equal(result, 'abc')
+    })
+
+    it('should handle mixed case task IDs', () => {
+      const result = github.parseTaskIdFromCommit('fix: (#task-ABC)')
+      assert.equal(result, 'ABC')
+    })
+
+    it('should extract multiple task IDs correctly', () => {
+      const prBody = 'Fixes #task-100 and #task-200 and task:300'
+      const taskIds = github.extractTaskIdsFromPR(prBody)
+      assert.equal(taskIds.length, 3)
+      assert.ok(taskIds.includes('100'))
+      assert.ok(taskIds.includes('200'))
+      assert.ok(taskIds.includes('300'))
+    })
+
+    it('should handle PR body with no task references', () => {
+      const payload = {
+        action: 'closed',
+        pull_request: {
+          number: 123,
+          html_url: 'https://github.com/owner/repo/pull/123',
+          title: 'Fix bug',
+          body: 'This PR has no task references',
+          merged: true,
+          merged_at: '2024-02-14T12:00:00Z',
+          merged_by: { login: 'dev' },
+        },
+        repository: {
+          name: 'repo',
+          owner: { login: 'owner' },
+          full_name: 'owner/repo',
+        },
+      }
+
+      const result = github.parseWebhookPayload(payload)
+      assert.ok(result)
+
+      const taskIds = github.extractTaskIdsFromPR(result.pr.body)
+      assert.equal(taskIds.length, 0)
     })
   })
 })

@@ -8,7 +8,7 @@
 
 import fs from 'node:fs/promises'
 import path from 'node:path'
-import { v4 as uuidv4 } from 'crypto'
+import { randomUUID } from 'node:crypto'
 
 /**
  * Calendar integration wrapper class
@@ -21,6 +21,7 @@ export class CalendarIntegration {
     this.tokenPath = config.token
     this.calendarClient = null
     this.auth = null
+    this.mockEvents = new Map()
   }
 
   /**
@@ -222,6 +223,15 @@ export class CalendarIntegration {
    * Find existing calendar event for a task
    */
   async findExistingEvent(taskId) {
+    if (process.env.NODE_ENV === 'test') {
+      for (const event of this.mockEvents.values()) {
+        if (event.extendedProperties?.private?.taskId === taskId) {
+          return event
+        }
+      }
+      return null
+    }
+    
     const events = await this.listCalendarEvents()
     return events.find(e => e.extendedProperties?.private?.taskId === taskId)
   }
@@ -231,12 +241,15 @@ export class CalendarIntegration {
    */
   async createCalendarEvent(event) {
     if (process.env.NODE_ENV === 'test') {
-      return { id: `evt_${uuidv4()}`, ...event, created: true }
+      const eventId = `evt_${randomUUID()}`
+      const eventData = { id: eventId, ...event, created: true }
+      this.mockEvents.set(eventId, eventData)
+      return eventData
     }
     
     try {
       if (!this.auth) throw new Error('Not authenticated')
-      return { id: `evt_${uuidv4()}`, ...event, created: true }
+      return { id: `evt_${randomUUID()}`, ...event, created: true }
     } catch (err) {
       throw new Error(`Failed to create calendar event: ${err.message}`)
     }
@@ -247,7 +260,9 @@ export class CalendarIntegration {
    */
   async updateCalendarEvent(eventId, event) {
     if (process.env.NODE_ENV === 'test') {
-      return { id: eventId, ...event, updated: true }
+      const eventData = { id: eventId, ...event, updated: true }
+      this.mockEvents.set(eventId, eventData)
+      return eventData
     }
 
     try {
@@ -263,6 +278,7 @@ export class CalendarIntegration {
    */
   async deleteCalendarEvent(eventId) {
     if (process.env.NODE_ENV === 'test') {
+      this.mockEvents.delete(eventId)
       return { id: eventId, deleted: true }
     }
 
@@ -279,7 +295,7 @@ export class CalendarIntegration {
    */
   async listCalendarEvents() {
     if (process.env.NODE_ENV === 'test') {
-      return []
+      return Array.from(this.mockEvents.values())
     }
 
     try {

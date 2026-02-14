@@ -257,10 +257,11 @@ class GitHubIntegration {
     if (!commitMessage) return null
 
     // Match patterns like #task-123, #123, task:123, task-123
+    // Order matters: check longer patterns first
     const patterns = [
-      /#task-(\w+)/i,
-      /#(\w+)/,
-      /task[:-](\w+)/i,
+      /#task[:\-]?(\w+)/i,     // #task-123, #task:123, #task123
+      /task[:\-](\w+)/i,        // task:123, task-123
+      /#(\w+)/,                  // #123
     ]
 
     for (const pattern of patterns) {
@@ -369,9 +370,9 @@ class GitHubIntegration {
 
     const taskIds = new Set()
     const patterns = [
-      /#task-(\w+)/gi,
-      /task[:\-\s]+(\w+)/gi,
-      /closes\s+#?task-?(\w+)/gi,
+      /#task[:\-]?(\d+)/gi,      // #task-123, #task:123, #task123
+      /task[:\-](\d+)/gi,         // task:123, task-123
+      /closes\s+#?task[:\-]?(\d+)/gi, // closes #task-123, closes task-123
     ]
 
     for (const pattern of patterns) {
