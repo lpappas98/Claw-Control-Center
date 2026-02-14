@@ -1,0 +1,67 @@
+{
+  "version": "1.0",
+  "system": "claw-control-center",
+  "bridge": "http://localhost:8787",
+  "agents": [
+    {
+      "id": "tars",
+      "agentId": "tars",
+      "name": "TARS",
+      "emoji": "🧠",
+      "role": "Project Manager",
+      "workspace": "/home/openclaw/.openclaw/workspace/agents/tars",
+      "model": "ollama/llama3.1:8b@http://192.168.1.21:11434",
+      "roles": ["pm", "architect", "coordinator"],
+      "autoStart": true,
+      "heartbeatInterval": 900
+    },
+    {
+      "id": "dev-1",
+      "agentId": "dev-1", 
+      "name": "Forge",
+      "emoji": "🛠️",
+      "role": "Backend Developer",
+      "workspace": "/home/openclaw/.openclaw/workspace/agents/forge",
+      "model": "ollama/llama3.1:8b@http://192.168.1.21:11434",
+      "roles": ["backend-dev", "api", "database", "node", "express"],
+      "autoStart": true,
+      "heartbeatInterval": 900
+    },
+    {
+      "id": "dev-2",
+      "agentId": "dev-2",
+      "name": "Patch",
+      "emoji": "🧩",
+      "role": "Frontend Developer",
+      "workspace": "/home/openclaw/.openclaw/workspace/agents/patch",
+      "model": "ollama/llama3.1:8b@http://192.168.1.21:11434",
+      "roles": ["frontend-dev", "ui", "react", "typescript", "css"],
+      "autoStart": true,
+      "heartbeatInterval": 900
+    },
+    {
+      "id": "qa",
+      "agentId": "qa",
+      "name": "Sentinel",
+      "emoji": "🛡️",
+      "role": "QA Engineer",
+      "workspace": "/home/openclaw/.openclaw/workspace/agents/sentinel",
+      "model": "ollama/llama3.1:8b@http://192.168.1.21:11434",
+      "roles": ["qa", "testing", "review", "validation", "e2e"],
+      "autoStart": true,
+      "heartbeatInterval": 900
+    },
+    {
+      "id": "architect",
+      "agentId": "architect",
+      "name": "Blueprint",
+      "emoji": "🏗️",
+      "role": "System Architect",
+      "workspace": "/home/openclaw/.openclaw/workspace/agents/blueprint",
+      "model": "ollama/llama3.1:8b@http://192.168.1.21:11434",
+      "roles": ["architect", "design", "planning", "system-design"],
+      "autoStart": true,
+      "heartbeatInterval": 900
+    }
+  ]
+}

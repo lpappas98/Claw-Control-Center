@@ -1,5 +1,12 @@
 [
   {
+    "id": "gateway-e64ffae43edf7-1771046711706",
+    "at": "2026-02-14T05:25:11.706Z",
+    "level": "error",
+    "source": "bridge",
+    "message": "gateway: warn → down (probe failed)"
+  },
+  {
     "id": "bridge-4c6be3996943-1771046114215",
     "at": "2026-02-14T05:15:14.215Z",
     "level": "info",
