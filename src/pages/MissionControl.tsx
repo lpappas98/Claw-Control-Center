@@ -36,7 +36,7 @@ function inferPriority(title?: string): Priority {
 }
 
 function agentProfile(slot: string, fallback?: string) {
-  if (slot === 'pm') return { name: 'TARS', role: 'Project Manager', emoji: '🧠' }
+  if (slot === 'tars' || slot === 'pm') return { name: 'TARS', role: 'Project Manager', emoji: '🧠' }
   if (slot === 'dev-1') return { name: 'Forge', role: 'Developer', emoji: '🛠️' }
   if (slot === 'dev-2') return { name: 'Patch', role: 'Developer', emoji: '🧩' }
   if (slot === 'architect') return { name: 'Blueprint', role: 'Architect', emoji: '🏗️' }
@@ -49,7 +49,7 @@ function homeStatus(status: string) {
 }
 
 const PINNED_SLOTS: Array<{ slot: string; name: string; role: string; emoji: string }> = [
-  { slot: 'pm', name: 'TARS', role: 'Project Manager', emoji: '🧠' },
+  { slot: 'tars', name: 'TARS', role: 'Project Manager', emoji: '🧠' },
   { slot: 'architect', name: 'Blueprint', role: 'Architect', emoji: '🏗️' },
   { slot: 'qa', name: 'Sentinel', role: 'QA', emoji: '🛡️' },
   { slot: 'dev-1', name: 'Forge', role: 'Developer', emoji: '🛠️' },
