@@ -564,29 +564,20 @@ app.get('/api/projects', async (_req, res) => {
 })
 
 app.get('/api/workers', async (_req, res) => {
-  const nowMs = Date.now()
-  const workers = await listWorkersFromCandidates(
-    [path.join(WORKSPACE, 'worker-heartbeats.json'), path.join(WORKSPACE, '.clawhub', 'worker-heartbeats.json')],
-    nowMs,
-  )
-  recordTaskLifecycle(workers, nowMs)
-
-  const next = new Map(workers.map((w) => [w.slot, w.status]))
-  for (const w of workers) {
-    const prev = lastWorkerStatusBySlot.get(w.slot)
-    if (prev && prev !== w.status) {
-      const level = w.status === 'active' || w.status === 'waiting' ? 'info' : w.status === 'stale' ? 'warn' : 'error'
-      pushActivity({
-        id: newId('worker'),
-        at: new Date().toISOString(),
-        level,
-        source: 'bridge',
-        message: `worker ${w.slot}: ${prev} → ${w.status}${w.task ? ` (${w.task})` : ''}`,
-      })
-    }
-  }
-  lastWorkerStatusBySlot = next
-
+  // Return agents in worker format for UI compatibility
+  const agentsStore = getAgentsStore()
+  const agents = await agentsStore.list()
+  
+  // Transform agents to worker format
+  const workers = agents.map(agent => ({
+    slot: agent.id,
+    label: agent.name,
+    status: agent.status === 'online' ? 'active' : agent.status === 'busy' ? 'active' : 'offline',
+    task: agent.currentTask || null,
+    lastBeatAt: agent.lastHeartbeat ? new Date(agent.lastHeartbeat).toISOString() : null,
+    beats: [],
+  }))
+  
   res.json(workers)
 })
 
