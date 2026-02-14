@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Button } from "@/components/ui/button"
 import type { TimeLog } from '../types'
 
 interface TimeTrackingPanelProps {
@@ -136,44 +137,44 @@ export function TimeTrackingPanel({
           <div style={{ display: 'flex', gap: 8 }}>
             {!timerRunning ? (
               <>
-                <button
-                  className="btn"
+                <Button
+                  variant="default"
                   onClick={() => setTimerRunning(true)}
                   disabled={loading}
                   type="button"
                   style={{ flex: 1 }}
                 >
                   Start
-                </button>
-                <button
-                  className="btn ghost"
+                </Button>
+                <Button
+                  variant="ghost"
                   onClick={() => setTimerSeconds(0)}
                   disabled={timerSeconds === 0}
                   type="button"
                   style={{ flex: 1 }}
                 >
                   Reset
-                </button>
+                </Button>
               </>
             ) : (
               <>
-                <button
-                  className="btn"
+                <Button
+                  variant="default"
                   onClick={() => setTimerRunning(false)}
                   type="button"
                   style={{ flex: 1 }}
                 >
                   Pause
-                </button>
-                <button
-                  className="btn"
+                </Button>
+                <Button
+                  variant="default"
                   onClick={handleStopTimer}
                   disabled={loading || timerSeconds === 0}
                   type="button"
                   style={{ flex: 1, backgroundColor: '#2a7049' }}
                 >
                   {loading ? 'Logging...' : 'Log Time'}
-                </button>
+                </Button>
               </>
             )}
           </div>
@@ -216,15 +217,15 @@ export function TimeTrackingPanel({
                 />
               </div>
             </div>
-            <button
-              className="btn"
+            <Button
+              variant="default"
               onClick={handleAddManualLog}
               disabled={loading || !manualHours.trim()}
               type="button"
               style={{ alignSelf: 'flex-start' }}
             >
               {loading ? 'Adding...' : 'Add Time'}
-            </button>
+            </Button>
           </div>
         </div>
 

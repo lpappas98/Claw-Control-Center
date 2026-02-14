@@ -80,7 +80,7 @@ export function AgentsPage({ onSelectAgent, selectedAgentId }: AgentsPageProps) 
           <>
             {/* "All Agents" tile */}
             <div style={{ marginBottom: 16 }}>
-              <button
+              <Button
                 type="button"
                 onClick={() => onSelectAgent?.(null)}
                 style={{
@@ -115,7 +115,7 @@ export function AgentsPage({ onSelectAgent, selectedAgentId }: AgentsPageProps) 
               }}
             >
               {agents.map((agent) => (
-                <button
+                <Button
                   key={agent.id}
                   type="button"
                   onClick={() => onSelectAgent?.(agent.id)}

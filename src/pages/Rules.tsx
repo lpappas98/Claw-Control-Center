@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { Adapter } from '../adapters/adapter'
 import type { Rule, RuleChange } from '../types'
 import { CopyButton } from '../components/CopyButton'
+import { Button } from '@/components/ui/button'
 
 function fmtWhen(iso: string) {
   try {
@@ -161,12 +162,12 @@ export function Rules({ adapter }: { adapter: Adapter }) {
             </p>
           </div>
           <div className="right stack-h">
-            <button className="btn" onClick={() => setCreateOpen((v) => !v)} type="button" disabled={loading}>
+            <Button variant="default" onClick={() => setCreateOpen((v) => !v)} type="button" disabled={loading}>
               {createOpen ? 'Close' : 'New rule'}
-            </button>
-            <button className="btn ghost" onClick={refresh} type="button" disabled={loading}>
+            </Button>
+            <Button variant="ghost" onClick={refresh} type="button" disabled={loading}>
               {loading ? 'Refreshing…' : 'Refresh'}
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -175,9 +176,9 @@ export function Rules({ adapter }: { adapter: Adapter }) {
             <div className="stack">
               <div className="stack-h" style={{ justifyContent: 'space-between', alignItems: 'center' }}>
                 <strong>Create rule</strong>
-                <button className="btn" type="button" onClick={createRule} disabled={busyId === '__create__' || !createTitle.trim()}>
+                <Button variant="default" type="button" onClick={createRule} disabled={busyId === '__create__' || !createTitle.trim()}>
                   {busyId === '__create__' ? 'Creating…' : 'Create'}
-                </button>
+                </Button>
               </div>
 
               <label className="field">
@@ -222,15 +223,15 @@ export function Rules({ adapter }: { adapter: Adapter }) {
             <div className="row" key={r.id}>
               <div className="row-main">
                 <div className="row-title">
-                  <button
+                  <Button
                     type="button"
-                    className={`btn ghost`}
+                    variant="ghost"
                     style={{ padding: '4px 8px' }}
                     onClick={() => setSelectedId(r.id)}
                     title={r.id}
                   >
                     <strong>{r.title}</strong>
-                  </button>
+                  </Button>
                   <span className={`pill ${r.enabled ? 'sev-low' : ''}`} title={r.enabled ? 'enabled' : 'disabled'}>
                     {r.enabled ? 'Enabled' : 'Disabled'}
                   </span>
@@ -239,9 +240,9 @@ export function Rules({ adapter }: { adapter: Adapter }) {
               </div>
               <div className="row-side">
                 <div className="muted">updated: {fmtWhen(r.updatedAt)}</div>
-                <button className="btn" type="button" onClick={() => toggle(r)} disabled={busyId === r.id}>
+                <Button variant="default" type="button" onClick={() => toggle(r)} disabled={busyId === r.id}>
                   {busyId === r.id ? 'Working…' : r.enabled ? 'Disable' : 'Enable'}
-                </button>
+                </Button>
               </div>
             </div>
           ))}
@@ -264,13 +265,13 @@ export function Rules({ adapter }: { adapter: Adapter }) {
             <div className="stack-h" style={{ justifyContent: 'space-between', alignItems: 'center' }}>
               <div className="muted">id: <code>{selected.id}</code></div>
               <div className="stack-h">
-                <button className="btn" type="button" onClick={removeSelected} disabled={busyId === selected.id}>
+                <Button variant="default" type="button" onClick={removeSelected} disabled={busyId === selected.id}>
                   Delete
-                </button>
+                </Button>
                 <CopyButton text={selected.content} label="Copy body" />
-                <button className="btn" type="button" disabled={!dirty || busyId === selected.id} onClick={save}>
+                <Button variant="default" type="button" disabled={!dirty || busyId === selected.id} onClick={save}>
                   {busyId === selected.id ? 'Saving…' : dirty ? 'Save' : 'Saved'}
-                </button>
+                </Button>
               </div>
             </div>
 

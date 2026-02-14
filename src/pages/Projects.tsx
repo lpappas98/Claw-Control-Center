@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react'
+import { Button } from "@/components/ui/button"
 import type { Adapter } from '../adapters/adapter'
 import { Badge } from '../components/Badge'
 
@@ -292,7 +293,7 @@ function TabBar({ tab, setTab }: { tab: ProjectTab; setTab: (t: ProjectTab) => v
   return (
     <div className="projects-tabbar" role="tablist" aria-label="Project view">
       {(['Overview', 'Tree', 'Kanban'] as const).map((t) => (
-        <button
+        <Button
           key={t}
           type="button"
           role="tab"
@@ -301,7 +302,7 @@ function TabBar({ tab, setTab }: { tab: ProjectTab; setTab: (t: ProjectTab) => v
           onClick={() => setTab(t)}
         >
           {t}
-        </button>
+        </Button>
       ))}
     </div>
   )
@@ -344,15 +345,15 @@ function FeatureDrawer({
             {feature.summary ? <div className="muted" style={{ marginTop: 6 }}>{feature.summary}</div> : null}
           </div>
           <div className="stack-h" style={{ justifyContent: 'flex-end' }}>
-            <button className="btn ghost" type="button" onClick={onClose}>
+            <Button variant="ghost" type="button" onClick={onClose}>
               Close
-            </button>
+            </Button>
           </div>
         </div>
 
         <div className="drawer-tabs" role="tablist" aria-label="Feature details">
           {(['Spec', 'Work', 'Activity'] as const).map((t) => (
-            <button
+            <Button
               key={t}
               type="button"
               role="tab"
@@ -361,7 +362,7 @@ function FeatureDrawer({
               onClick={() => setInnerTab(t)}
             >
               {t}
-            </button>
+            </Button>
           ))}
         </div>
 
@@ -519,9 +520,9 @@ function TreeView({ project, onOpen }: { project: Project; onOpen: (n: FeatureNo
           <input type="checkbox" checked={showDeps} onChange={(e) => setShowDeps(e.target.checked)} />
           <span className="muted">Show dependencies</span>
         </label>
-        <button className="btn" type="button" onClick={() => alert('(wireframe) Add new node')}>
+        <Button variant="default" type="button" onClick={() => alert('(wireframe) Add new node')}>
           + Add node
-        </button>
+        </Button>
       </div>
 
       <div className="panel" style={{ padding: 14 }}>
@@ -535,10 +536,10 @@ function TreeView({ project, onOpen }: { project: Project; onOpen: (n: FeatureNo
         {/* Initiative → Epics/Sections → Stories/Tasks */}
         <div className="tree-org" style={{ marginTop: 14 }}>
           <div className="tree-org-root">
-            <button type="button" className="tree-box root" onClick={() => alert('(wireframe) Project settings')} title="Project">
+            <Button type="button" className="tree-box root" onClick={() => alert('(wireframe) Project settings')} title="Project">
               <div className="tree-box-title">{project.name}</div>
               <div className="muted" style={{ fontSize: 12 }}>initiative</div>
-            </button>
+            </Button>
           </div>
 
           <div className="tree-org-epics" style={{ ['--cols' as never]: String(Math.max(1, epics.length)) }}>
@@ -547,7 +548,7 @@ function TreeView({ project, onOpen }: { project: Project; onOpen: (n: FeatureNo
               const tone = idx % 3 === 0 ? 'tone-a' : idx % 3 === 1 ? 'tone-b' : 'tone-c'
               return (
                 <div key={e.id} className="tree-org-col">
-                  <button
+                  <Button
                     type="button"
                     className={`tree-box epic ${tone} ${highlight ? 'highlight' : ''}`}
                     onClick={() => onOpen(e)}
@@ -559,14 +560,14 @@ function TreeView({ project, onOpen }: { project: Project; onOpen: (n: FeatureNo
                     </div>
                     <div className="tree-box-title">{e.title}</div>
                     {e.summary ? <div className="muted tree-box-summary">{e.summary}</div> : <div className="muted tree-box-summary">—</div>}
-                  </button>
+                  </Button>
 
                   <div className="tree-org-children">
                     {(e.children ?? []).filter(isVisible).map((c) => {
                       const ch = matches.has(c.id)
                       return (
                         <div key={c.id} className="tree-org-child">
-                          <button
+                          <Button
                             type="button"
                             className={`tree-mini ${ch ? 'highlight' : ''}`}
                             onClick={() => onOpen(c)}
@@ -580,14 +581,14 @@ function TreeView({ project, onOpen }: { project: Project; onOpen: (n: FeatureNo
                             {showDeps && c.dependsOn?.length ? (
                               <div className="muted" style={{ fontSize: 12, marginTop: 6 }}>deps: {c.dependsOn.length}</div>
                             ) : null}
-                          </button>
+                          </Button>
 
                           {(c.children ?? []).filter(isVisible).length ? (
                             <div className="tree-org-subtasks">
                               {(c.children ?? []).filter(isVisible).map((s) => {
                                 const sh = matches.has(s.id)
                                 return (
-                                  <button
+                                  <Button
                                     key={s.id}
                                     type="button"
                                     className={`tree-sub ${sh ? 'highlight' : ''}`}
@@ -596,7 +597,7 @@ function TreeView({ project, onOpen }: { project: Project; onOpen: (n: FeatureNo
                                   >
                                     <span className={`dot ${nodeDotClass(s.status)}`} />
                                     <span style={{ fontWeight: 800 }}>{s.title}</span>
-                                  </button>
+                                  </Button>
                                 )
                               })}
                             </div>
@@ -653,8 +654,8 @@ function KanbanBoard({ project, onOpenFeature }: { project: Project; onOpenFeatu
             <div className="muted">Drag cards between columns. Cards can link to a feature spec.</div>
           </div>
           <div className="stack-h">
-            <button
-              className="btn"
+            <Button
+              variant="default"
               type="button"
               onClick={() =>
                 setCards((prev) => [
@@ -664,7 +665,7 @@ function KanbanBoard({ project, onOpenFeature }: { project: Project; onOpenFeatu
               }
             >
               + Add card
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -696,9 +697,9 @@ function KanbanBoard({ project, onOpenFeature }: { project: Project; onOpenFeatu
                       {c.owner ? `@${c.owner}` : '—'} {c.due ? `· due ${c.due}` : ''}
                     </div>
                     {c.featureId ? (
-                      <button className="btn ghost" type="button" style={{ marginTop: 10, width: '100%' }} onClick={() => openFeatureForCard(c)}>
+                      <Button variant="ghost" type="button" style={{ marginTop: 10, width: '100%' }} onClick={() => openFeatureForCard(c)}>
                         Open linked feature
-                      </button>
+                      </Button>
                     ) : (
                       <div className="muted" style={{ marginTop: 10, fontSize: 12 }}>
                         No feature link
@@ -762,7 +763,7 @@ function Overview({ project }: { project: Project }) {
           </div>
           <div className="stack-h">
             {project.links.map((l) => (
-              <a key={l.url} href={l.url} target="_blank" rel="noreferrer" className="btn ghost" style={{ textDecoration: 'none' }}>
+              <a key={l.url} href={l.url} target="_blank" rel="noreferrer" variant="ghost" style={{ textDecoration: 'none' }}>
                 {l.label}
               </a>
             ))}
@@ -1076,7 +1077,7 @@ function NewProjectWizard({
             <h3 style={{ margin: '6px 0 0' }}>Create project</h3>
           </div>
           <div className="stack-h">
-            <button className="btn ghost" type="button" onClick={onClose}>Close</button>
+            <Button variant="ghost" type="button" onClick={onClose}>Close</Button>
           </div>
         </div>
 
@@ -1089,8 +1090,8 @@ function NewProjectWizard({
                 </div>
                 <div className="muted" style={{ marginTop: 8 }}>Choose how you want to create this project.</div>
                 <div className="wizard-actions" style={{ justifyContent: 'flex-start' }}>
-                  <button className="btn" type="button" onClick={() => setMode('import')}>Import project</button>
-                  <button className="btn ghost" type="button" onClick={startIdea}>Start from idea</button>
+                  <Button variant="default" type="button" onClick={() => setMode('import')}>Import project</Button>
+                  <Button variant="ghost" type="button" onClick={startIdea}>Start from idea</Button>
                 </div>
               </div>
             </div>
@@ -1125,7 +1126,7 @@ function NewProjectWizard({
                     <div className="dropzone-inner">
                       <strong>Drag & drop a folder here</strong>
                       <div className="muted">or</div>
-                      <label className="btn ghost" style={{ display: 'inline-block' }}>
+                      <label variant="ghost" style={{ display: 'inline-block' }}>
                         Browse / pick folder…
                         <input
                           type="file"
@@ -1142,9 +1143,9 @@ function NewProjectWizard({
                 </div>
 
                 <div className="wizard-actions">
-                  <button className="btn ghost" type="button" onClick={() => setMode('choose')}>Back</button>
-                  <button
-                    className="btn"
+                  <Button variant="ghost" type="button" onClick={() => setMode('choose')}>Back</Button>
+                  <Button
+                    variant="default"
                     type="button"
                     disabled={!projectName.trim() || (!fileCount && !gitUrl.trim())}
                     onClick={() => {
@@ -1173,7 +1174,7 @@ function NewProjectWizard({
                     }}
                   >
                     Create
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>
@@ -1206,10 +1207,10 @@ function NewProjectWizard({
                 </div>
 
                 <div className="wizard-actions">
-                  <button className="btn ghost" type="button" onClick={() => setMode('choose')}>Back</button>
-                  <button className="btn" type="button" disabled={!canContinueIdea} onClick={runAnalysis}>
+                  <Button variant="ghost" type="button" onClick={() => setMode('choose')}>Back</Button>
+                  <Button variant="default" type="button" disabled={!canContinueIdea} onClick={runAnalysis}>
                     Analyze →
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>
@@ -1242,10 +1243,10 @@ function NewProjectWizard({
                 </div>
 
                 <div className="stack-h" style={{ marginTop: 14, justifyContent: 'flex-end' }}>
-                  <button className="btn ghost" type="button" onClick={() => setMode('idea')}>Back</button>
-                  <button className="btn" type="button" onClick={() => setMode('questions')}>
+                  <Button variant="ghost" type="button" onClick={() => setMode('idea')}>Back</Button>
+                  <Button variant="default" type="button" onClick={() => setMode('questions')}>
                     Questions →
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>
@@ -1284,10 +1285,10 @@ function NewProjectWizard({
                 </div>
 
                 <div className="stack-h" style={{ marginTop: 14, justifyContent: 'flex-end' }}>
-                  <button className="btn ghost" type="button" onClick={() => setMode('analysis')}>Back</button>
-                  <button className="btn" type="button" onClick={() => setMode('review')}>
+                  <Button variant="ghost" type="button" onClick={() => setMode('analysis')}>Back</Button>
+                  <Button variant="default" type="button" onClick={() => setMode('review')}>
                     Review →
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>
@@ -1308,10 +1309,10 @@ function NewProjectWizard({
                 </div>
 
                 <div className="stack-h" style={{ marginTop: 14, justifyContent: 'flex-end' }}>
-                  <button className="btn ghost" type="button" onClick={() => setMode('questions')}>Back</button>
-                  <button className="btn" type="button" onClick={createProject}>
+                  <Button variant="ghost" type="button" onClick={() => setMode('questions')}>Back</Button>
+                  <Button variant="default" type="button" onClick={createProject}>
                     Create project
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>
@@ -1339,15 +1340,15 @@ export function Projects({ adapter: _adapter }: { adapter: Adapter }) {
           <div className="panel-header" style={{ padding: 0, marginBottom: 10 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'baseline' }}>
               <h2 style={{ margin: 0 }}>Projects</h2>
-              <button className="btn ghost" type="button" onClick={() => setSidebarCollapsed(true)} title="Collapse sidebar">
+              <Button variant="ghost" type="button" onClick={() => setSidebarCollapsed(true)} title="Collapse sidebar">
                 Hide
-              </button>
+              </Button>
             </div>
           </div>
 
           <div className="projects-list" style={{ marginTop: 12 }}>
             {projects.map((p) => (
-              <button
+              <Button
                 key={p.id}
                 type="button"
                 className={`project-item ${active?.id === p.id ? 'active' : ''}`}
@@ -1362,19 +1363,19 @@ export function Projects({ adapter: _adapter }: { adapter: Adapter }) {
                 </div>
                 <div className="muted" style={{ marginTop: 6, textAlign: 'left' }}>{p.summary}</div>
                 <div className="muted" style={{ marginTop: 8, textAlign: 'left', fontSize: 12 }}>updated {fmtAgo(p.updatedAt)}</div>
-              </button>
+              </Button>
             ))}
             {!projects.length ? <div className="muted">No matches.</div> : null}
           </div>
 
           <div style={{ marginTop: 12, display: 'flex', justifyContent: 'flex-end' }}>
-            <button
-              className="btn"
+            <Button
+              variant="default"
               type="button"
               onClick={() => setShowNewProject(true)}
             >
               New Project
-            </button>
+            </Button>
           </div>
         </div>
       </aside>
@@ -1395,13 +1396,13 @@ export function Projects({ adapter: _adapter }: { adapter: Adapter }) {
               </div>
               <div className="stack-h" style={{ justifyContent: 'flex-end' }}>
                 {sidebarCollapsed ? (
-                  <button className="btn ghost" type="button" onClick={() => setSidebarCollapsed(false)} title="Show sidebar">
+                  <Button variant="ghost" type="button" onClick={() => setSidebarCollapsed(false)} title="Show sidebar">
                     Show projects
-                  </button>
+                  </Button>
                 ) : null}
-                <button className="btn ghost" type="button" onClick={() => alert('(wireframe) Share/project settings')}>
+                <Button variant="ghost" type="button" onClick={() => alert('(wireframe) Share/project settings')}>
                   Settings
-                </button>
+                </Button>
                 {/* Quick add removed */}
               </div>
             </div>

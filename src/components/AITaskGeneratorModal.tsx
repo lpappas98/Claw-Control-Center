@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Button } from "@/components/ui/button"
 import type { AgentTask, TaskPriority } from '../types'
 
 interface GeneratedTask {
@@ -150,9 +151,9 @@ export function AITaskGeneratorModal({ onCreateTasks, onClose }: AITaskGenerator
               Describe what you want to build, AI will break it down into tasks
             </div>
           </div>
-          <button className="btn ghost" type="button" onClick={onClose} disabled={loading || creatingTasks}>
+          <Button variant="ghost" type="button" onClick={onClose} disabled={loading || creatingTasks}>
             Close
-          </button>
+          </Button>
         </div>
 
         <div className="modal-body" style={{ padding: 16 }}>
@@ -188,15 +189,15 @@ export function AITaskGeneratorModal({ onCreateTasks, onClose }: AITaskGenerator
 
             {/* Generate Button */}
             {generatedTasks.length === 0 ? (
-              <button
-                className="btn"
+              <Button
+                variant="default"
                 onClick={handleGenerate}
                 disabled={loading || !prompt.trim()}
                 type="button"
                 style={{ alignSelf: 'flex-start' }}
               >
                 {loading ? 'Generating...' : '✨ Generate Tasks'}
-              </button>
+              </Button>
             ) : null}
 
             {/* Generated Tasks */}
@@ -210,8 +211,8 @@ export function AITaskGeneratorModal({ onCreateTasks, onClose }: AITaskGenerator
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
                   <h4 style={{ margin: 0 }}>Generated Tasks ({generatedTasks.length})</h4>
-                  <button
-                    className="btn ghost"
+                  <Button
+                    variant="ghost"
                     onClick={() => {
                       setGeneratedTasks([])
                       setEditingTaskIndex(null)
@@ -220,7 +221,7 @@ export function AITaskGeneratorModal({ onCreateTasks, onClose }: AITaskGenerator
                     style={{ fontSize: 12 }}
                   >
                     Generate New
-                  </button>
+                  </Button>
                 </div>
 
                 <div className="stack" style={{ gap: 10 }}>
@@ -305,16 +306,16 @@ export function AITaskGeneratorModal({ onCreateTasks, onClose }: AITaskGenerator
                         </div>
 
                         <div style={{ display: 'flex', gap: 4, alignItems: 'flex-start' }}>
-                          <button
-                            className="btn ghost"
+                          <Button
+                            variant="ghost"
                             onClick={() => setEditingTaskIndex(editingTaskIndex === idx ? null : idx)}
                             type="button"
                             style={{ fontSize: 11, padding: '4px 8px' }}
                           >
                             {editingTaskIndex === idx ? 'Done' : 'Edit'}
-                          </button>
-                          <button
-                            className="btn ghost"
+                          </Button>
+                          <Button
+                            variant="ghost"
                             onClick={() => handleRemoveTask(idx)}
                             type="button"
                             style={{
@@ -324,7 +325,7 @@ export function AITaskGeneratorModal({ onCreateTasks, onClose }: AITaskGenerator
                             }}
                           >
                             Remove
-                          </button>
+                          </Button>
                         </div>
                       </div>
                     </div>
@@ -335,23 +336,23 @@ export function AITaskGeneratorModal({ onCreateTasks, onClose }: AITaskGenerator
 
             {/* Actions */}
             <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 12 }}>
-              <button
-                className="btn ghost"
+              <Button
+                variant="ghost"
                 onClick={onClose}
                 type="button"
                 disabled={loading || creatingTasks}
               >
                 Cancel
-              </button>
+              </Button>
               {generatedTasks.length > 0 && (
-                <button
-                  className="btn"
+                <Button
+                  variant="default"
                   onClick={handleCreateAll}
                   disabled={creatingTasks || generatedTasks.length === 0}
                   type="button"
                 >
                   {creatingTasks ? 'Creating...' : `Create All Tasks (${generatedTasks.length})`}
-                </button>
+                </Button>
               )}
             </div>
           </div>

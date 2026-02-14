@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Button } from "@/components/ui/button"
 
 interface RecurringTask {
   id: string
@@ -168,9 +169,9 @@ export function RecurringTasksPage() {
               Manage automated task routines and schedules
             </div>
           </div>
-          <button className="btn" type="button" onClick={handleOpenNew}>
+          <Button variant="default" type="button" onClick={handleOpenNew}>
             + New Routine
-          </button>
+          </Button>
         </div>
 
         {error && (
@@ -221,16 +222,16 @@ export function RecurringTasksPage() {
                     )}
                   </div>
                   <div style={{ display: 'flex', gap: 6 }}>
-                    <button
-                      className="btn ghost"
+                    <Button
+                      variant="ghost"
                       onClick={() => handleOpenEdit(routine)}
                       type="button"
                       style={{ fontSize: 12, padding: '4px 8px' }}
                     >
                       Edit
-                    </button>
-                    <button
-                      className="btn ghost"
+                    </Button>
+                    <Button
+                      variant="ghost"
                       onClick={() => handleDelete(routine.id)}
                       type="button"
                       style={{
@@ -240,7 +241,7 @@ export function RecurringTasksPage() {
                       }}
                     >
                       Delete
-                    </button>
+                    </Button>
                   </div>
                 </div>
 
@@ -283,8 +284,8 @@ export function RecurringTasksPage() {
                     <span style={{ fontSize: 11, color: '#94a3b8' }}>
                       {routine.enabled ? 'Enabled' : 'Disabled'}
                     </span>
-                    <button
-                      className="btn ghost"
+                    <Button
+                      variant="ghost"
                       onClick={() => handleToggleEnabled(routine.id, routine.enabled)}
                       type="button"
                       style={{
@@ -296,7 +297,7 @@ export function RecurringTasksPage() {
                       }}
                     >
                       {routine.enabled ? 'Disable' : 'Enable'}
-                    </button>
+                    </Button>
                   </div>
                 </div>
               </div>
@@ -335,14 +336,14 @@ export function RecurringTasksPage() {
               <h3 style={{ margin: '6px 0 0' }}>
                 {editingId ? 'Edit Recurring Task' : 'New Recurring Task'}
               </h3>
-              <button
-                className="btn ghost"
+              <Button
+                variant="ghost"
                 type="button"
                 onClick={() => setShowModal(false)}
                 disabled={saving}
               >
                 Close
-              </button>
+              </Button>
             </div>
 
             <div className="modal-body" style={{ padding: 16 }}>
@@ -416,9 +417,9 @@ export function RecurringTasksPage() {
                         { label: 'Every Monday 9am', cron: '0 9 ? * MON' },
                         { label: 'Weekdays 10am', cron: '0 10 ? * MON-FRI' },
                       ].map((preset) => (
-                        <button
+                        <Button
                           key={preset.cron}
-                          className="btn ghost"
+                          variant="ghost"
                           onClick={() =>
                             setEditingRoutine((prev) => ({ ...prev, schedule: preset.cron }))
                           }
@@ -427,7 +428,7 @@ export function RecurringTasksPage() {
                           disabled={saving}
                         >
                           {preset.label}
-                        </button>
+                        </Button>
                       ))}
                     </div>
                   </div>
@@ -452,22 +453,22 @@ export function RecurringTasksPage() {
                 </div>
 
                 <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 12 }}>
-                  <button
-                    className="btn ghost"
+                  <Button
+                    variant="ghost"
                     onClick={() => setShowModal(false)}
                     type="button"
                     disabled={saving}
                   >
                     Cancel
-                  </button>
-                  <button
-                    className="btn"
+                  </Button>
+                  <Button
+                    variant="default"
                     onClick={handleSave}
                     type="button"
                     disabled={saving || !editingRoutine.name?.trim()}
                   >
                     {saving ? 'Saving...' : editingId ? 'Save Changes' : 'Create Routine'}
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>

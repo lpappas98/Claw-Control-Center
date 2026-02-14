@@ -3,7 +3,10 @@
     "id": "tars",
     "name": "TARS",
     "emoji": "🧠",
-    "roles": ["pm", "architect"],
+    "roles": [
+      "pm",
+      "architect"
+    ],
     "model": "anthropic/claude-haiku-4-5",
     "workspace": "/home/openclaw/.openclaw/workspace/agents/tars",
     "status": "online",
@@ -13,14 +16,18 @@
     "activeTasks": [],
     "metadata": {},
     "createdAt": 1771047212861,
-    "updatedAt": 1771047212861,
-    "lastHeartbeat": 1771047948973
+    "updatedAt": 1771048221242,
+    "lastHeartbeat": 1771048221241
   },
   {
     "id": "dev-1",
     "name": "Forge",
     "emoji": "🛠️",
-    "roles": ["backend-dev", "api", "database"],
+    "roles": [
+      "backend-dev",
+      "api",
+      "database"
+    ],
     "model": "anthropic/claude-haiku-4-5",
     "workspace": "/home/openclaw/.openclaw/workspace/agents/forge",
     "status": "online",
@@ -30,14 +37,18 @@
     "activeTasks": [],
     "metadata": {},
     "createdAt": 1771047212866,
-    "updatedAt": 1771047212866,
-    "lastHeartbeat": 1771047950964
+    "updatedAt": 1771048223225,
+    "lastHeartbeat": 1771048223225
   },
   {
     "id": "dev-2",
     "name": "Patch",
     "emoji": "🧩",
-    "roles": ["frontend-dev", "ui", "react"],
+    "roles": [
+      "frontend-dev",
+      "ui",
+      "react"
+    ],
     "model": "anthropic/claude-haiku-4-5",
     "workspace": "/home/openclaw/.openclaw/workspace/agents/patch",
     "status": "online",
@@ -47,14 +58,18 @@
     "activeTasks": [],
     "metadata": {},
     "createdAt": 1771047212870,
-    "updatedAt": 1771047212870,
-    "lastHeartbeat": 1771047952965
+    "updatedAt": 1771048225222,
+    "lastHeartbeat": 1771048225222
   },
   {
     "id": "qa",
     "name": "Sentinel",
     "emoji": "🛡️",
-    "roles": ["qa", "testing", "review"],
+    "roles": [
+      "qa",
+      "testing",
+      "review"
+    ],
     "model": "anthropic/claude-haiku-4-5",
     "workspace": "/home/openclaw/.openclaw/workspace/agents/sentinel",
     "status": "online",
@@ -64,14 +79,18 @@
     "activeTasks": [],
     "metadata": {},
     "createdAt": 1771047212875,
-    "updatedAt": 1771047212875,
-    "lastHeartbeat": 1771047954971
+    "updatedAt": 1771048227223,
+    "lastHeartbeat": 1771048227223
   },
   {
     "id": "architect",
     "name": "Blueprint",
     "emoji": "🏗️",
-    "roles": ["architect", "design", "planning"],
+    "roles": [
+      "architect",
+      "design",
+      "planning"
+    ],
     "model": "anthropic/claude-haiku-4-5",
     "workspace": "/home/openclaw/.openclaw/workspace/agents/blueprint",
     "status": "online",
@@ -81,7 +100,7 @@
     "activeTasks": [],
     "metadata": {},
     "createdAt": 1771047212879,
-    "updatedAt": 1771047212879,
-    "lastHeartbeat": 1771047956970
+    "updatedAt": 1771048229225,
+    "lastHeartbeat": 1771048229224
   }
 ]

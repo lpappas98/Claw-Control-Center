@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Button } from "@/components/ui/button"
 import type { Adapter } from '../adapters/adapter'
 import { usePoll } from '../lib/usePoll'
 import { Badge } from '../components/Badge'
@@ -279,8 +280,8 @@ export function MissionControl({
                   ? `last ok: ${new Date(persisted.lastSuccessAt).toLocaleTimeString()}`
                   : ''}
             </div>
-            <button
-              className="btn"
+            <Button
+              variant="default"
               type="button"
               disabled={creating}
               onClick={async () => {
@@ -297,7 +298,7 @@ export function MissionControl({
               title="Create a persisted task and open details"
             >
               {creating ? 'Creating…' : 'New task'}
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -318,7 +319,7 @@ export function MissionControl({
               )
 
               return canOpen ? (
-                <button
+                <Button
                   key={task.id}
                   type="button"
                   className="home-task blocked clickable"
@@ -326,7 +327,7 @@ export function MissionControl({
                   title="Open task details"
                 >
                   {inner}
-                </button>
+                </Button>
               ) : (
                 <div key={task.id} className="home-task blocked">
                   {inner}
@@ -358,7 +359,7 @@ export function MissionControl({
                       )
 
                       return canOpen ? (
-                        <button
+                        <Button
                           key={task.id}
                           type="button"
                           className="home-task clickable"
@@ -366,7 +367,7 @@ export function MissionControl({
                           title="Open task details"
                         >
                           {inner}
-                        </button>
+                        </Button>
                       ) : (
                         <div className="home-task" key={task.id}>
                           {inner}

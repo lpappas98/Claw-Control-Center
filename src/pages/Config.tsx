@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { Adapter } from '../adapters/adapter'
 import type { ModelInfo } from '../types'
+import { Button } from '@/components/ui/button'
 
 function isGpt(m: ModelInfo) {
   const key = (m.key ?? '').toLowerCase()
@@ -67,9 +68,9 @@ export function Config({ adapter }: { adapter: Adapter }) {
             <div className="muted">Instance settings (local). Model changes affect new runs.</div>
           </div>
           <div className="stack-h">
-            <button className="btn ghost" type="button" onClick={refresh} disabled={loading || saving}>
+            <Button variant="ghost" type="button" onClick={refresh} disabled={loading || saving}>
               Refresh
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -101,9 +102,9 @@ export function Config({ adapter }: { adapter: Adapter }) {
           </label>
 
           <div className="stack-h">
-            <button className="btn" type="button" onClick={save} disabled={!dirty || saving || loading}>
+            <Button variant="default" type="button" onClick={save} disabled={!dirty || saving || loading}>
               {saving ? 'Applying…' : 'Apply model'}
-            </button>
+            </Button>
             <div className="muted" style={{ fontSize: 12 }}>
               Tip: if a model hits rate limits, switch to another GPT entry here.
             </div>

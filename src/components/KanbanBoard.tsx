@@ -176,7 +176,7 @@ export function KanbanBoard({
               <label className="text-xs text-slate-500 block mb-1">Tags</label>
               <div className="flex gap-1 flex-wrap">
                 {allTags.map((tag) => (
-                  <button
+                  <Button
                     key={tag}
                     type="button"
                     onClick={() =>
@@ -193,7 +193,7 @@ export function KanbanBoard({
                     }`}
                   >
                     {tag}
-                  </button>
+                  </Button>
                 ))}
               </div>
             </div>

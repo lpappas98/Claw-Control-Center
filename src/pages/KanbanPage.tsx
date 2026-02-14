@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Button } from "@/components/ui/button"
 import type { AgentTask, Agent } from '../types'
 import { KanbanBoard } from '../components/KanbanBoard'
 import { TaskDetailModal } from '../components/TaskDetailModal'
@@ -100,15 +101,15 @@ export function KanbanPage({ selectedAgentId }: KanbanPageProps) {
             <div className="muted" style={{ marginTop: 4 }}>Manage tasks across workflow stages</div>
           </div>
           <div className="stack-h" style={{ gap: 8 }}>
-            <button className="btn ghost" type="button" onClick={() => setShowTemplates(true)}>
+            <Button variant="ghost" type="button" onClick={() => setShowTemplates(true)}>
               📋 Use Template
-            </button>
-            <button className="btn ghost" type="button" onClick={() => setShowAIGenerator(true)}>
+            </Button>
+            <Button variant="ghost" type="button" onClick={() => setShowAIGenerator(true)}>
               ✨ AI Generate
-            </button>
-            <button className="btn" type="button" onClick={() => alert('(wireframe) Create new task')}>
+            </Button>
+            <Button variant="default" type="button" onClick={() => alert('(wireframe) Create new task')}>
               + New Task
-            </button>
+            </Button>
           </div>
         </div>
 

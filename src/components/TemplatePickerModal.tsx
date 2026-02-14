@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Button } from "@/components/ui/button"
 import type { AgentTask } from '../types'
 
 interface TaskTemplate {
@@ -110,9 +111,9 @@ export function TemplatePickerModal({ onSelect, onClose }: TemplatePickerModalPr
               Start with a pre-built workflow template
             </div>
           </div>
-          <button className="btn ghost" type="button" onClick={onClose}>
+          <Button variant="ghost" type="button" onClick={onClose}>
             Close
-          </button>
+          </Button>
         </div>
 
         <div className="modal-body" style={{ padding: 16 }}>
@@ -209,17 +210,17 @@ export function TemplatePickerModal({ onSelect, onClose }: TemplatePickerModalPr
 
             {/* Actions */}
             <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 12 }}>
-              <button className="btn ghost" onClick={onClose} type="button">
+              <Button variant="ghost" onClick={onClose} type="button">
                 Cancel
-              </button>
-              <button
-                className="btn"
+              </Button>
+              <Button
+                variant="default"
                 onClick={handleUseTemplate}
                 disabled={!selectedTemplate}
                 type="button"
               >
                 Use Template
-              </button>
+              </Button>
             </div>
           </div>
         </div>
