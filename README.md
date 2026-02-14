@@ -818,6 +818,7 @@ See [TROUBLESHOOTING.md](./docs/TROUBLESHOOTING.md) for comprehensive guide.
 - **[IMPLEMENTATION_PLAN.md](./IMPLEMENTATION_PLAN.md)** - 6-phase development plan
 - **[API.md](./docs/API.md)** - Complete API reference (70+ endpoints)
 - **[CLI_REFERENCE.md](./docs/CLI_REFERENCE.md)** - All CLI commands
+- **[TASK_WORKFLOW.md](./docs/TASK_WORKFLOW.md)** - Task lifecycle & agent coordination guide
 - **[AGENT_SETUP.md](./docs/AGENT_SETUP.md)** - How to set up agents
 - **[MULTI_INSTANCE.md](./docs/MULTI_INSTANCE.md)** - Distributed setup guide
 - **[INTEGRATIONS.md](./docs/INTEGRATIONS.md)** - GitHub/Telegram/Calendar setup
