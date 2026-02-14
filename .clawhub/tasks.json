@@ -1,72 +1,10 @@
 [
   {
-    "id": "task-7ae9da0edfafd-1771061641254",
-    "title": "Heartbeat Test - Verify dev-2 Pickup",
-    "lane": "done",
-    "priority": "P0",
-    "owner": "dev-2",
-    "problem": "Verify agents can query tasks using lane=queued&owner={id} parameters",
-    "scope": "Create test task and verify dev-2 agent picks it up within 30 seconds",
-    "acceptanceCriteria": [
-      "Task created in queued lane",
-      "dev-2 agent claims task within 30 seconds"
-    ],
-    "createdAt": "2026-02-14T09:34:01.254Z",
-    "updatedAt": "2026-02-14T09:45:00.236Z",
-    "statusHistory": [
-      {
-        "at": "2026-02-14T09:45:00.236Z",
-        "from": "development",
-        "to": "done",
-        "note": "updated"
-      },
-      {
-        "at": "2026-02-14T09:44:57.353Z",
-        "from": "queued",
-        "to": "development",
-        "note": "updated"
-      },
-      {
-        "at": "2026-02-14T09:34:01.254Z",
-        "to": "queued",
-        "note": "created"
-      }
-    ]
-  },
-  {
-    "id": "task-1c8c72a058663-1771061600632",
-    "title": "Agent Heartbeat Test - Query Parameter Verification",
-    "lane": "development",
-    "priority": "P0",
-    "owner": "dev-2",
-    "problem": "Verify that agents can correctly query tasks using lane=queued&owner={id} parameters",
-    "scope": "Create a test task and verify dev-2 agent picks it up within 30 seconds",
-    "acceptanceCriteria": [
-      "Task is created in queued lane",
-      "dev-2 agent claims task within 30 seconds"
-    ],
-    "createdAt": "2026-02-14T09:33:20.632Z",
-    "updatedAt": "2026-02-14T09:33:55.295Z",
-    "statusHistory": [
-      {
-        "at": "2026-02-14T09:33:55.295Z",
-        "from": "queued",
-        "to": "development",
-        "note": "updated"
-      },
-      {
-        "at": "2026-02-14T09:33:20.632Z",
-        "to": "queued",
-        "note": "created"
-      }
-    ]
-  },
-  {
     "id": "task-474a86df1401e-1771057723644",
     "title": "Redesign Mission Control page with improved agent cards and task board",
     "lane": "development",
     "priority": "P0",
-    "owner": "dev-2",
+    "owner": "dev-1",
     "problem": "Current Mission Control layout is cluttered and hard to scan. Agent status unclear, task board cramped, no clear visual hierarchy",
     "scope": "Implement redesigned Mission Control page following the design from file_107. Features: adaptive agent cards (expanded for active, compact cluster for idle), improved kanban columns with P0 indicators, activity feed sidebar, better spacing and visual hierarchy",
     "acceptanceCriteria": [
@@ -83,7 +21,7 @@
       "Take screenshot showing new Mission Control layout"
     ],
     "createdAt": "2026-02-14T08:28:43.644Z",
-    "updatedAt": "2026-02-14T09:45:03.462Z",
+    "updatedAt": "2026-02-14T11:04:11.297Z",
     "statusHistory": [
       {
         "at": "2026-02-14T09:45:03.462Z",
@@ -113,7 +51,7 @@
       "Color coding: idle=gray/neutral, working=blue/active, offline=red (only when truly offline)",
       "Agent tile shows current task title when working",
       "Status updates within 30 seconds of task pickup/completion",
-      "Test: assign task to agent, verify status changes from idle \u2192 working",
+      "Test: assign task to agent, verify status changes from idle → working",
       "Test: complete task, verify status changes back to idle"
     ],
     "createdAt": "2026-02-14T08:02:57.712Z",
@@ -267,7 +205,7 @@
     "acceptanceCriteria": [
       "New doc: docs/TASK_WORKFLOW.md covering complete lifecycle",
       "Explain task schema (id, title, lane, priority, owner, problem, scope, acceptanceCriteria)",
-      "Explain lane values (queued \u2192 development \u2192 review \u2192 done, blocked)",
+      "Explain lane values (queued → development → review → done, blocked)",
       "Explain owner field maps to agent IDs (pm, dev-1, dev-2, qa, architect)",
       "Document task creation via POST /api/tasks with examples",
       "Document how agents query: GET /api/tasks?lane=queued&owner={agentId}",
@@ -399,11 +337,11 @@
     "scope": "Update Sentinel SOUL.md and create QA verification checklist",
     "acceptanceCriteria": [
       "Update /home/openclaw/.openclaw/workspace/agents/sentinel/SOUL.md with QA standards",
-      "Add rule: Code review \u2260 verification",
+      "Add rule: Code review ≠ verification",
       "Add rule: Must test in actual browser with screenshots",
       "Add rule: Verify computed styles, not just CSS source",
       "Add checklist for UI verification tasks",
-      "Document: Changed code \u2192 Compiled \u2192 Tested \u2192 Verified \u2192 Complete"
+      "Document: Changed code → Compiled → Tested → Verified → Complete"
     ],
     "createdAt": "2026-02-14T07:34:12.804Z",
     "updatedAt": "2026-02-14T09:49:01.575Z",
@@ -452,201 +390,6 @@
       },
       {
         "at": "2026-02-14T06:44:53.683Z",
-        "to": "queued",
-        "note": "created"
-      }
-    ]
-  },
-  {
-    "id": "task-cc6eceba41d9a-1771040618467",
-    "title": "Recurring Task",
-    "lane": "queued",
-    "priority": "P2",
-    "createdAt": "2026-02-14T03:43:38.467Z",
-    "updatedAt": "2026-02-14T03:43:38.467Z",
-    "statusHistory": [
-      {
-        "at": "2026-02-14T03:43:38.467Z",
-        "to": "queued",
-        "note": "created"
-      }
-    ]
-  },
-  {
-    "id": "task-249065eda1f75-1771040615792",
-    "title": "Dependent Task",
-    "lane": "queued",
-    "priority": "P2",
-    "createdAt": "2026-02-14T03:43:35.792Z",
-    "updatedAt": "2026-02-14T03:43:35.792Z",
-    "statusHistory": [
-      {
-        "at": "2026-02-14T03:43:35.792Z",
-        "to": "queued",
-        "note": "created"
-      }
-    ]
-  },
-  {
-    "id": "task-7ebeb3378d60e-1771040615792",
-    "title": "Blocker Task",
-    "lane": "queued",
-    "priority": "P2",
-    "createdAt": "2026-02-14T03:43:35.792Z",
-    "updatedAt": "2026-02-14T03:43:35.792Z",
-    "statusHistory": [
-      {
-        "at": "2026-02-14T03:43:35.792Z",
-        "to": "queued",
-        "note": "created"
-      }
-    ]
-  },
-  {
-    "id": "task-acfe444d87998-1771040615786",
-    "title": "Updated Task Title",
-    "lane": "queued",
-    "priority": "P2",
-    "createdAt": "2026-02-14T03:43:35.786Z",
-    "updatedAt": "2026-02-14T03:43:35.791Z",
-    "statusHistory": [
-      {
-        "at": "2026-02-14T03:43:35.786Z",
-        "to": "queued",
-        "note": "created"
-      }
-    ]
-  },
-  {
-    "id": "task-1fe9d1d70fc33-1771038123267",
-    "title": "Task B",
-    "lane": "queued",
-    "priority": "P2",
-    "createdAt": "2026-02-14T03:02:03.267Z",
-    "updatedAt": "2026-02-14T03:02:03.267Z",
-    "statusHistory": [
-      {
-        "at": "2026-02-14T03:02:03.267Z",
-        "to": "queued",
-        "note": "created"
-      }
-    ]
-  },
-  {
-    "id": "task-fc8479105ead9-1771038123262",
-    "title": "Task A",
-    "lane": "queued",
-    "priority": "P2",
-    "createdAt": "2026-02-14T03:02:03.262Z",
-    "updatedAt": "2026-02-14T03:02:03.262Z",
-    "statusHistory": [
-      {
-        "at": "2026-02-14T03:02:03.262Z",
-        "to": "queued",
-        "note": "created"
-      }
-    ]
-  },
-  {
-    "id": "task-08ea335341d57-1771038118564",
-    "title": "Task A",
-    "lane": "queued",
-    "priority": "P2",
-    "createdAt": "2026-02-14T03:01:58.564Z",
-    "updatedAt": "2026-02-14T03:01:58.564Z",
-    "statusHistory": [
-      {
-        "at": "2026-02-14T03:01:58.564Z",
-        "to": "queued",
-        "note": "created"
-      }
-    ]
-  },
-  {
-    "id": "task-7c4126dfa2999-1771038104954",
-    "title": "Task B",
-    "lane": "queued",
-    "priority": "P2",
-    "createdAt": "2026-02-14T03:01:44.954Z",
-    "updatedAt": "2026-02-14T03:01:44.954Z",
-    "statusHistory": [
-      {
-        "at": "2026-02-14T03:01:44.954Z",
-        "to": "queued",
-        "note": "created"
-      }
-    ]
-  },
-  {
-    "id": "task-dd0baf8a3df2a-1771038104951",
-    "title": "Task A",
-    "lane": "queued",
-    "priority": "P2",
-    "createdAt": "2026-02-14T03:01:44.951Z",
-    "updatedAt": "2026-02-14T03:01:44.951Z",
-    "statusHistory": [
-      {
-        "at": "2026-02-14T03:01:44.951Z",
-        "to": "queued",
-        "note": "created"
-      }
-    ]
-  },
-  {
-    "id": "task-ce9bcc64b9082-1771038101694",
-    "title": "Task B",
-    "lane": "queued",
-    "priority": "P2",
-    "createdAt": "2026-02-14T03:01:41.694Z",
-    "updatedAt": "2026-02-14T03:01:41.694Z",
-    "statusHistory": [
-      {
-        "at": "2026-02-14T03:01:41.694Z",
-        "to": "queued",
-        "note": "created"
-      }
-    ]
-  },
-  {
-    "id": "task-d68e96867be47-1771038101691",
-    "title": "Task A",
-    "lane": "queued",
-    "priority": "P2",
-    "createdAt": "2026-02-14T03:01:41.691Z",
-    "updatedAt": "2026-02-14T03:01:41.691Z",
-    "statusHistory": [
-      {
-        "at": "2026-02-14T03:01:41.691Z",
-        "to": "queued",
-        "note": "created"
-      }
-    ]
-  },
-  {
-    "id": "task-c6c0eb83860da-1771025965114",
-    "title": "Legacy task",
-    "lane": "queued",
-    "priority": "P2",
-    "createdAt": "2026-02-13T23:39:25.114Z",
-    "updatedAt": "2026-02-13T23:39:25.114Z",
-    "statusHistory": [
-      {
-        "at": "2026-02-13T23:39:25.114Z",
-        "to": "queued",
-        "note": "created"
-      }
-    ]
-  },
-  {
-    "id": "task-76e78745583ad-1771025926823",
-    "title": "Implement user authentication API",
-    "lane": "queued",
-    "priority": "P1",
-    "createdAt": "2026-02-13T23:38:46.823Z",
-    "updatedAt": "2026-02-13T23:38:46.823Z",
-    "statusHistory": [
-      {
-        "at": "2026-02-13T23:38:46.823Z",
         "to": "queued",
         "note": "created"
       }
@@ -748,7 +491,7 @@
     "lane": "done",
     "priority": "P0",
     "owner": "architect",
-    "problem": "Orchestrate import flow: clone/upload \u2192 analyze \u2192 generate",
+    "problem": "Orchestrate import flow: clone/upload → analyze → generate",
     "scope": "Build main import endpoint that coordinates all steps",
     "acceptanceCriteria": [
       "Accept {name, description?, gitUrl?, files?}",
@@ -844,7 +587,7 @@
     "acceptanceCriteria": [
       "Parse README.md for description, features, tech stack",
       "Analyze package.json/requirements.txt for dependencies",
-      "Extract folder structure (src/auth \u2192 Auth feature)",
+      "Extract folder structure (src/auth → Auth feature)",
       "Find TODOs in comments",
       "Detect architecture patterns",
       "Generate recommendations (missing tests, docs, etc)",
@@ -937,7 +680,7 @@
       "API contract: POST /api/pm/projects/import {name, gitUrl?, files?}",
       "Response schema: {project, analysis, features, recommendations}",
       "AI prompt template for codebase analysis",
-      "Feature extraction heuristics (folders\u2192features)",
+      "Feature extraction heuristics (folders→features)",
       "Document in IMPORT-PROJECT-DESIGN.md"
     ],
     "parentId": "epic-import-project-1770877949",
@@ -976,7 +719,7 @@
     "priority": "P0",
     "owner": "pm",
     "problem": "Users want to import existing projects from GitHub or local files. AI should analyze the codebase, extract features, generate project structure, and provide recommendations.",
-    "scope": "Build complete import flow: GitHub clone OR file upload \u2192 AI analysis \u2192 feature tree generation \u2192 cards + recommendations \u2192 ready to work",
+    "scope": "Build complete import flow: GitHub clone OR file upload → AI analysis → feature tree generation → cards + recommendations → ready to work",
     "acceptanceCriteria": [
       "Accept GitHub URL (public repos) or local files/folder",
       "Clone/extract and validate project structure",
@@ -999,81 +742,6 @@
       {
         "at": "2026-02-12T06:32:29.930Z",
         "to": "development",
-        "note": "created"
-      }
-    ]
-  },
-  {
-    "id": "task-57d89fadb466b-1770874578510",
-    "title": "Subtask 5: Auth Implementation",
-    "lane": "queued",
-    "priority": "P1",
-    "createdAt": "2026-02-12T05:36:18.510Z",
-    "updatedAt": "2026-02-12T05:36:18.510Z",
-    "statusHistory": [
-      {
-        "at": "2026-02-12T05:36:18.510Z",
-        "to": "queued",
-        "note": "created"
-      }
-    ]
-  },
-  {
-    "id": "task-963df3fd02feb-1770874578507",
-    "title": "Subtask 4: Auth Implementation",
-    "lane": "queued",
-    "priority": "P1",
-    "createdAt": "2026-02-12T05:36:18.507Z",
-    "updatedAt": "2026-02-12T05:36:18.507Z",
-    "statusHistory": [
-      {
-        "at": "2026-02-12T05:36:18.507Z",
-        "to": "queued",
-        "note": "created"
-      }
-    ]
-  },
-  {
-    "id": "task-173f1fae989f5-1770874578505",
-    "title": "Subtask 3: Auth Implementation",
-    "lane": "queued",
-    "priority": "P1",
-    "createdAt": "2026-02-12T05:36:18.505Z",
-    "updatedAt": "2026-02-12T05:36:18.505Z",
-    "statusHistory": [
-      {
-        "at": "2026-02-12T05:36:18.505Z",
-        "to": "queued",
-        "note": "created"
-      }
-    ]
-  },
-  {
-    "id": "task-7f83a7561e778-1770874578502",
-    "title": "Subtask 2: Auth Implementation",
-    "lane": "queued",
-    "priority": "P1",
-    "createdAt": "2026-02-12T05:36:18.502Z",
-    "updatedAt": "2026-02-12T05:36:18.502Z",
-    "statusHistory": [
-      {
-        "at": "2026-02-12T05:36:18.502Z",
-        "to": "queued",
-        "note": "created"
-      }
-    ]
-  },
-  {
-    "id": "task-bff097754d038-1770874578499",
-    "title": "Subtask 1: Auth Implementation",
-    "lane": "queued",
-    "priority": "P1",
-    "createdAt": "2026-02-12T05:36:18.499Z",
-    "updatedAt": "2026-02-12T05:36:18.499Z",
-    "statusHistory": [
-      {
-        "at": "2026-02-12T05:36:18.499Z",
-        "to": "queued",
         "note": "created"
       }
     ]
@@ -1315,8 +983,8 @@
     "problem": "Current project intake asks batch questions that may be redundant. Need conversational flow that adapts based on user answers.",
     "scope": "Replace batch question generation with one-at-a-time conversational questioning. AI generates next question based on all previous context to avoid repetition. Strategic phase focus (problem, users, competition, value prop).",
     "acceptanceCriteria": [
-      "User enters idea \u2192 gets first strategic question",
-      "Answer submitted \u2192 AI generates next question based on context",
+      "User enters idea → gets first strategic question",
+      "Answer submitted → AI generates next question based on context",
       "Questions dont repeat info already provided",
       "~5-8 strategic questions before phase completes",
       "Skip button allows skipping questions",
@@ -2058,7 +1726,7 @@
       "Task owner displays as \"Forge\" not \"dev-1\"",
       "Task owner displays as \"Blueprint\" not \"architect\"",
       "Task owner displays as \"TARS\" not \"pm\"",
-      "Map covers all slots: pm\u2192TARS, architect\u2192Blueprint, dev-1\u2192Forge, dev-2\u2192Patch, qa\u2192Sentinel",
+      "Map covers all slots: pm→TARS, architect→Blueprint, dev-1→Forge, dev-2→Patch, qa→Sentinel",
       "Works in task cards, task drawer, and all views",
       "Fallback to slot ID if name not found"
     ],
@@ -2436,8 +2104,8 @@
       "Bridge API: GET/POST/PATCH/DELETE /api/rules",
       "Config page reads/writes through adapter",
       "PM reads rules on startup/heartbeat",
-      "Adding rule in UI \u2192 PM sees it",
-      "PM adding rule from chat \u2192 UI shows it"
+      "Adding rule in UI → PM sees it",
+      "PM adding rule from chat → UI shows it"
     ],
     "createdAt": "2026-02-12T02:10:56.072Z",
     "updatedAt": "2026-02-12T02:14:12.353Z",
@@ -3037,41 +2705,11 @@
     ]
   },
   {
-    "id": "task-9a67fc64cadaa-1770789048869",
-    "title": "P1 Epic: QA verify Projects flow",
-    "lane": "proposed",
-    "priority": "P1",
-    "owner": "qa",
-    "problem": "Validate full flow in bridge mode",
-    "scope": "Manual script + basic tests",
-    "acceptanceCriteria": [
-      "Create project (idea/import)",
-      "Edit/save fields",
-      "Reload persists",
-      "Tree/kanban operations work"
-    ],
-    "createdAt": "2026-02-11T05:50:48.869Z",
-    "updatedAt": "2026-02-11T05:56:01.971Z",
-    "statusHistory": [
-      {
-        "at": "2026-02-11T05:56:01.971Z",
-        "from": "queued",
-        "to": "proposed",
-        "note": "updated"
-      },
-      {
-        "at": "2026-02-11T05:50:48.869Z",
-        "to": "queued",
-        "note": "created"
-      }
-    ]
-  },
-  {
     "id": "task-93f341f1fb706-1770789048862",
     "title": "P1 Epic: Projects types + adapter contract",
-    "lane": "proposed",
+    "lane": "queued",
     "priority": "P1",
-    "owner": "dev-2",
+    "owner": "dev-1",
     "problem": "Align types + adapters for Projects endpoints",
     "scope": "src/types.ts + adapters",
     "acceptanceCriteria": [
@@ -3080,8 +2718,14 @@
       "Bridge adapter implements Projects methods"
     ],
     "createdAt": "2026-02-11T05:50:48.862Z",
-    "updatedAt": "2026-02-11T05:56:01.971Z",
+    "updatedAt": "2026-02-14T11:04:11.194Z",
     "statusHistory": [
+      {
+        "at": "2026-02-14T11:04:11.194Z",
+        "from": "proposed",
+        "to": "queued",
+        "note": "updated"
+      },
       {
         "at": "2026-02-11T05:56:01.971Z",
         "from": "queued",
@@ -3134,7 +2778,7 @@
   {
     "id": "task-50ff48a80b91-1770789048858",
     "title": "P0 Epic: Projects backend (bridge persistence + APIs)",
-    "lane": "proposed",
+    "lane": "queued",
     "priority": "P0",
     "owner": "architect",
     "problem": "Implement real storage + endpoints for Projects flow",
@@ -3146,8 +2790,14 @@
       "Export markdown"
     ],
     "createdAt": "2026-02-11T05:50:48.857Z",
-    "updatedAt": "2026-02-11T05:56:01.965Z",
+    "updatedAt": "2026-02-14T11:04:10.845Z",
     "statusHistory": [
+      {
+        "at": "2026-02-14T11:04:10.845Z",
+        "from": "proposed",
+        "to": "queued",
+        "note": "updated"
+      },
       {
         "at": "2026-02-11T05:56:01.965Z",
         "from": "queued",

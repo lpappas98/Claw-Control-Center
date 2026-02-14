@@ -1,0 +1,23 @@
+[
+  {
+    "id": "routine-c8fd7679552e2-1771067351909",
+    "name": "Daily standup",
+    "description": "Morning standup meeting",
+    "schedule": "0 9 * * 1-5",
+    "taskTemplate": {
+      "title": "Daily standup",
+      "description": "Discuss progress and blockers",
+      "assignedTo": "pm-1",
+      "tags": [
+        "standup",
+        "meeting"
+      ],
+      "estimatedHours": 1
+    },
+    "enabled": true,
+    "lastRun": null,
+    "nextRun": 1771232400000,
+    "createdAt": 1771067351909,
+    "updatedAt": 1771067351909
+  }
+]

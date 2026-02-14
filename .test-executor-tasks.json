@@ -1,0 +1,33 @@
+[
+  {
+    "id": "task-29f6c55cef576-1771067351912",
+    "title": "Auto task",
+    "description": "Auto-created task",
+    "lane": "queued",
+    "priority": "P2",
+    "assignedTo": null,
+    "createdBy": "routine-executor",
+    "parentId": null,
+    "projectId": null,
+    "tags": [
+      "auto"
+    ],
+    "estimatedHours": null,
+    "actualHours": 0,
+    "timeEntries": [],
+    "dependsOn": [],
+    "blocks": [],
+    "statusHistory": [
+      {
+        "at": 1771067351912,
+        "to": "queued",
+        "note": "created",
+        "by": "routine-executor"
+      }
+    ],
+    "comments": [],
+    "metadata": {},
+    "createdAt": 1771067351912,
+    "updatedAt": 1771067351912
+  }
+]
