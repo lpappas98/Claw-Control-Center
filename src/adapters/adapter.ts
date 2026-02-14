@@ -20,6 +20,9 @@ import type {
   IntakeProjectUpdate,
   ModelList,
   ModelSetResult,
+  Project,
+  ProjectCreate,
+  ProjectUpdate,
 } from '../types'
 
 export type Adapter = {
@@ -29,7 +32,6 @@ export type Adapter = {
   getLiveSnapshot?: () => Promise<LiveSnapshot>
 
   getSystemStatus(): Promise<SystemStatus>
-  listProjects(): Promise<ProjectInfo[]>
   listActivity(limit: number): Promise<ActivityEvent[]>
   listWorkers(): Promise<WorkerHeartbeat[]>
   listBlockers(): Promise<Blocker[]>
@@ -49,6 +51,13 @@ export type Adapter = {
   listTasks(): Promise<Task[]>
   createTask(create: TaskCreate): Promise<Task>
   updateTask(update: TaskUpdate): Promise<Task>
+
+  // Projects (operational/team management)
+  listProjects(): Promise<Project[]>
+  getProject(id: string): Promise<Project>
+  createProject(create: ProjectCreate): Promise<Project>
+  updateProject(update: ProjectUpdate): Promise<Project>
+  deleteProject(id: string): Promise<{ ok: boolean }>
 
   // PM/PO intake projects (local single-user)
   listIntakeProjects(): Promise<IntakeProject[]>

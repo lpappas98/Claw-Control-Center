@@ -16,6 +16,9 @@ import type {
   TaskCreate,
   TaskUpdate,
   WorkerHeartbeat,
+  Project,
+  ProjectCreate,
+  ProjectUpdate,
 } from '../types'
 
 export type BridgeAdapterOptions = {
@@ -43,10 +46,6 @@ export function bridgeAdapter(opts: BridgeAdapterOptions): Adapter {
 
     getSystemStatus() {
       return fetchJson<SystemStatus>(`${base}/api/status`)
-    },
-
-    listProjects() {
-      return fetchJson<ProjectInfo[]>(`${base}/api/projects`)
     },
 
     listActivity(limit: number) {
@@ -136,6 +135,37 @@ export function bridgeAdapter(opts: BridgeAdapterOptions): Adapter {
         method: 'PUT',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify(update),
+      })
+    },
+
+    // ---- Projects ----
+    listProjects() {
+      return fetchJson<Project[]>(`${base}/api/projects`)
+    },
+
+    getProject(id: string) {
+      return fetchJson<Project>(`${base}/api/projects/${encodeURIComponent(id)}`)
+    },
+
+    createProject(create: ProjectCreate) {
+      return fetchJson<Project>(`${base}/api/projects`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(create),
+      })
+    },
+
+    updateProject(update: ProjectUpdate) {
+      return fetchJson<Project>(`${base}/api/projects/${encodeURIComponent(update.id)}`, {
+        method: 'PUT',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(update),
+      })
+    },
+
+    deleteProject(id: string) {
+      return fetchJson<{ ok: boolean }>(`${base}/api/projects/${encodeURIComponent(id)}`, {
+        method: 'DELETE',
       })
     },
 

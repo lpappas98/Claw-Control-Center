@@ -18,6 +18,9 @@ import type {
   TaskUpdate,
   WatchdogDiagnostics,
   WorkerHeartbeat,
+  Project,
+  ProjectCreate,
+  ProjectUpdate,
 } from '../types'
 
 const nowIso = () => new Date().toISOString()
@@ -64,6 +67,49 @@ const mockRuleHistory: RuleChange[] = [
 
 let mockTasks: Task[] = []
 
+let mockProjects: Project[] = [
+  {
+    id: 'proj-1',
+    name: 'Claw Control Center',
+    description: 'Operator dashboard for system control and monitoring',
+    status: 'active',
+    priority: 'P0',
+    owner: 'dev-1',
+    createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+    updatedAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: 'proj-2',
+    name: 'Bridge API Enhancement',
+    description: 'Optimize bridge API for better performance and reliability',
+    status: 'active',
+    priority: 'P1',
+    owner: 'dev-2',
+    createdAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
+    updatedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: 'proj-3',
+    name: 'Documentation Update',
+    description: 'Update README and API documentation',
+    status: 'paused',
+    priority: 'P2',
+    owner: 'dev-1',
+    createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+    updatedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: 'proj-4',
+    name: 'Testing Framework Setup',
+    description: 'Set up comprehensive E2E and unit testing',
+    status: 'active',
+    priority: 'P1',
+    owner: 'qa',
+    createdAt: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString(),
+    updatedAt: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
+  },
+]
+
 let mockIntakeProjects: import('../types').IntakeProject[] = []
 
 
@@ -98,20 +144,6 @@ export const mockAdapter: Adapter = {
       nodes: { health: 'unknown', pairedCount: 0, pendingCount: 0, details: ['No live node telemetry.'] },
       browserRelay: { health: 'unknown', attachedTabs: 0 },
     }
-  },
-
-  async listProjects(): Promise<ProjectInfo[]> {
-    await sleep(150)
-    return [
-      {
-        id: 'claw-control-center',
-        name: 'Claw Control Center',
-        path: '~/.openclaw/workspace/projects/claw-control-center',
-        status: 'Active',
-        lastUpdatedAt: nowIso(),
-        notes: 'Local-only UI. Start the bridge for live status and controls.',
-      },
-    ]
   },
 
   async listActivity(limit: number): Promise<ActivityEvent[]> {
@@ -301,6 +333,75 @@ export const mockAdapter: Adapter = {
   async listRuleHistory(limit: number): Promise<RuleChange[]> {
     await sleep(100)
     return mockRuleHistory.slice(0, Math.max(1, Math.min(500, limit)))
+  },
+
+  async listProjects(): Promise<Project[]> {
+    await sleep(120)
+    return mockProjects.slice().sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
+  },
+
+  async getProject(id: string): Promise<Project> {
+    await sleep(80)
+    const p = mockProjects.find((x) => x.id === id)
+    if (!p) throw new Error(`Project not found: ${id}`)
+    return p
+  },
+
+  async createProject(create: ProjectCreate): Promise<Project> {
+    await sleep(150)
+    const baseFromName = (create.name ?? '')
+      .toLowerCase()
+      .replace(/\b(p[0-3])\b/i, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '')
+
+    const id = create.id ?? (baseFromName || `proj-${Date.now()}`)
+    if (mockProjects.some((p) => p.id === id)) throw new Error(`Project already exists: ${id}`)
+
+    const now = nowIso()
+    const next: Project = {
+      id,
+      name: create.name,
+      description: create.description,
+      status: create.status ?? 'active',
+      priority: create.priority ?? 'P2',
+      owner: create.owner,
+      createdAt: now,
+      updatedAt: now,
+    }
+    mockProjects = [next, ...mockProjects]
+    return next
+  },
+
+  async updateProject(update: ProjectUpdate): Promise<Project> {
+    await sleep(150)
+    const idx = mockProjects.findIndex((p) => p.id === update.id)
+    if (idx < 0) throw new Error(`Project not found: ${update.id}`)
+    const before = mockProjects[idx]
+    const now = nowIso()
+
+    const next: Project = {
+      ...before,
+      name: update.name ?? before.name,
+      description: update.description ?? before.description,
+      status: update.status ?? before.status,
+      priority: update.priority ?? before.priority,
+      owner: update.owner ?? before.owner,
+      updatedAt: now,
+    }
+
+    mockProjects = [...mockProjects.slice(0, idx), next, ...mockProjects.slice(idx + 1)]
+    // keep most recently updated at the top
+    mockProjects = mockProjects.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
+    return next
+  },
+
+  async deleteProject(id: string): Promise<{ ok: boolean }> {
+    await sleep(120)
+    const idx = mockProjects.findIndex((p) => p.id === id)
+    if (idx < 0) throw new Error(`Project not found: ${id}`)
+    mockProjects = [...mockProjects.slice(0, idx), ...mockProjects.slice(idx + 1)]
+    return { ok: true }
   },
 
   async listTasks(): Promise<Task[]> {

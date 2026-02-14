@@ -146,6 +146,38 @@ export type TaskUpdate = {
   acceptanceCriteria?: string[]
 }
 
+// ---- Projects ----
+export type ProjectStatus = 'active' | 'paused' | 'completed' | 'archived'
+
+export type Project = {
+  id: string
+  name: string
+  description?: string
+  status: ProjectStatus
+  priority: Priority
+  owner?: string
+  createdAt: string
+  updatedAt: string
+}
+
+export type ProjectCreate = {
+  id?: string
+  name: string
+  description?: string
+  status?: ProjectStatus
+  priority?: Priority
+  owner?: string
+}
+
+export type ProjectUpdate = {
+  id: string
+  name?: string
+  description?: string
+  status?: ProjectStatus
+  priority?: Priority
+  owner?: string
+}
+
 // ---- PM/PO Intake ----
 export type IntakeProjectStatus = 'idea' | 'questions' | 'scoped'
 
