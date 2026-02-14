@@ -586,6 +586,7 @@ button.home-task.clickable:focus {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  max-width: 100%;
 }
 
 .priority-tag {

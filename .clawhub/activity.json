@@ -1,5 +1,19 @@
 [
   {
+    "id": "bridge-c40b58acefcaa-1771054277966",
+    "at": "2026-02-14T07:31:17.966Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "gateway-2906d177b8031-1771053508024",
+    "at": "2026-02-14T07:18:28.024Z",
+    "level": "warn",
+    "source": "bridge",
+    "message": "gateway: down → warn (probe ok (runtime unknown))"
+  },
+  {
     "id": "bridge-4187137386f3a-1771052453604",
     "at": "2026-02-14T07:00:53.604Z",
     "level": "info",
