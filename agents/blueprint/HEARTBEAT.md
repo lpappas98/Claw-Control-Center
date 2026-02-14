@@ -33,7 +33,7 @@ Working on task-{id}: {title}
 
 **UPDATE AGENT STATUS** (Mark as "working"):
 ```bash
-curl -X PUT http://192.168.1.51:8787/api/agents/architect \
+curl -X POST http://192.168.1.51:8787/api/agents/architect/heartbeat \
   -H "Content-Type: application/json" \
   -d '{
     "currentTask": {
@@ -79,7 +79,7 @@ curl -X PUT http://192.168.1.51:8787/api/tasks/{taskId} \
 
 **Step 7b - Clear currentTask (mark as "idle"):**
 ```bash
-curl -X PUT http://192.168.1.51:8787/api/agents/architect \
+curl -X POST http://192.168.1.51:8787/api/agents/architect/heartbeat \
   -H "Content-Type: application/json" \
   -d '{"currentTask": null}'
 ```
