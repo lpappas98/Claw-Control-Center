@@ -123,3 +123,41 @@ docker rm claw-bridge claw-ui
 2. Verify agent cron jobs continue to work
 3. Test UI auto-recovery after simulated crash
 4. Consider adding docker-compose for easier management (requires docker-compose-v2 installation)
+
+## Critical Fixes Applied (2026-02-14 10:05 UTC)
+
+### Issue: Bridge Not Reading Data
+
+**Problem**: UI showed no tasks even though data files existed. Bridge container couldn't read mounted volume data.
+
+**Root Cause**: 
+1. Bridge looks for data at `${OPENCLAW_WORKSPACE}/.clawhub`
+2. Default was `~/.openclaw/workspace/.clawhub` (inside container)
+3. Data was mounted at `/data/.clawhub` but env var wasn't set
+4. File permissions: Container user (nodejs:1001) couldn't write to openclaw-owned files (1000:1000)
+
+**Solution**:
+1. Set environment variable: `-e OPENCLAW_WORKSPACE=/data`
+2. Fixed file permissions: `chmod -R 777 .clawhub` on host
+3. Removed logs volume mount (permissions conflict)
+
+**Current Working Configuration**:
+```bash
+docker run -d \
+  --name claw-bridge \
+  --network claw-net \
+  -p 0.0.0.0:8787:8787 \
+  -v /home/openclaw/.openclaw/workspace/.clawhub:/data/.clawhub \
+  -e NODE_ENV=production \
+  -e LOG_LEVEL=info \
+  -e PORT=8787 \
+  -e OPENCLAW_WORKSPACE=/data \
+  --restart unless-stopped \
+  claw-bridge:latest
+```
+
+**Verified Working**:
+- ✅ 99 tasks visible via API
+- ✅ 5 agents registered
+- ✅ All lanes populated (queued: 23, done: 51, review: 15, etc.)
+- ✅ Container healthy and stable
