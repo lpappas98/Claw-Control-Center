@@ -1,11 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Alert } from "@/components/ui/alert"
 import type { Adapter } from '../adapters/adapter'
-import { Alert } from "@/components/ui/alert"
 import type { ModelInfo } from '../types'
-import { Alert } from "@/components/ui/alert"
 import { Button } from '@/components/ui/button'
-import { Alert } from "@/components/ui/alert"
 
 function isGpt(m: ModelInfo) {
   const key = (m.key ?? '').toLowerCase()

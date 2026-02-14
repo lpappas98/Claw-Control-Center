@@ -107,9 +107,11 @@
   gap: 1rem;
 }
 
-/* Using shadcn Card styling with dark theme */
 .panel {
-  @apply rounded-xl border border-[#242b45] bg-[#101426] text-slate-50 shadow p-4;
+  background: #101426;
+  border: 1px solid #242b45;
+  border-radius: 14px;
+  padding: 1rem;
 }
 
 .agent-top-panel {

@@ -1,15 +1,10 @@
 import { useCallback, useMemo, useState } from 'react'
 import { Alert } from "@/components/ui/alert"
 import type { Adapter } from '../adapters/adapter'
-import { Alert } from "@/components/ui/alert"
 import type { ActivityEvent, ActivityLevel } from '../types'
-import { Alert } from "@/components/ui/alert"
 import { usePoll } from '../lib/usePoll'
-import { Alert } from "@/components/ui/alert"
 import { Badge } from '../components/Badge'
-import { Alert } from "@/components/ui/alert"
 import { CopyButton } from '../components/CopyButton'
-import { Alert } from "@/components/ui/alert"
 
 const levels: ActivityLevel[] = ['info', 'warn', 'error']
 

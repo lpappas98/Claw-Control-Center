@@ -1,11 +1,8 @@
 import React, { useMemo, useState } from 'react'
 import { Alert } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
-import { Alert } from "@/components/ui/alert"
 import type { Adapter } from '../adapters/adapter'
-import { Alert } from "@/components/ui/alert"
 import { Badge } from '../components/Badge'
-import { Alert } from "@/components/ui/alert"
 
 function FeedItem({
   actor,

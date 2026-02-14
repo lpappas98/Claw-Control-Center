@@ -1,13 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Alert } from "@/components/ui/alert"
 import type { Adapter } from '../adapters/adapter'
-import { Alert } from "@/components/ui/alert"
 import type { Rule, RuleChange } from '../types'
-import { Alert } from "@/components/ui/alert"
 import { CopyButton } from '../components/CopyButton'
-import { Alert } from "@/components/ui/alert"
 import { Button } from '@/components/ui/button'
-import { Alert } from "@/components/ui/alert"
 
 function fmtWhen(iso: string) {
   try {

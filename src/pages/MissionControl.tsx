@@ -256,7 +256,7 @@ export function MissionControl({
             <div className="muted" style={{ marginTop: 6 }}>
               Bridge URL: http://{window.location.hostname}:8787. If viewing from another device, use the server's IP (not localhost).
             </div>
-          </div>
+          </Alert>
         )}
 
         <div className="agent-strip compact">
@@ -406,7 +406,7 @@ export function MissionControl({
         {activity.error && (
           <Alert variant="destructive">
             <strong>Activity error:</strong> {activity.error.message}
-          </div>
+          </Alert>
         )}
 
         <div className="stack activity-scroll">
