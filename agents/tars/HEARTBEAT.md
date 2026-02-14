@@ -25,10 +25,24 @@ curl -X PUT http://192.168.1.51:8787/api/tasks/{taskId} \
 ```
 **CRITICAL:** Update owner field so UI shows task assignment!
 
-### 4. LOG which task you selected
+### 4. LOG which task you selected & UPDATE currentTask
+**LOG:**
 ```
 Working on task-{id}: {title}
 ```
+
+**UPDATE AGENT STATUS** (Mark as "working"):
+```bash
+curl -X POST http://192.168.1.51:8787/api/agents/pm/heartbeat \
+  -H "Content-Type: application/json" \
+  -d '{
+    "currentTask": {
+      "id": "{taskId}",
+      "title": "{taskTitle}"
+    }
+  }'
+```
+This updates MissionControl UI to show you as "working" instead of "idle"
 
 ### 5. Move to development IMMEDIATELY (BEFORE ANY OTHER WORK)
 **MANDATORY - DO THIS NOW:**
@@ -53,20 +67,33 @@ Should show `"lane":"development"`. If not, retry the PUT request.
 - Test your changes before moving to review
 - Commit your changes to git AND PUSH IMMEDIATELY (`git push`)
 
-### 7. On completion: Move to review IMMEDIATELY
+### 7. On completion: Move to review IMMEDIATELY & CLEAR currentTask
 **MANDATORY - DO THIS NOW (BEFORE REPORTING):**
+
+**Step 7a - Move lane to review:**
 ```bash
 curl -X PUT http://192.168.1.51:8787/api/tasks/{taskId} \
   -H "Content-Type: application/json" \
   -d '{"lane": "review"}'
 ```
-**VERIFY IT WORKED:**
+
+**Step 7b - Clear currentTask (mark as "idle"):**
+```bash
+curl -X POST http://192.168.1.51:8787/api/agents/pm/heartbeat \
+  -H "Content-Type: application/json" \
+  -d '{"currentTask": null}'
+```
+
+**VERIFY BOTH WORKED:**
 ```bash
 curl -s http://192.168.1.51:8787/api/tasks/{taskId} | grep -o '"lane":"[^"]*"'
-```
-Should show `"lane":"review"`. If not, retry the PUT request.
+# Should show "lane":"review"
 
-**DO NOT REPORT COMPLETION UNTIL LANE IS "review"**
+curl -s http://192.168.1.51:8787/api/agents/pm | grep -o '"status":"[^"]*"'
+# Should now show "status":"online" with no currentTask
+```
+
+**DO NOT REPORT COMPLETION UNTIL BOTH ARE UPDATED**
 
 ### 8. Report completion with task ID
 ```
