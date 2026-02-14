@@ -331,7 +331,7 @@ export function Rules({ adapter }: { adapter: Adapter }) {
             </div>
           ))}
           {!loading && (history?.length ?? 0) === 0 && <div className="muted">No history yet.</div>}
-        </Alert>
+        </div>
       </section>
     </main>
   )
