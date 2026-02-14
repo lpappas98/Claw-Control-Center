@@ -6,11 +6,16 @@ WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
-COPY projects/claw-task-manager ./projects/claw-task-manager/
+COPY tsconfig*.json ./
+COPY vite.config.ts ./
+COPY index.html ./
+COPY components.json ./
 
-WORKDIR /app/projects/claw-task-manager
+# Copy source files
+COPY src ./src/
+COPY public ./public/
 
-# Install dependencies
+# Install dependencies (including vite)
 RUN npm ci
 
 # Build the Vite project
@@ -26,14 +31,7 @@ RUN apk add --no-cache curl
 COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
 
 # Copy built artifacts from builder stage
-COPY --from=builder /app/projects/claw-task-manager/dist /usr/share/nginx/html
-
-# Create non-root user
-RUN addgroup -g 1001 -S nginx && \
-    adduser -S nginx -u 1001 && \
-    chown -R nginx:nginx /usr/share/nginx/html /var/cache/nginx /var/run/nginx
-
-USER nginx
+COPY --from=builder /app/dist /usr/share/nginx/html
 
 # Expose port for the UI
 EXPOSE 3000

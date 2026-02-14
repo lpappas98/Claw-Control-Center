@@ -6,8 +6,6 @@ WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
-COPY projects/tars-operator-hub/bridge ./bridge/
-COPY projects/tars-operator-hub/package*.json ./projects/tars-operator-hub/
 
 # Install dependencies
 RUN npm ci --omit=dev
@@ -17,14 +15,14 @@ FROM node:22-alpine
 
 WORKDIR /app
 
-# Install dumb-init for proper signal handling
-RUN apk add --no-cache dumb-init
+# Install dumb-init and curl for proper signal handling and health checks
+RUN apk add --no-cache dumb-init curl
 
 # Copy from builder
 COPY --from=builder /app/node_modules ./node_modules
 COPY package*.json ./
-COPY projects/tars-operator-hub/bridge ./bridge/
-COPY projects/tars-operator-hub/package*.json ./projects/tars-operator-hub/
+COPY bridge ./bridge/
+COPY agents ./agents/
 
 # Create clawhub data directory
 RUN mkdir -p /data/.clawhub && chmod 755 /data
@@ -47,9 +45,9 @@ ENTRYPOINT ["/sbin/dumb-init", "--"]
 # Start the bridge server
 CMD ["node", "bridge/server.mjs"]
 
-# Health check: probe /health endpoint
+# Health check: probe /api/status endpoint
 HEALTHCHECK --interval=30s --timeout=10s --start-period=20s --retries=3 \
-    CMD node -e "fetch('http://localhost:8787/health').then(r => r.ok ? process.exit(0) : process.exit(1)).catch(() => process.exit(1))"
+    CMD curl -f http://localhost:8787/api/status || exit 1
 
 # Labels for metadata
 LABEL org.opencontainers.image.title="Claw Control Center Bridge"

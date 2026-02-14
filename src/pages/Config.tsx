@@ -81,9 +81,9 @@ export function Config({ adapter }: { adapter: Adapter }) {
         {error && (
           <Alert variant="destructive">
             <strong>Config error:</strong> {error}
-          </div>
+          </Alert>
         )}
-        {savedMsg && <Alert>{savedMsg}</div>}
+        {savedMsg && <Alert>{savedMsg}</Alert>}
 
         <div className="stack">
           <div className="stat-card">
