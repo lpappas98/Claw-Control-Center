@@ -1,5 +1,12 @@
 [
   {
+    "id": "bridge-83dc10b525cd5-1771050296437",
+    "at": "2026-02-14T06:24:56.437Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
     "id": "bridge-68dd354ad9199-1771049681923",
     "at": "2026-02-14T06:14:41.923Z",
     "level": "info",

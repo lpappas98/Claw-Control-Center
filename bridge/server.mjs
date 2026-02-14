@@ -2577,3 +2577,25 @@ server.listen(PORT, '0.0.0.0', () => {
   logger.info(`Operator Hub bridge listening on http://0.0.0.0:${PORT}`)
   logger.info(`WebSocket server ready on ws://0.0.0.0:${PORT}/ws`)
 })
+
+// Legacy /api/workers endpoint (transforms agents to WorkerHeartbeat format)
+app.get('/api/workers', async (_req, res) => {
+  try {
+    const agents = await agentsStore.getAll()
+    // Transform agents to WorkerHeartbeat format
+    const workers = agents.map(agent => {
+      const lastBeatIso = agent.lastHeartbeat ? new Date(agent.lastHeartbeat).toISOString() : undefined
+      return {
+        slot: agent.id,
+        label: agent.name,
+        status: agent.status === 'online' ? 'active' : agent.status === 'busy' ? 'active' : 'offline',
+        task: agent.currentTask || undefined,
+        lastBeatAt: lastBeatIso,
+        beats: lastBeatIso ? [{ at: lastBeatIso }] : []
+      }
+    })
+    res.json(workers)
+  } catch (err) {
+    res.status(500).send(err?.message ?? 'list workers failed')
+  }
+})
