@@ -92,7 +92,7 @@ From now on, check for assigned tasks in every heartbeat:
 
 \`\`\`bash
 # List tasks assigned to you
-curl "${bridgeUrl}/api/tasks?assignedTo=${agent.id}&status=assigned"
+curl "${bridgeUrl}/api/tasks?lane=queued&owner=${agent.id}"
 
 # Start working on a task
 curl -X POST ${bridgeUrl}/api/tasks/{task-id}/start
@@ -113,8 +113,8 @@ Check for tasks every **15 minutes**. Your schedule:
 - Pattern: :${String(getHeartbeatOffset(agent.id)).padStart(2, '0')}, :${String(getHeartbeatOffset(agent.id) + 15).padStart(2, '0')}, :${String(getHeartbeatOffset(agent.id) + 30).padStart(2, '0')}, :${String(getHeartbeatOffset(agent.id) + 45).padStart(2, '0')}
 
 **Heartbeat workflow:**
-1. Check for assigned tasks
-2. If task assigned → start working
+1. Check for assigned tasks (lane=queued&owner={id})
+2. If task assigned → claim it (move to development lane)
 3. If no tasks → reply HEARTBEAT_OK
 4. Update task status as you progress
 
