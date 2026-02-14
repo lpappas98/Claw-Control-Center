@@ -1,21 +1,16 @@
 {
-  "name": "@claw-control/cli",
+  "name": "claw-cli",
   "version": "1.0.0",
-  "description": "CLI for OpenClaw agents to interact with Claw Control Center",
+  "description": "CLI for Claw Control Center",
   "type": "module",
   "bin": {
     "claw": "./claw.mjs"
   },
-  "keywords": [
-    "openclaw",
-    "agent",
-    "cli",
-    "task-management"
-  ],
-  "dependencies": {
-    "commander": "^12.0.0",
-    "chalk": "^5.3.0",
-    "ora": "^8.0.1",
-    "table": "^6.8.1"
-  }
+  "scripts": {
+    "test": "node --test *.test.mjs"
+  },
+  "keywords": ["claw", "task-management", "cli"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {}
 }
