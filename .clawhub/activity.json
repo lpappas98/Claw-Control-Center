@@ -1,5 +1,12 @@
 [
   {
+    "id": "bridge-4c6be3996943-1771046114215",
+    "at": "2026-02-14T05:15:14.215Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
     "id": "blockers-5b3245d195fe-1771040617225",
     "at": "2026-02-14T03:43:37.225Z",
     "level": "warn",

@@ -8,7 +8,7 @@
         "name": "TARS",
         "emoji": "🧠",
         "roles": ["pm", "architect", "coordinator"],
-        "model": "anthropic/claude-sonnet-4-5",
+        "model": "ollama/llama3.1:8b@http://192.168.1.21:11434",
         "autoSpawn": false,
         "description": "Project Manager - coordinates all agents and owns overall architecture"
       },
@@ -17,7 +17,7 @@
         "name": "Forge",
         "emoji": "🛠️",
         "roles": ["backend-dev", "api", "database", "node", "express"],
-        "model": "anthropic/claude-haiku-4-5",
+        "model": "ollama/llama3.1:8b@http://192.168.1.21:11434",
         "autoSpawn": true,
         "description": "Backend Developer - APIs, services, databases, server-side logic"
       },
@@ -26,7 +26,7 @@
         "name": "Patch",
         "emoji": "🧩",
         "roles": ["frontend-dev", "ui", "react", "typescript", "css"],
-        "model": "anthropic/claude-haiku-4-5",
+        "model": "ollama/llama3.1:8b@http://192.168.1.21:11434",
         "autoSpawn": true,
         "description": "Frontend Developer - UI components, React, styling, user experience"
       },
@@ -35,7 +35,7 @@
         "name": "Sentinel",
         "emoji": "🛡️",
         "roles": ["qa", "testing", "review", "validation", "e2e"],
-        "model": "anthropic/claude-haiku-4-5",
+        "model": "ollama/llama3.1:8b@http://192.168.1.21:11434",
         "autoSpawn": true,
         "description": "QA Engineer - testing, validation, code review, quality assurance"
       },
@@ -44,7 +44,7 @@
         "name": "Blueprint",
         "emoji": "🏗️",
         "roles": ["architect", "design", "planning", "system-design"],
-        "model": "anthropic/claude-haiku-4-5",
+        "model": "ollama/llama3.1:8b@http://192.168.1.21:11434",
         "autoSpawn": true,
         "description": "System Architect - overall design, planning, technical decisions"
       }

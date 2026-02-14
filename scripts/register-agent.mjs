@@ -138,7 +138,7 @@ function parseOptions() {
       },
       model: {
         type: 'string',
-        description: 'AI model (defaults to anthropic/claude-haiku-4-5)',
+        description: 'AI model (defaults to ollama/llama3.1:8b@http://192.168.1.21:11434)',
         short: 'm'
       },
       workspace: {
@@ -197,7 +197,7 @@ Options:
   -n, --name <name>     Display name (defaults to agent ID)
   -e, --emoji <emoji>   Agent emoji (defaults to 🤖)
   -b, --bridge <url>    Bridge URL (default: http://localhost:8787)
-  -m, --model <model>   AI model (default: anthropic/claude-haiku-4-5)
+  -m, --model <model>   AI model (default: ollama/llama3.1:8b@http://192.168.1.21:11434)
   -w, --workspace <path> Workspace path
   -h, --help            Show this help
 
@@ -243,7 +243,7 @@ Environment Variables:
             name: agentConfig.name,
             emoji: agentConfig.emoji || '🤖',
             roles: agentConfig.roles || [],
-            model: agentConfig.model || 'anthropic/claude-haiku-4-5',
+            model: agentConfig.model || 'ollama/llama3.1:8b@http://192.168.1.21:11434',
             workspace: agentConfig.workspace || OPENCLAW_WORKSPACE,
             status: 'online',
             instanceId: INSTANCE_ID,
@@ -294,7 +294,7 @@ Environment Variables:
       name: values.name || values.agent,
       emoji: values.emoji || '🤖',
       roles,
-      model: values.model || 'anthropic/claude-haiku-4-5',
+      model: values.model || 'ollama/llama3.1:8b@http://192.168.1.21:11434',
       workspace: values.workspace || OPENCLAW_WORKSPACE,
       status: 'online',
       instanceId: INSTANCE_ID,
