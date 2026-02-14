@@ -101,7 +101,14 @@ Completed task-{id}: {brief summary}
 ```
 
 ### 9. If no tasks found
-Reply: `HEARTBEAT_OK`
+**BEFORE replying, update heartbeat:**
+```bash
+curl -X POST http://192.168.1.51:8787/api/agents/dev-2/heartbeat \
+  -H "Content-Type: application/json" \
+  -d '{"status": "online", "currentTask": null}'
+```
+
+Then reply: `HEARTBEAT_OK`
 
 ## Task Priority
 Pick highest priority first:
