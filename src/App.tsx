@@ -52,7 +52,7 @@ export default function App() {
     <div className="app-shell">
       <header className="topbar">
         <div className="brand">
-          <div className="brand-title">TARS Operator Hub</div>
+          <div className="brand-title">Claw Control Center</div>
           <div className="brand-sub">single-user local mode</div>
         </div>
 

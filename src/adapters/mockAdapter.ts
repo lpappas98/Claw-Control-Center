@@ -104,9 +104,9 @@ export const mockAdapter: Adapter = {
     await sleep(150)
     return [
       {
-        id: 'tars-operator-hub',
-        name: 'TARS Operator Hub',
-        path: '~/.openclaw/workspace/projects/tars-operator-hub',
+        id: 'claw-control-center',
+        name: 'Claw Control Center',
+        path: '~/.openclaw/workspace/projects/claw-control-center',
         status: 'Active',
         lastUpdatedAt: nowIso(),
         notes: 'Local-only UI. Start the bridge for live status and controls.',

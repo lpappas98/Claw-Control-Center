@@ -234,8 +234,8 @@ function fakeProjects(): Project[] {
 
   return [
     {
-      id: 'p-operator-hub',
-      name: 'TARS Operator Hub',
+      id: 'p-control-center',
+      name: 'Claw Control Center',
       summary: 'Local-first control surface for OpenClaw + projects.',
       status: 'active',
       tags: ['local', 'operator', 'ux'],
