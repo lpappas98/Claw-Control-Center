@@ -4,7 +4,7 @@
 - **Agent ID:** dev-1
 - **Emoji:** 🛠️
 - **Role:** Backend Developer
-- **Model:** ollama/llama3.1:8b@http://192.168.1.21:11434
+- **Model:** anthropic/claude-haiku-4-5
 
 ## Purpose
 

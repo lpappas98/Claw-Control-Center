@@ -10,7 +10,7 @@
       "emoji": "🧠",
       "role": "Project Manager",
       "workspace": "/home/openclaw/.openclaw/workspace/agents/tars",
-      "model": "ollama/llama3.1:8b@http://192.168.1.21:11434",
+      "model": "anthropic/claude-haiku-4-5",
       "roles": ["pm", "architect", "coordinator"],
       "autoStart": true,
       "heartbeatInterval": 900
@@ -22,7 +22,7 @@
       "emoji": "🛠️",
       "role": "Backend Developer",
       "workspace": "/home/openclaw/.openclaw/workspace/agents/forge",
-      "model": "ollama/llama3.1:8b@http://192.168.1.21:11434",
+      "model": "anthropic/claude-haiku-4-5",
       "roles": ["backend-dev", "api", "database", "node", "express"],
       "autoStart": true,
       "heartbeatInterval": 900
@@ -34,7 +34,7 @@
       "emoji": "🧩",
       "role": "Frontend Developer",
       "workspace": "/home/openclaw/.openclaw/workspace/agents/patch",
-      "model": "ollama/llama3.1:8b@http://192.168.1.21:11434",
+      "model": "anthropic/claude-haiku-4-5",
       "roles": ["frontend-dev", "ui", "react", "typescript", "css"],
       "autoStart": true,
       "heartbeatInterval": 900
@@ -46,7 +46,7 @@
       "emoji": "🛡️",
       "role": "QA Engineer",
       "workspace": "/home/openclaw/.openclaw/workspace/agents/sentinel",
-      "model": "ollama/llama3.1:8b@http://192.168.1.21:11434",
+      "model": "anthropic/claude-haiku-4-5",
       "roles": ["qa", "testing", "review", "validation", "e2e"],
       "autoStart": true,
       "heartbeatInterval": 900
@@ -58,7 +58,7 @@
       "emoji": "🏗️",
       "role": "System Architect",
       "workspace": "/home/openclaw/.openclaw/workspace/agents/blueprint",
-      "model": "ollama/llama3.1:8b@http://192.168.1.21:11434",
+      "model": "anthropic/claude-haiku-4-5",
       "roles": ["architect", "design", "planning", "system-design"],
       "autoStart": true,
       "heartbeatInterval": 900

@@ -3,11 +3,8 @@
     "id": "tars",
     "name": "TARS",
     "emoji": "🧠",
-    "roles": [
-      "pm",
-      "architect"
-    ],
-    "model": "ollama/llama3.1:8b@http://192.168.1.21:11434",
+    "roles": ["pm", "architect"],
+    "model": "anthropic/claude-haiku-4-5",
     "workspace": "/home/openclaw/.openclaw/workspace/agents/tars",
     "status": "online",
     "instanceId": "openclaw-bozeman1",
@@ -16,19 +13,15 @@
     "activeTasks": [],
     "metadata": {},
     "createdAt": 1771047212861,
-    "updatedAt": 1771048003152,
-    "lastHeartbeat": 1771048003151
+    "updatedAt": 1771047212861,
+    "lastHeartbeat": 1771047948973
   },
   {
     "id": "dev-1",
     "name": "Forge",
     "emoji": "🛠️",
-    "roles": [
-      "backend-dev",
-      "api",
-      "database"
-    ],
-    "model": "ollama/llama3.1:8b@http://192.168.1.21:11434",
+    "roles": ["backend-dev", "api", "database"],
+    "model": "anthropic/claude-haiku-4-5",
     "workspace": "/home/openclaw/.openclaw/workspace/agents/forge",
     "status": "online",
     "instanceId": "openclaw-bozeman1",
@@ -37,19 +30,15 @@
     "activeTasks": [],
     "metadata": {},
     "createdAt": 1771047212866,
-    "updatedAt": 1771048005149,
-    "lastHeartbeat": 1771048005149
+    "updatedAt": 1771047212866,
+    "lastHeartbeat": 1771047950964
   },
   {
     "id": "dev-2",
     "name": "Patch",
     "emoji": "🧩",
-    "roles": [
-      "frontend-dev",
-      "ui",
-      "react"
-    ],
-    "model": "ollama/llama3.1:8b@http://192.168.1.21:11434",
+    "roles": ["frontend-dev", "ui", "react"],
+    "model": "anthropic/claude-haiku-4-5",
     "workspace": "/home/openclaw/.openclaw/workspace/agents/patch",
     "status": "online",
     "instanceId": "openclaw-bozeman1",
@@ -58,19 +47,15 @@
     "activeTasks": [],
     "metadata": {},
     "createdAt": 1771047212870,
-    "updatedAt": 1771048007147,
-    "lastHeartbeat": 1771048007147
+    "updatedAt": 1771047212870,
+    "lastHeartbeat": 1771047952965
   },
   {
     "id": "qa",
     "name": "Sentinel",
     "emoji": "🛡️",
-    "roles": [
-      "qa",
-      "testing",
-      "review"
-    ],
-    "model": "ollama/llama3.1:8b@http://192.168.1.21:11434",
+    "roles": ["qa", "testing", "review"],
+    "model": "anthropic/claude-haiku-4-5",
     "workspace": "/home/openclaw/.openclaw/workspace/agents/sentinel",
     "status": "online",
     "instanceId": "openclaw-bozeman1",
@@ -79,19 +64,15 @@
     "activeTasks": [],
     "metadata": {},
     "createdAt": 1771047212875,
-    "updatedAt": 1771048009147,
-    "lastHeartbeat": 1771048009147
+    "updatedAt": 1771047212875,
+    "lastHeartbeat": 1771047954971
   },
   {
     "id": "architect",
     "name": "Blueprint",
     "emoji": "🏗️",
-    "roles": [
-      "architect",
-      "design",
-      "planning"
-    ],
-    "model": "ollama/llama3.1:8b@http://192.168.1.21:11434",
+    "roles": ["architect", "design", "planning"],
+    "model": "anthropic/claude-haiku-4-5",
     "workspace": "/home/openclaw/.openclaw/workspace/agents/blueprint",
     "status": "online",
     "instanceId": "openclaw-bozeman1",
@@ -100,7 +81,7 @@
     "activeTasks": [],
     "metadata": {},
     "createdAt": 1771047212879,
-    "updatedAt": 1771048011153,
-    "lastHeartbeat": 1771048011153
+    "updatedAt": 1771047212879,
+    "lastHeartbeat": 1771047956970
   }
 ]
