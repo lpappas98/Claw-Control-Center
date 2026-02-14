@@ -103,7 +103,7 @@ export class AgentsStore {
   /**
    * Update agent status
    */
-  async updateStatus(id, status, currentTask = null) {
+  async updateStatus(id, status, currentTask = undefined) {
     await this.ensureLoaded()
     const agent = this.agents.find(a => a.id === id)
     if (!agent) return null
@@ -111,7 +111,7 @@ export class AgentsStore {
     agent.status = status
     agent.lastHeartbeat = Date.now()
     agent.updatedAt = Date.now()
-    if (currentTask !== null) {
+    if (currentTask !== undefined) {
       agent.currentTask = currentTask
     }
 
