@@ -3,6 +3,7 @@ import { Alert } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import type { Adapter } from '../adapters/adapter'
 import { Badge } from '../components/Badge'
+import { FeatureDetailPage } from './FeatureDetailPage'
 
 function FeedItem({
   actor,
@@ -1331,8 +1332,20 @@ export function Projects({ adapter: _adapter }: { adapter: Adapter }) {
   const [drawer, setDrawer] = useState<FeatureNode | null>(null)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [showNewProject, setShowNewProject] = useState(false)
+  const [selectedFeatureId, setSelectedFeatureId] = useState<string | null>(null)
 
   const active = useMemo(() => projects.find((p) => p.id === activeId) ?? projects[0] ?? null, [projects, activeId])
+
+  // If a feature is selected, show the feature detail page
+  if (selectedFeatureId && active) {
+    return (
+      <FeatureDetailPage
+        projectId={active.id}
+        featureId={selectedFeatureId}
+        onBack={() => setSelectedFeatureId(null)}
+      />
+    )
+  }
 
   return (
     <main className={`projects-layout ${sidebarCollapsed ? 'collapsed' : ''}`}>
