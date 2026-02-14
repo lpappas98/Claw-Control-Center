@@ -7,6 +7,7 @@ import { useWebSocket } from '../lib/useWebSocket'
 import { Badge } from '../components/Badge'
 import { TaskModal } from '../components/TaskModal'
 import { TaskListModal } from '../components/TaskListModal'
+import { CreateTaskModal } from '../components/CreateTaskModal'
 import type { ActivityEvent, BoardLane, LiveSnapshot, Priority, SystemStatus, Task, WorkerHeartbeat } from '../types'
 
 const MAX_TASKS_PER_LANE = 5
@@ -129,6 +130,7 @@ export function MissionControl({
 
   const [openTask, setOpenTask] = useState<Task | null>(null)
   const [creating, setCreating] = useState(false)
+  const [showCreateModal, setShowCreateModal] = useState(false)
   const [overflowLane, setOverflowLane] = useState<{ lane: BoardLane; tasks: Task[] } | null>(null)
 
   // WebSocket for real-time updates - TEMPORARILY DISABLED due to connection storm
@@ -470,22 +472,11 @@ export function MissionControl({
               <Button
                 variant="default"
                 type="button"
-                disabled={creating}
-                onClick={async () => {
-                  const title = prompt('New task title')
-                  if (!title || !title.trim()) return
-                  setCreating(true)
-                  try {
-                    const next = await adapter.createTask({ title: title.trim() })
-                    setOpenTask(next)
-                  } finally {
-                    setCreating(false)
-                  }
-                }}
-                title="Create a persisted task and open details"
+                onClick={() => setShowCreateModal(true)}
+                title="Create a new task with full details"
                 style={{ fontSize: '12px', padding: '6px 14px' }}
               >
-                {creating ? 'Creating…' : '+ New task'}
+                + New task
               </Button>
             </div>
           </div>
@@ -724,6 +715,17 @@ export function MissionControl({
           task={openTask}
           onClose={() => setOpenTask(null)}
           onSaved={(t) => setOpenTask(t)}
+        />
+      )}
+
+      {showCreateModal && (
+        <CreateTaskModal
+          adapter={adapter}
+          onClose={() => setShowCreateModal(false)}
+          onCreated={() => {
+            setShowCreateModal(false)
+            persisted.refetch()
+          }}
         />
       )}
 

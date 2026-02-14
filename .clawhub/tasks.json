@@ -1,8 +1,45 @@
 [
   {
+    "id": "task-83fde7833e0f4-1771070072797",
+    "title": "Wire Create Task button to CreateTaskModal component",
+    "lane": "development",
+    "priority": "P0",
+    "owner": "dev-1",
+    "problem": "Create Task button in Mission Control doesnt open a modal. Need to implement the polished CreateTaskModal component from file_117",
+    "scope": "1. Save CreateTaskModal component from file_117 as src/components/CreateTaskModal.tsx, 2. Wire Mission Control Create Task button to open this modal, 3. Connect modal form submission to POST /api/tasks endpoint, 4. Implement all form fields (title, type, priority, status, tags, owner, problem, scope, criteria), 5. Handle create success (close modal, refresh tasks, show success feedback)",
+    "acceptanceCriteria": [
+      "CreateTaskModal.tsx created in src/components/ from file_117 code",
+      "Mission Control Create Task button opens modal on click",
+      "All form fields functional (title input, type/priority/status selectors, tag toggles, owner selector)",
+      "Advanced section (problem/scope/criteria) expands/collapses correctly",
+      "Submit button disabled when title empty",
+      "On submit: POST to /api/tasks with all form data",
+      "Success: close modal, refresh task list, show brief success indicator",
+      "Error handling: show user-friendly error messages",
+      "Modal animations (fadeIn backdrop, slideUp content) working smoothly",
+      "Cancel button and X button both close modal without saving",
+      "Test creating tasks with different types, priorities, tags, owners"
+    ],
+    "createdAt": "2026-02-14T11:54:32.797Z",
+    "updatedAt": "2026-02-14T11:55:12.868Z",
+    "statusHistory": [
+      {
+        "at": "2026-02-14T11:55:12.868Z",
+        "from": "queued",
+        "to": "development",
+        "note": "updated"
+      },
+      {
+        "at": "2026-02-14T11:54:32.797Z",
+        "to": "queued",
+        "note": "created"
+      }
+    ]
+  },
+  {
     "id": "task-95e830ae4e5e4-1771069249845",
     "title": "Redesign LaneOverflowModal with search, sort, and priority summary",
-    "lane": "development",
+    "lane": "review",
     "priority": "P0",
     "owner": "dev-2",
     "problem": "Current LaneOverflowModal is basic. Need polished design from file_114 with search, sort, priority summary bar, smooth animations, and proper dark theme",
@@ -18,8 +55,14 @@
       "Screenshot matches file_114 design"
     ],
     "createdAt": "2026-02-14T11:40:49.845Z",
-    "updatedAt": "2026-02-14T11:40:56.117Z",
+    "updatedAt": "2026-02-14T11:43:30.048Z",
     "statusHistory": [
+      {
+        "at": "2026-02-14T11:43:30.048Z",
+        "from": "development",
+        "to": "review",
+        "note": "updated"
+      },
       {
         "at": "2026-02-14T11:40:56.117Z",
         "from": "queued",
@@ -151,7 +194,7 @@
   {
     "id": "task-76841ad6cd267-1771056030147",
     "title": "Implement redesigned task search/list modal with better UX",
-    "lane": "development",
+    "lane": "review",
     "priority": "P0",
     "owner": "dev-2",
     "problem": "Current task search modal (screenshot from Logan) has unreadable dark text on dark background, no visual hierarchy, cramped list, no metadata visible, full-screen modal instead of focused overlay",
@@ -175,8 +218,14 @@
       "Take screenshot showing new list modal"
     ],
     "createdAt": "2026-02-14T08:00:30.147Z",
-    "updatedAt": "2026-02-14T11:41:43.021Z",
+    "updatedAt": "2026-02-14T11:43:30.273Z",
     "statusHistory": [
+      {
+        "at": "2026-02-14T11:43:30.273Z",
+        "from": "development",
+        "to": "review",
+        "note": "updated"
+      },
       {
         "at": "2026-02-14T11:41:43.021Z",
         "from": "queued",
