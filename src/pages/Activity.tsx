@@ -369,7 +369,7 @@ export function Activity({ adapter }: { adapter: Adapter }) {
               </div>
             )}
           </aside>
-        </Alert>
+        </div>
       </section>
     </main>
   )
