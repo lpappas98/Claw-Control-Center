@@ -22,3 +22,21 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Runtime data (user-specific, not part of the product)
+.clawhub/
+tests/qa/*.png
+
+# Memory/personal files
+memory/
+*.pid
+
+# Verification reports (generated during QA)
+P0-*.md
+*-VERIFICATION.md
+
+# Ad-hoc test scripts
+test-modal*.mjs
+
+# Reference design files (task-specific, not product code)
+*.reference.tsx

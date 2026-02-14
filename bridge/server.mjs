@@ -901,6 +901,20 @@ app.post('/api/tasks', async (req, res) => {
     lane: next.lane,
   })
   
+  // Log activity for task creation
+  pushActivity({
+    type: 'info',
+    msg: `task created: ${String(next.title).substring(0, 60)}`,
+    ts: now,
+  })
+  if (next.owner) {
+    pushActivity({
+      type: 'info',
+      msg: `task assigned: ${String(next.title).substring(0, 50)} → ${next.owner}`,
+      ts: now,
+    })
+  }
+
   res.json(next)
   // Broadcast task update
   if (global.broadcastWS) global.broadcastWS("task-updated", next)
@@ -938,6 +952,26 @@ app.put('/api/tasks/:id', async (req, res) => {
 
   tasks = [...tasks.slice(0, idx), next, ...tasks.slice(idx + 1)]
   scheduleTasksSave()
+
+  // Log activity on lane change
+  if (nextLane !== before.lane) {
+    const ownerName = next.owner || 'system'
+    pushActivity({
+      type: nextLane === 'done' ? 'success' : 'info',
+      msg: `${ownerName}: ${before.lane} → ${nextLane}: ${String(next.title).substring(0, 60)}`,
+      ts: now,
+    })
+  }
+
+  // Log activity on owner change
+  if (update.owner !== undefined && update.owner !== before.owner) {
+    pushActivity({
+      type: 'info',
+      msg: `task assigned: ${String(next.title).substring(0, 50)} → ${update.owner || 'unassigned'}`,
+      ts: now,
+    })
+  }
+
   res.json(next)
   // Broadcast task update
   if (global.broadcastWS) global.broadcastWS("task-updated", next)

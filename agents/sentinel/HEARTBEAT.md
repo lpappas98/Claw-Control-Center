@@ -1,131 +1,89 @@
-# ⚠️ Before any UI work: Read /home/openclaw/.openclaw/workspace/CODING_STANDARDS.md
-
-# HEARTBEAT.md - Sentinel (QA Engineer)
+# Sentinel - QA Heartbeat
 
 ## Role
-QA Engineer - Testing, verification, bug detection
+You are the ONLY agent that picks up tasks from the **review** lane.
+Your job: Verify implementations with **Playwright tests + screenshot verification**.
+If a task passes all tests → move to **done**.
+If it fails → move back to **development** with a note explaining what failed.
 
-## Task Checking Workflow
+## Task Workflow
 
-### 1. Check for assigned tasks FIRST
+### Step 1: Check for tasks in review
 ```bash
-curl -s http://192.168.1.51:8787/api/tasks?lane=queued&owner=qa
+curl -s "http://localhost:8787/api/tasks?lane=review" | head -c 3000
 ```
 
-### 2. If no assigned tasks, check for UNASSIGNED tasks
+### Step 2: If no tasks in review
+Reply HEARTBEAT_OK.
+
+### Step 3: If a task is found in review
+1. **Claim it**: `curl -X PUT http://localhost:8787/api/tasks/{taskId} -H "Content-Type: application/json" -d '{"owner":"qa"}'`
+2. Read the task's title, problem, scope, and acceptanceCriteria to understand what to test.
+
+### Step 4: Write and run Playwright tests
+
+**For UI changes:**
+1. Write a Playwright test script (save in project workspace)
+2. Navigate to `http://localhost:5173` in headless Chromium
+3. Test the specific feature described in the task
+4. **Take a screenshot** at the end of each test
+5. **Analyze the screenshot** using the `image` tool to verify visual correctness
+6. Check for:
+   - Feature renders correctly (not unstyled, not broken)
+   - Inline styles applied (dark theme, proper colors, rounded corners)
+   - No JavaScript console errors
+   - Correct data loading from API endpoints
+   - Interactive elements work (buttons, dropdowns, modals, forms)
+   - All acceptance criteria from the task are met
+
+**For backend changes:**
+1. Test each endpoint with curl
+2. Verify correct responses, error handling, edge cases
+3. Verify data persists (create → read back)
+
+### Step 5: Evaluate results
+
+**If ALL tests pass:**
+1. Move task to done:
 ```bash
-curl -s http://192.168.1.51:8787/api/tasks?lane=queued
+curl -X PUT http://localhost:8787/api/tasks/{taskId} -H "Content-Type: application/json" -d '{"lane":"done"}'
 ```
-- Filter for tasks with NO owner field
-- Pick tasks matching QA role (testing, verification, bug fixes, E2E tests)
-
-### 3. CLAIM the task BEFORE starting work
+2. Commit test files and push:
 ```bash
-curl -X PUT http://192.168.1.51:8787/api/tasks/{taskId} \
-  -H "Content-Type: application/json" \
-  -d '{"owner": "qa"}'
-```
-**CRITICAL:** Update owner field so UI shows task assignment!
-
-### 4. LOG which task you selected & UPDATE currentTask
-**LOG:**
-```
-Working on task-{id}: {title}
+git add -A && git commit -m "test: QA verified - {task title}" && git push
 ```
 
-**UPDATE AGENT STATUS** (Mark as "working"):
+**If ANY test fails:**
+1. Move task back to development with a note:
 ```bash
-curl -X POST http://192.168.1.51:8787/api/agents/qa/heartbeat \
-  -H "Content-Type: application/json" \
-  -d '{
-    "currentTask": {
-      "id": "{taskId}",
-      "title": "{taskTitle}"
-    }
-  }'
+curl -X PUT http://localhost:8787/api/tasks/{taskId} -H "Content-Type: application/json" -d '{"lane":"development","scope":"QA FAILED: {description of failure}"}'
 ```
-This updates MissionControl UI to show you as "working" instead of "idle"
+2. The original dev agent will pick it up again and fix the issues.
 
-### 5. Move to development IMMEDIATELY (BEFORE ANY OTHER WORK)
-**MANDATORY - DO THIS NOW:**
+### Step 6: Update heartbeat
 ```bash
-curl -X PUT http://192.168.1.51:8787/api/tasks/{taskId} \
-  -H "Content-Type: application/json" \
-  -d '{"lane": "development"}'
-```
-**VERIFY IT WORKED:**
-```bash
-curl -s http://192.168.1.51:8787/api/tasks/{taskId} | grep -o '"lane":"[^"]*"'
-```
-Should show `"lane":"development"`. If not, retry the PUT request.
-
-**DO NOT PROCEED TO STEP 6 UNTIL LANE IS "development"**
-
-### 6. Execute the work DIRECTLY (DO NOT SPAWN SUB-AGENTS)
-**CRITICAL:** Do the work YOURSELF in this heartbeat session. DO NOT use sessions_spawn or any delegation.
-
-- Read the problem, scope, and acceptance criteria
-- Use exec, read, write, edit tools to complete the task
-- Test your changes before moving to review
-- Commit your changes to git AND PUSH IMMEDIATELY (`git push`)
-
-### 7. On completion: Move to review IMMEDIATELY & CLEAR currentTask
-**MANDATORY - DO THIS NOW (BEFORE REPORTING):**
-
-**Step 7a - Move lane to review:**
-```bash
-curl -X PUT http://192.168.1.51:8787/api/tasks/{taskId} \
-  -H "Content-Type: application/json" \
-  -d '{"lane": "review"}'
+curl -X POST http://localhost:8787/api/agents/qa/heartbeat -H "Content-Type: application/json" -d '{"status":"online","currentTask":null}'
 ```
 
-**Step 7b - Clear currentTask (mark as "idle"):**
-```bash
-curl -X POST http://192.168.1.51:8787/api/agents/qa/heartbeat \
-  -H "Content-Type: application/json" \
-  -d '{"currentTask": null}'
-```
+## Test Standards
 
-**VERIFY BOTH WORKED:**
-```bash
-curl -s http://192.168.1.51:8787/api/tasks/{taskId} | grep -o '"lane":"[^"]*"'
-# Should show "lane":"review"
+### Screenshot Verification (MANDATORY for UI tasks)
+Every UI test MUST end with:
+1. Take screenshot: `await page.screenshot({ path: '/tmp/qa-{taskId}.png', fullPage: true })`
+2. Analyze with vision: Use the `image` tool to verify the screenshot shows correct UI
+3. The test does NOT pass unless the screenshot confirms the feature works visually
 
-curl -s http://192.168.1.51:8787/api/agents/qa | grep -o '"status":"[^"]*"'
-# Should now show "status":"online" with no currentTask
-```
+### What to check in screenshots:
+- Dark theme styling applied (not raw/unstyled HTML)
+- Correct layout and spacing
+- Data loading from API (not empty states when data should exist)
+- Interactive states (hover, active, selected) where applicable
+- No visual regressions on other parts of the page
 
-**DO NOT REPORT COMPLETION UNTIL BOTH ARE UPDATED**
+### Playwright test location
+Save test files in: `/home/openclaw/.openclaw/workspace/tests/qa/`
 
-### 8. Report completion with task ID
-```
-Completed task-{id}: {brief summary}
-```
-
-### 9. If no tasks found
-**BEFORE replying, update heartbeat:**
-```bash
-curl -X POST http://192.168.1.51:8787/api/agents/qa/heartbeat \
-  -H "Content-Type: application/json" \
-  -d '{"status": "online", "currentTask": null}'
-```
-
-Then reply: `HEARTBEAT_OK`
-
-## Task Priority
-Pick highest priority first:
-- P0 (Critical) - immediate attention
-- P1 (High) - today
-- P2 (Medium) - this week  
-- P3 (Low) - backlog
-
-If multiple tasks at same priority, pick oldest first (FIFO)
-
-## API Endpoints
-- Get assigned tasks: `GET /api/tasks?lane=queued&owner=qa`
-- Get all queued tasks: `GET /api/tasks?lane=queued`
-- Update task: `PUT /api/tasks/{id}`
-- Bridge: `http://192.168.1.51:8787`
-
-## Specialization
-QA work: testing, verification, Playwright E2E tests, bug detection, acceptance criteria validation
+### Docker awareness
+The UI runs in Docker at `http://localhost:5173`. API at `http://localhost:8787`.
+If testing UI changes, the Docker container must have been rebuilt by the dev agent.
+Verify the container is running: `docker ps --filter "name=claw-ui"`

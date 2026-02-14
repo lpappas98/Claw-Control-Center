@@ -1,131 +1,53 @@
-# ⚠️ Before any UI work: Read /home/openclaw/.openclaw/workspace/CODING_STANDARDS.md
+# Patch - Heartbeat
 
-# HEARTBEAT.md - Patch (Frontend Developer)
+⚠️ Before any UI work: Read /home/openclaw/.openclaw/workspace/CODING_STANDARDS.md
 
-## Role
-Frontend Developer - React, UI components, styling
+## Task Workflow
 
-## Task Checking Workflow
-
-### 1. Check for assigned tasks FIRST
+### Step 1: Check for assigned tasks
 ```bash
-curl -s http://192.168.1.51:8787/api/tasks?lane=queued&owner=dev-2
+curl -s "http://localhost:8787/api/tasks?lane=queued&owner=dev-2" | head -c 2000
 ```
 
-### 2. If no assigned tasks, check for UNASSIGNED tasks
+### Step 2: If no assigned tasks, check unassigned
 ```bash
-curl -s http://192.168.1.51:8787/api/tasks?lane=queued
+curl -s "http://localhost:8787/api/tasks?lane=queued" | head -c 2000
 ```
-- Filter for tasks with NO owner field
-- Pick tasks matching frontend role (React, UI, components, CSS, Tailwind, shadcn/ui)
 
-### 3. CLAIM the task BEFORE starting work
+### Step 3: If a task is found
+1. **Claim it** (if unassigned): `curl -X PUT http://localhost:8787/api/tasks/{taskId} -H "Content-Type: application/json" -d '{"owner":"dev-2"}'`
+2. **Move to development**: `curl -X PUT http://localhost:8787/api/tasks/{taskId} -H "Content-Type: application/json" -d '{"lane":"development"}'`
+3. **Verify lane changed**: `curl -s http://localhost:8787/api/tasks | python3 -c "import sys,json; [print(t['lane']) for t in json.load(sys.stdin) if t['id']=='{taskId}']"`
+
+### Step 4: Do the work
+- Use exec, read, write, edit tools directly
+- **DO NOT SPAWN SUB-AGENTS**
+- Follow CODING_STANDARDS.md for all UI work (inline styles, no Tailwind classes)
+- If a `.reference.tsx` file exists, match its design exactly (but use inline styles)
+
+### Step 5: Self-verify before moving to review
+Before moving to review, YOU must verify your own work:
+1. Run `npm run build` — must succeed with 0 errors
+2. If UI change: Clear Vite cache (`rm -rf dist node_modules/.vite`), rebuild, rebuild Docker, test with Playwright
+3. If backend change: Test the endpoint with curl
+4. **Take a screenshot** if UI work and verify it looks correct
+5. Only proceed to Step 6 if verification passes
+
+### Step 6: Move to review
 ```bash
-curl -X PUT http://192.168.1.51:8787/api/tasks/{taskId} \
-  -H "Content-Type: application/json" \
-  -d '{"owner": "dev-2"}'
+curl -X PUT http://localhost:8787/api/tasks/{taskId} -H "Content-Type: application/json" -d '{"lane":"review"}'
 ```
-**CRITICAL:** Update owner field so UI shows task assignment!
+Verify the lane change succeeded. **DO NOT move to done** — only Sentinel (QA) moves tasks to done.
 
-### 4. LOG which task you selected & UPDATE currentTask
-**LOG:**
-```
-Working on task-{id}: {title}
-```
-
-**UPDATE AGENT STATUS** (Mark as "working"):
+### Step 7: Commit and push
 ```bash
-curl -X POST http://192.168.1.51:8787/api/agents/dev-2/heartbeat \
-  -H "Content-Type: application/json" \
-  -d '{
-    "currentTask": {
-      "id": "{taskId}",
-      "title": "{taskTitle}"
-    }
-  }'
+git add -A && git commit -m "feat: {description}" && git push
 ```
-This updates MissionControl UI to show you as "working" instead of "idle"
 
-### 5. Move to development IMMEDIATELY (BEFORE ANY OTHER WORK)
-**MANDATORY - DO THIS NOW:**
+### Step 8: Update heartbeat
 ```bash
-curl -X PUT http://192.168.1.51:8787/api/tasks/{taskId} \
-  -H "Content-Type: application/json" \
-  -d '{"lane": "development"}'
-```
-**VERIFY IT WORKED:**
-```bash
-curl -s http://192.168.1.51:8787/api/tasks/{taskId} | grep -o '"lane":"[^"]*"'
-```
-Should show `"lane":"development"`. If not, retry the PUT request.
-
-**DO NOT PROCEED TO STEP 6 UNTIL LANE IS "development"**
-
-### 6. Execute the work DIRECTLY (DO NOT SPAWN SUB-AGENTS)
-**CRITICAL:** Do the work YOURSELF in this heartbeat session. DO NOT use sessions_spawn or any delegation.
-
-- Read the problem, scope, and acceptance criteria
-- Use exec, read, write, edit tools to complete the task
-- Test your changes before moving to review
-- Commit your changes to git AND PUSH IMMEDIATELY (`git push`)
-
-### 7. On completion: Move to review IMMEDIATELY & CLEAR currentTask
-**MANDATORY - DO THIS NOW (BEFORE REPORTING):**
-
-**Step 7a - Move lane to review:**
-```bash
-curl -X PUT http://192.168.1.51:8787/api/tasks/{taskId} \
-  -H "Content-Type: application/json" \
-  -d '{"lane": "review"}'
+curl -X POST http://localhost:8787/api/agents/dev-2/heartbeat -H "Content-Type: application/json" -d '{"status":"online","currentTask":null}'
 ```
 
-**Step 7b - Clear currentTask (mark as "idle"):**
-```bash
-curl -X POST http://192.168.1.51:8787/api/agents/dev-2/heartbeat \
-  -H "Content-Type: application/json" \
-  -d '{"currentTask": null}'
-```
-
-**VERIFY BOTH WORKED:**
-```bash
-curl -s http://192.168.1.51:8787/api/tasks/{taskId} | grep -o '"lane":"[^"]*"'
-# Should show "lane":"review"
-
-curl -s http://192.168.1.51:8787/api/agents/dev-2 | grep -o '"status":"[^"]*"'
-# Should now show "status":"online" with no currentTask
-```
-
-**DO NOT REPORT COMPLETION UNTIL BOTH ARE UPDATED**
-
-### 8. Report completion with task ID
-```
-Completed task-{id}: {brief summary}
-```
-
-### 9. If no tasks found
-**BEFORE replying, update heartbeat:**
-```bash
-curl -X POST http://192.168.1.51:8787/api/agents/dev-2/heartbeat \
-  -H "Content-Type: application/json" \
-  -d '{"status": "online", "currentTask": null}'
-```
-
-Then reply: `HEARTBEAT_OK`
-
-## Task Priority
-Pick highest priority first:
-- P0 (Critical) - immediate attention
-- P1 (High) - today
-- P2 (Medium) - this week  
-- P3 (Low) - backlog
-
-If multiple tasks at same priority, pick oldest first (FIFO)
-
-## API Endpoints
-- Get assigned tasks: `GET /api/tasks?lane=queued&owner=dev-2`
-- Get all queued tasks: `GET /api/tasks?lane=queued`
-- Update task: `PUT /api/tasks/{id}`
-- Bridge: `http://192.168.1.51:8787`
-
-## Specialization
-Frontend work: React, TypeScript, Tailwind CSS, shadcn/ui, components, responsive design
+### Step 9: No tasks found
+If no tasks in queue, reply HEARTBEAT_OK.
