@@ -3,7 +3,6 @@ import './App.css'
 import { MissionControl } from './pages/MissionControl'
 import { Projects } from './pages/Projects'
 import { Activity } from './pages/Activity'
-import { Rules } from './pages/Rules'
 import { Config } from './pages/Config'
 import { KanbanPage } from './pages/KanbanPage'
 import { RecurringTasksPage } from './pages/RecurringTasksPage'
@@ -11,9 +10,9 @@ import { IntegrationsPage } from './pages/IntegrationsPage'
 import { SystemStatusPage } from './pages/SystemStatusPage'
 import { loadAdapterConfig, toAdapter } from './lib/adapterState'
 
-type NavTab = 'Mission Control' | 'Projects' | 'Activity' | 'Kanban' | 'Recurring' | 'Integrations' | 'System Status' | 'Rules' | 'Config' | 'Docs'
+type NavTab = 'Mission Control' | 'Projects' | 'Activity' | 'Kanban' | 'Recurring' | 'Integrations' | 'System Status' | 'Config' | 'Docs'
 
-const tabs: NavTab[] = ['Mission Control', 'Projects', 'Activity', 'Kanban', 'Recurring', 'Integrations', 'System Status', 'Rules', 'Config', 'Docs']
+const tabs: NavTab[] = ['Mission Control', 'Projects', 'Activity', 'Kanban', 'Recurring', 'Integrations', 'System Status', 'Config', 'Docs']
 
 const NAV_TAB_KEY = 'tars.operatorHub.navTab'
 
@@ -74,7 +73,6 @@ export default function App() {
       {tab === 'Recurring' && <RecurringTasksPage />}
       {tab === 'Integrations' && <IntegrationsPage />}
       {tab === 'System Status' && <SystemStatusPage />}
-      {tab === 'Rules' && <Rules adapter={adapter} />}
       {tab === 'Config' && <Config adapter={adapter} />}
       {tab === 'Docs' && (
         <main className="main-grid">

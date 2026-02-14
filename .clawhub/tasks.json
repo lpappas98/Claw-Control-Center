@@ -1,5 +1,31 @@
 [
   {
+    "id": "task-f4a73fd134c82-1771054452804",
+    "title": "Document QA verification standards based on overflow fix lesson",
+    "lane": "queued",
+    "priority": "P1",
+    "owner": "qa",
+    "problem": "Need to document the QA verification process learned from task overflow fix - must actually test with screenshots/browser, not just code review",
+    "scope": "Update Sentinel SOUL.md and create QA verification checklist",
+    "acceptanceCriteria": [
+      "Update /home/openclaw/.openclaw/workspace/agents/sentinel/SOUL.md with QA standards",
+      "Add rule: Code review ≠ verification",
+      "Add rule: Must test in actual browser with screenshots",
+      "Add rule: Verify computed styles, not just CSS source",
+      "Add checklist for UI verification tasks",
+      "Document: Changed code → Compiled → Tested → Verified → Complete"
+    ],
+    "createdAt": "2026-02-14T07:34:12.804Z",
+    "updatedAt": "2026-02-14T07:34:12.804Z",
+    "statusHistory": [
+      {
+        "at": "2026-02-14T07:34:12.804Z",
+        "to": "queued",
+        "note": "created"
+      }
+    ]
+  },
+  {
     "id": "task-ee47afdffdadc-1771051493683",
     "title": "QA: Verify task overflow fix and TaskModal dark theme styling",
     "lane": "queued",
