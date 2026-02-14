@@ -116,9 +116,12 @@ export function MissionControl({
     }
   }, [adapter])
 
+  const activityFn = useCallback(() => adapter.listActivity(40), [adapter])
+  const persistedFn = useCallback(() => adapter.listTasks(), [adapter])
+
   const live = usePoll(liveFn, 5000)
-  const activity = usePoll<ActivityEvent[]>(() => adapter.listActivity(40), 7000)
-  const persisted = usePoll<Task[]>(() => adapter.listTasks(), 8000)
+  const activity = usePoll<ActivityEvent[]>(activityFn, 7000)
+  const persisted = usePoll<Task[]>(persistedFn, 8000)
 
   const [openTask, setOpenTask] = useState<Task | null>(null)
   const [creating, setCreating] = useState(false)
