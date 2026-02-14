@@ -1,101 +1,106 @@
 [
   {
-    "id": "agent-1",
-    "name": "Developer Agent",
-    "emoji": "👨‍💻",
+    "id": "tars",
+    "name": "TARS",
+    "emoji": "🧠",
     "roles": [
-      "backend-dev",
-      "api"
+      "pm",
+      "architect"
     ],
-    "model": "anthropic/claude-haiku-4-5",
-    "workspace": "/home/openclaw/.openclaw/workspace",
-    "status": "busy",
-    "instanceId": "",
-    "tailscaleIP": "",
-    "currentTask": "task-123",
-    "activeTasks": [],
-    "metadata": {},
-    "createdAt": 1771025921713,
-    "updatedAt": 1771025932707,
-    "lastHeartbeat": 1771025932707
-  },
-  {
-    "id": "test-agent-1",
-    "name": "Test Agent 1",
-    "emoji": "🧪",
-    "roles": [
-      "backend-dev",
-      "api"
-    ],
-    "model": "test/model",
-    "workspace": "",
-    "status": "busy",
-    "instanceId": "",
+    "model": "ollama/llama3.1:8b@http://192.168.1.21:11434",
+    "workspace": "/home/openclaw/.openclaw/workspace/agents/tars",
+    "status": "online",
+    "instanceId": "openclaw-bozeman1",
     "tailscaleIP": "",
     "currentTask": null,
     "activeTasks": [],
     "metadata": {},
-    "createdAt": 1771025956964,
-    "updatedAt": 1771025957040,
-    "lastHeartbeat": 1771025957040
+    "createdAt": 1771047212861,
+    "updatedAt": 1771048003152,
+    "lastHeartbeat": 1771048003151
   },
   {
-    "id": "designer-1",
-    "name": "Design Agent",
-    "emoji": "🎨",
-    "roles": [
-      "designer",
-      "ui"
-    ],
-    "model": "",
-    "workspace": "",
-    "status": "busy",
-    "instanceId": "",
-    "tailscaleIP": "",
-    "currentTask": "design-123",
-    "activeTasks": [],
-    "metadata": {},
-    "createdAt": 1771025964985,
-    "updatedAt": 1771025965065,
-    "lastHeartbeat": 1771025965065
-  },
-  {
-    "id": "test-backend-agent",
-    "name": "Test Backend Developer",
-    "emoji": "👨‍💻",
+    "id": "dev-1",
+    "name": "Forge",
+    "emoji": "🛠️",
     "roles": [
       "backend-dev",
-      "api"
+      "api",
+      "database"
     ],
-    "model": "anthropic/claude-haiku-4-5",
-    "workspace": "",
-    "status": "busy",
-    "instanceId": "",
+    "model": "ollama/llama3.1:8b@http://192.168.1.21:11434",
+    "workspace": "/home/openclaw/.openclaw/workspace/agents/forge",
+    "status": "online",
+    "instanceId": "openclaw-bozeman1",
     "tailscaleIP": "",
-    "currentTask": "task-123",
+    "currentTask": null,
     "activeTasks": [],
     "metadata": {},
-    "createdAt": 1771026041496,
-    "updatedAt": 1771026041532,
-    "lastHeartbeat": 1771026041532
+    "createdAt": 1771047212866,
+    "updatedAt": 1771048005149,
+    "lastHeartbeat": 1771048005149
   },
   {
-    "id": "test-agent",
-    "name": "test-agent",
-    "emoji": "🧪",
+    "id": "dev-2",
+    "name": "Patch",
+    "emoji": "🧩",
+    "roles": [
+      "frontend-dev",
+      "ui",
+      "react"
+    ],
+    "model": "ollama/llama3.1:8b@http://192.168.1.21:11434",
+    "workspace": "/home/openclaw/.openclaw/workspace/agents/patch",
+    "status": "online",
+    "instanceId": "openclaw-bozeman1",
+    "tailscaleIP": "",
+    "currentTask": null,
+    "activeTasks": [],
+    "metadata": {},
+    "createdAt": 1771047212870,
+    "updatedAt": 1771048007147,
+    "lastHeartbeat": 1771048007147
+  },
+  {
+    "id": "qa",
+    "name": "Sentinel",
+    "emoji": "🛡️",
     "roles": [
       "qa",
-      "testing"
+      "testing",
+      "review"
     ],
-    "model": "anthropic/claude-haiku-4-5",
-    "workspace": "/home/openclaw/.openclaw/workspace",
+    "model": "ollama/llama3.1:8b@http://192.168.1.21:11434",
+    "workspace": "/home/openclaw/.openclaw/workspace/agents/sentinel",
     "status": "online",
-    "instanceId": "openclaw-openclaw-bozeman1",
-    "tailscaleIP": "100.103.251.17",
+    "instanceId": "openclaw-bozeman1",
+    "tailscaleIP": "",
     "currentTask": null,
     "activeTasks": [],
     "metadata": {},
-    "createdAt": 1771028978631,
-    "updatedAt": 1771028978631
+    "createdAt": 1771047212875,
+    "updatedAt": 1771048009147,
+    "lastHeartbeat": 1771048009147
+  },
+  {
+    "id": "architect",
+    "name": "Blueprint",
+    "emoji": "🏗️",
+    "roles": [
+      "architect",
+      "design",
+      "planning"
+    ],
+    "model": "ollama/llama3.1:8b@http://192.168.1.21:11434",
+    "workspace": "/home/openclaw/.openclaw/workspace/agents/blueprint",
+    "status": "online",
+    "instanceId": "openclaw-bozeman1",
+    "tailscaleIP": "",
+    "currentTask": null,
+    "activeTasks": [],
+    "metadata": {},
+    "createdAt": 1771047212879,
+    "updatedAt": 1771048011153,
+    "lastHeartbeat": 1771048011153
   }
 ]

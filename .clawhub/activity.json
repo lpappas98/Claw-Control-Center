@@ -1,5 +1,33 @@
 [
   {
+    "id": "bridge-f36d61ecd57bf-1771047988967",
+    "at": "2026-02-14T05:46:28.967Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-82358d93e9f98-1771047939452",
+    "at": "2026-02-14T05:45:39.452Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-b0ec2e727d33-1771047477205",
+    "at": "2026-02-14T05:37:57.205Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-9aa287bef0e88-1771047415647",
+    "at": "2026-02-14T05:36:55.647Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
     "id": "gateway-e64ffae43edf7-1771046711706",
     "at": "2026-02-14T05:25:11.706Z",
     "level": "error",

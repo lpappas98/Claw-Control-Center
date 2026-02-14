@@ -1415,6 +1415,37 @@ app.post('/api/agents/register', async (req, res) => {
   }
 })
 
+// Agent heartbeat endpoint
+app.post('/api/agents/:id/heartbeat', async (req, res) => {
+  try {
+    const { id } = req.params
+    const body = req.body ?? {}
+    
+    const agent = await agentsStore.updateStatus(
+      id,
+      body.status || 'online',
+      body.currentTask || null
+    )
+    
+    if (!agent) {
+      return res.status(404).json({ error: 'Agent not found' })
+    }
+    
+    // Update instance info if provided
+    if (body.instanceId || body.tailscaleIP) {
+      await agentsStore.upsert({
+        ...agent,
+        instanceId: body.instanceId || agent.instanceId,
+        tailscaleIP: body.tailscaleIP || agent.tailscaleIP
+      })
+    }
+    
+    res.json({ success: true, agent })
+  } catch (err) {
+    res.status(500).json({ error: err?.message ?? 'heartbeat failed' })
+  }
+})
+
 app.get('/api/agents', async (_req, res) => {
   try {
     const agents = await agentsStore.getAll()
