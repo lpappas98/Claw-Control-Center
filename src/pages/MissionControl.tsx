@@ -310,51 +310,59 @@ export function MissionControl({
         <div style={{ flex: 1, minWidth: 0, display: 'flex', gap: '10px', alignItems: 'stretch', flexWrap: useCompactMode ? 'wrap' : 'nowrap', overflowX: 'auto' }}>
           {useCompactMode ? (
             // Compact mode: all agents equal-width
-            agents.map((agent) => (
-              <div
-                key={agent.id}
-                style={{
-                  flex: useCompactMode ? 1 : undefined,
-                  minWidth: useCompactMode ? 0 : '300px',
-                  flexShrink: 0,
-                  background: agent.status === 'working' 
-                    ? 'linear-gradient(135deg, rgba(16,185,129,0.06) 0%, rgba(15,23,42,0.5) 100%)'
-                    : 'rgba(30,41,59,0.4)',
-                  border: agent.status === 'working'
-                    ? '1px solid rgba(16,185,129,0.18)'
-                    : '1px solid rgba(51,65,85,0.35)',
-                  borderRadius: '12px',
-                  padding: '10px 14px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '10px',
-                }}
-              >
-                <span style={{ fontSize: '18px', flexShrink: 0 }}>{agent.emoji}</span>
-                <div style={{ minWidth: 0, flex: 1 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}>
-                    <span style={{ fontSize: '12px', fontWeight: 600, color: '#f1f5f9' }}>{agent.name}</span>
-                    <span style={{ fontSize: '10px', color: '#475569' }}>{agent.role}</span>
-                    <div style={{
-                      marginLeft: 'auto',
-                      width: '6px',
-                      height: '6px',
-                      borderRadius: '50%',
-                      flexShrink: 0,
-                      background: agent.status === 'working' ? '#34d399' : '#475569',
-                      boxShadow: agent.status === 'working' ? '0 0 6px rgba(52,211,153,0.5)' : 'none',
-                    }} />
+            agents.map((agent) => {
+              // Color mapping: idle=gray, working=blue, offline=red
+              const colorMap = {
+                idle: { bg: 'rgba(107,114,128,0.08)', border: 'rgba(107,114,128,0.18)', dot: '#6b7280', dotGlow: 'rgba(107,114,128,0.3)', text: '#9ca3af' },
+                working: { bg: 'rgba(59,130,246,0.08)', border: 'rgba(59,130,246,0.18)', dot: '#3b82f6', dotGlow: 'rgba(59,130,246,0.5)', text: 'rgba(147,197,253,0.8)' },
+                offline: { bg: 'rgba(239,68,68,0.08)', border: 'rgba(239,68,68,0.18)', dot: '#ef4444', dotGlow: 'rgba(239,68,68,0.3)', text: '#fca5a5' },
+              }
+              const colors = colorMap[agent.status] || colorMap.idle
+              
+              return (
+                <div
+                  key={agent.id}
+                  style={{
+                    flex: useCompactMode ? 1 : undefined,
+                    minWidth: useCompactMode ? 0 : '300px',
+                    flexShrink: 0,
+                    background: `linear-gradient(135deg, ${colors.bg} 0%, rgba(15,23,42,0.5) 100%)`,
+                    border: `1px solid ${colors.border}`,
+                    borderRadius: '12px',
+                    padding: '10px 14px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                  }}
+                >
+                  <span style={{ fontSize: '18px', flexShrink: 0 }}>{agent.emoji}</span>
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}>
+                      <span style={{ fontSize: '12px', fontWeight: 600, color: '#f1f5f9' }}>{agent.name}</span>
+                      <span style={{ fontSize: '10px', color: '#475569' }}>{agent.role}</span>
+                      <div style={{
+                        marginLeft: 'auto',
+                        width: '6px',
+                        height: '6px',
+                        borderRadius: '50%',
+                        flexShrink: 0,
+                        background: colors.dot,
+                        boxShadow: `0 0 6px ${colors.dotGlow}`,
+                      }} />
+                    </div>
+                    {agent.status === 'working' ? (
+                      <p style={{ fontSize: '11px', color: colors.text, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {typeof agent.task === 'object' && agent.task?.title ? agent.task.title : agent.task}
+                      </p>
+                    ) : (
+                      <p style={{ fontSize: '11px', color: '#334155', margin: 0 }}>
+                        {agent.status === 'offline' ? 'Offline' : 'Idle'} · {fmtAgo(agent.lastBeatAt)}
+                      </p>
+                    )}
                   </div>
-                  {agent.status === 'working' ? (
-                    <p style={{ fontSize: '11px', color: 'rgba(110,231,183,0.6)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {typeof agent.task === 'object' && agent.task?.title ? agent.task.title : agent.task}
-                    </p>
-                  ) : (
-                    <p style={{ fontSize: '11px', color: '#334155', margin: 0 }}>Idle · {fmtAgo(agent.lastBeatAt)}</p>
-                  )}
                 </div>
-              </div>
-            ))
+              )
+            })
           ) : (
             <>
               {/* Expanded mode: large cards for working agents */}
@@ -364,8 +372,8 @@ export function MissionControl({
                   style={{
                     width: '300px',
                     flexShrink: 0,
-                    background: 'linear-gradient(135deg, rgba(16,185,129,0.07) 0%, rgba(15,23,42,0.5) 100%)',
-                    border: '1px solid rgba(16,185,129,0.18)',
+                    background: 'linear-gradient(135deg, rgba(59,130,246,0.07) 0%, rgba(15,23,42,0.5) 100%)',
+                    border: '1px solid rgba(59,130,246,0.18)',
                     borderRadius: '12px',
                     padding: '12px 16px',
                     display: 'flex',
@@ -378,9 +386,9 @@ export function MissionControl({
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '3px' }}>
                       <span style={{ fontSize: '13px', fontWeight: 600, color: '#f1f5f9' }}>{agent.name}</span>
                       <span style={{ fontSize: '11px', color: '#64748b' }}>{agent.role}</span>
-                      <div style={{ marginLeft: 'auto', width: '6px', height: '6px', borderRadius: '50%', background: '#34d399', boxShadow: '0 0 6px rgba(52,211,153,0.5)' }} />
+                      <div style={{ marginLeft: 'auto', width: '6px', height: '6px', borderRadius: '50%', background: '#3b82f6', boxShadow: '0 0 6px rgba(59,130,246,0.5)' }} />
                     </div>
-                    <p style={{ fontSize: '12px', color: 'rgba(110,231,183,0.65)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <p style={{ fontSize: '12px', color: 'rgba(147,197,253,0.8)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {typeof agent.task === 'object' && agent.task?.title ? agent.task.title : agent.task}
                     </p>
                   </div>
