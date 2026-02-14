@@ -356,6 +356,79 @@ LOG_LEVEL=info
 TAILSCALE_IP=100.x.x.x
 ```
 
+### Auto-Spawn Agent System
+
+**Automatically spawn multiple agents on OpenClaw startup** for distributed task execution.
+
+#### 1. Install Config Template
+
+```bash
+cd ~/.openclaw/workspace
+node scripts/install-config.mjs
+```
+
+This merges the Claw Control Center config into `~/.openclaw/openclaw.json`:
+
+```json
+{
+  "clawControlCenter": {
+    "enabled": true,
+    "bridgeUrl": "http://localhost:8787",
+    "agents": [
+      {
+        "id": "tars",
+        "name": "TARS",
+        "emoji": "🧠",
+        "roles": ["pm", "architect"],
+        "model": "anthropic/claude-sonnet-4-5",
+        "autoSpawn": false,
+        "description": "Project Manager"
+      },
+      {
+        "id": "dev-1",
+        "name": "Forge",
+        "emoji": "🛠️",
+        "roles": ["backend-dev", "api", "database"],
+        "model": "anthropic/claude-haiku-4-5",
+        "autoSpawn": true,
+        "description": "Backend Developer"
+      }
+    ]
+  }
+}
+```
+
+#### 2. Spawn Agents
+
+```bash
+# Spawn all agents with autoSpawn=true
+node scripts/spawn-agents.mjs
+```
+
+**What happens:**
+- Agents spawn as isolated sessions (via `sessions_spawn`)
+- Each agent auto-registers with the bridge
+- Agents check for tasks on staggered heartbeat schedules
+- Tasks auto-assign based on agent roles
+
+#### 3. Verify
+
+```bash
+# Check registered agents
+curl http://localhost:8787/api/agents
+
+# View in UI
+# Navigate to http://localhost:5173 → Agents tab
+```
+
+**Architecture:**
+- **Main session (TARS)**: PM that creates and assigns tasks
+- **Spawned agents**: Work on assigned tasks independently
+- **Bridge**: Coordinates task assignment and status
+- **Isolation**: Agents can't access each other's context
+
+**See:** [docs/AUTO_SPAWN_SETUP.md](docs/AUTO_SPAWN_SETUP.md) for full details.
+
 ---
 
 ## 🖥️ CLI Reference

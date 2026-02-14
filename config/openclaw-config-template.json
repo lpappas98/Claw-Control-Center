@@ -1,0 +1,53 @@
+{
+  "clawControlCenter": {
+    "enabled": true,
+    "bridgeUrl": "http://localhost:8787",
+    "agents": [
+      {
+        "id": "tars",
+        "name": "TARS",
+        "emoji": "🧠",
+        "roles": ["pm", "architect", "coordinator"],
+        "model": "anthropic/claude-sonnet-4-5",
+        "autoSpawn": false,
+        "description": "Project Manager - coordinates all agents and owns overall architecture"
+      },
+      {
+        "id": "dev-1",
+        "name": "Forge",
+        "emoji": "🛠️",
+        "roles": ["backend-dev", "api", "database", "node", "express"],
+        "model": "anthropic/claude-haiku-4-5",
+        "autoSpawn": true,
+        "description": "Backend Developer - APIs, services, databases, server-side logic"
+      },
+      {
+        "id": "dev-2",
+        "name": "Patch",
+        "emoji": "🧩",
+        "roles": ["frontend-dev", "ui", "react", "typescript", "css"],
+        "model": "anthropic/claude-haiku-4-5",
+        "autoSpawn": true,
+        "description": "Frontend Developer - UI components, React, styling, user experience"
+      },
+      {
+        "id": "qa",
+        "name": "Sentinel",
+        "emoji": "🛡️",
+        "roles": ["qa", "testing", "review", "validation", "e2e"],
+        "model": "anthropic/claude-haiku-4-5",
+        "autoSpawn": true,
+        "description": "QA Engineer - testing, validation, code review, quality assurance"
+      },
+      {
+        "id": "architect",
+        "name": "Blueprint",
+        "emoji": "🏗️",
+        "roles": ["architect", "design", "planning", "system-design"],
+        "model": "anthropic/claude-haiku-4-5",
+        "autoSpawn": true,
+        "description": "System Architect - overall design, planning, technical decisions"
+      }
+    ]
+  }
+}
