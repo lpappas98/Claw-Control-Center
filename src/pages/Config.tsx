@@ -1,7 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
+import { Alert } from "@/components/ui/alert"
 import type { Adapter } from '../adapters/adapter'
+import { Alert } from "@/components/ui/alert"
 import type { ModelInfo } from '../types'
+import { Alert } from "@/components/ui/alert"
 import { Button } from '@/components/ui/button'
+import { Alert } from "@/components/ui/alert"
 
 function isGpt(m: ModelInfo) {
   const key = (m.key ?? '').toLowerCase()
@@ -75,11 +79,11 @@ export function Config({ adapter }: { adapter: Adapter }) {
         </div>
 
         {error && (
-          <div className="callout warn">
+          <Alert variant="destructive">
             <strong>Config error:</strong> {error}
           </div>
         )}
-        {savedMsg && <div className="callout">{savedMsg}</div>}
+        {savedMsg && <Alert>{savedMsg}</div>}
 
         <div className="stack">
           <div className="stat-card">

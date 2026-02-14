@@ -1,10 +1,17 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Alert } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
+import { Alert } from "@/components/ui/alert"
 import type { Adapter } from '../adapters/adapter'
+import { Alert } from "@/components/ui/alert"
 import { usePoll } from '../lib/usePoll'
+import { Alert } from "@/components/ui/alert"
 import { Badge } from '../components/Badge'
+import { Alert } from "@/components/ui/alert"
 import { TaskModal } from '../components/TaskModal'
+import { Alert } from "@/components/ui/alert"
 import type { ActivityEvent, BoardLane, LiveSnapshot, Priority, SystemStatus, Task, WorkerHeartbeat } from '../types'
+import { Alert } from "@/components/ui/alert"
 
 type HomeTask = {
   id: string
@@ -235,7 +242,7 @@ export function MissionControl({
     <main className="main-grid">
       <section className="panel span-4 agent-top-panel">
         {live.error && (
-          <div className="callout warn">
+          <Alert variant="destructive">
             <strong>Live snapshot error:</strong> {live.error.message}
             <div className="muted" style={{ marginTop: 6 }}>
               Bridge URL: http://{window.location.hostname}:8787. If viewing from another device, use the server's IP (not localhost).
@@ -388,7 +395,7 @@ export function MissionControl({
         </div>
 
         {activity.error && (
-          <div className="callout warn">
+          <Alert variant="destructive">
             <strong>Activity error:</strong> {activity.error.message}
           </div>
         )}

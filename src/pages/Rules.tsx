@@ -1,8 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Alert } from "@/components/ui/alert"
 import type { Adapter } from '../adapters/adapter'
+import { Alert } from "@/components/ui/alert"
 import type { Rule, RuleChange } from '../types'
+import { Alert } from "@/components/ui/alert"
 import { CopyButton } from '../components/CopyButton'
+import { Alert } from "@/components/ui/alert"
 import { Button } from '@/components/ui/button'
+import { Alert } from "@/components/ui/alert"
 
 function fmtWhen(iso: string) {
   try {
@@ -172,7 +177,7 @@ export function Rules({ adapter }: { adapter: Adapter }) {
         </div>
 
         {createOpen && (
-          <div className="callout">
+          <Alert>
             <div className="stack">
               <div className="stack-h" style={{ justifyContent: 'space-between', alignItems: 'center' }}>
                 <strong>Create rule</strong>
@@ -213,7 +218,7 @@ export function Rules({ adapter }: { adapter: Adapter }) {
         )}
 
         {error && (
-          <div className="callout warn">
+          <Alert variant="destructive">
             <strong>Rules error:</strong> {error}
           </div>
         )}

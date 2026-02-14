@@ -1,7 +1,11 @@
 import React, { useMemo, useState } from 'react'
+import { Alert } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
+import { Alert } from "@/components/ui/alert"
 import type { Adapter } from '../adapters/adapter'
+import { Alert } from "@/components/ui/alert"
 import { Badge } from '../components/Badge'
+import { Alert } from "@/components/ui/alert"
 
 function FeedItem({
   actor,
@@ -1237,7 +1241,7 @@ function NewProjectWizard({
                     <div className="muted">first pass</div>
                   </div>
                 </div>
-                <div className="callout" style={{ marginTop: 12 }}>
+                <Alert style={{ marginTop: 12 }}>
                   <strong>Summary</strong>
                   <div className="muted" style={{ marginTop: 6 }}>{analysis?.summary}</div>
                 </div>
@@ -1298,7 +1302,7 @@ function NewProjectWizard({
             <div className="stack">
               <div className="panel" style={{ padding: 14 }}>
                 <h4 style={{ marginTop: 0 }}>Review</h4>
-                <div className="callout">
+                <Alert>
                   <strong>What will be stored</strong>
                   <ul className="muted" style={{ margin: '8px 0 0', paddingLeft: 18 }}>
                     <li>Idea (verbatim)</li>

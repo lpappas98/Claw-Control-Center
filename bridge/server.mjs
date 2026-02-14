@@ -6,6 +6,8 @@ import fs from 'node:fs/promises'
 import { existsSync } from 'node:fs'
 import { execFile } from 'node:child_process'
 import { promisify } from 'node:util'
+import { WebSocketServer } from 'ws'
+import http from 'node:http'
 
 import { listWorkersFromCandidates } from './workers.mjs'
 import { computeBlockersFrom } from './blockers.mjs'
@@ -724,6 +726,8 @@ app.post('/api/rules', async (req, res) => {
 
   scheduleRulesSave()
   res.json(next)
+  // Broadcast task update
+  if (global.broadcastWS) global.broadcastWS("task-updated", next)
 })
 
 app.get('/api/rules/history', async (req, res) => {
@@ -783,6 +787,8 @@ app.put('/api/rules/:id', async (req, res) => {
 
   scheduleRulesSave()
   res.json(next)
+  // Broadcast task update
+  if (global.broadcastWS) global.broadcastWS("task-updated", next)
 })
 
 app.post('/api/rules/:id/toggle', async (req, res) => {
@@ -808,6 +814,8 @@ app.post('/api/rules/:id/toggle', async (req, res) => {
 
   scheduleRulesSave()
   res.json(next)
+  // Broadcast task update
+  if (global.broadcastWS) global.broadcastWS("task-updated", next)
 })
 
 // ---- Tasks (operator board seed) ----
@@ -851,6 +859,8 @@ app.post('/api/tasks', async (req, res) => {
   })
   
   res.json(next)
+  // Broadcast task update
+  if (global.broadcastWS) global.broadcastWS("task-updated", next)
 })
 
 app.put('/api/tasks/:id', async (req, res) => {
@@ -886,6 +896,8 @@ app.put('/api/tasks/:id', async (req, res) => {
   tasks = [...tasks.slice(0, idx), next, ...tasks.slice(idx + 1)]
   scheduleTasksSave()
   res.json(next)
+  // Broadcast task update
+  if (global.broadcastWS) global.broadcastWS("task-updated", next)
 })
 
 // ---- PM/PO Intake Projects ----
@@ -927,6 +939,8 @@ app.post('/api/intake/projects', async (req, res) => {
   intakeProjects = [next, ...intakeProjects].slice(0, 500)
   intakeProjectsSaver.trigger()
   res.json(next)
+  // Broadcast task update
+  if (global.broadcastWS) global.broadcastWS("task-updated", next)
 })
 
 app.put('/api/intake/projects/:id', async (req, res) => {
@@ -953,6 +967,8 @@ app.put('/api/intake/projects/:id', async (req, res) => {
   intakeProjects = [...intakeProjects.slice(0, idx), next, ...intakeProjects.slice(idx + 1)]
   intakeProjectsSaver.trigger()
   res.json(next)
+  // Broadcast task update
+  if (global.broadcastWS) global.broadcastWS("task-updated", next)
 })
 
 app.post('/api/intake/projects/:id/generate-questions', async (req, res) => {
@@ -968,6 +984,8 @@ app.post('/api/intake/projects/:id/generate-questions', async (req, res) => {
   intakeProjects = [...intakeProjects.slice(0, idx), next, ...intakeProjects.slice(idx + 1)]
   intakeProjectsSaver.trigger()
   res.json(next)
+  // Broadcast task update
+  if (global.broadcastWS) global.broadcastWS("task-updated", next)
 })
 
 app.post('/api/intake/projects/:id/generate-scope', async (req, res) => {
@@ -983,6 +1001,8 @@ app.post('/api/intake/projects/:id/generate-scope', async (req, res) => {
   intakeProjects = [...intakeProjects.slice(0, idx), next, ...intakeProjects.slice(idx + 1)]
   intakeProjectsSaver.trigger()
   res.json(next)
+  // Broadcast task update
+  if (global.broadcastWS) global.broadcastWS("task-updated", next)
 })
 
 app.get('/api/intake/projects/:id/export.md', async (req, res) => {
@@ -1022,6 +1042,8 @@ app.put('/api/pm/projects/:id', async (req, res) => {
     const next = await updatePmProject(PM_PROJECTS_DIR, req.params.id, req.body ?? {})
     if (!next) return res.status(404).send('project not found')
     res.json(next)
+  // Broadcast task update
+  if (global.broadcastWS) global.broadcastWS("task-updated", next)
   } catch (err) {
     res.status(400).send(err?.message ?? 'invalid request')
   }
@@ -1087,6 +1109,8 @@ app.put('/api/pm/projects/:id/tree/nodes/:nodeId', async (req, res) => {
     const next = await upsertTreeNode(PM_PROJECTS_DIR, req.params.id, req.params.nodeId, req.body ?? {})
     if (!next) return res.status(404).send('node not found')
     res.json(next)
+  // Broadcast task update
+  if (global.broadcastWS) global.broadcastWS("task-updated", next)
   } catch (err) {
     res.status(400).send(err?.message ?? 'invalid request')
   }
@@ -1161,6 +1185,8 @@ app.put('/api/pm/projects/:id/intake', async (req, res) => {
     const next = await replaceIntake(PM_PROJECTS_DIR, req.params.id, req.body ?? {})
     if (!next) return res.status(404).send('project not found')
     res.json(next)
+  // Broadcast task update
+  if (global.broadcastWS) global.broadcastWS("task-updated", next)
   } catch (err) {
     res.status(400).send(err?.message ?? 'invalid request')
   }
@@ -1441,6 +1467,8 @@ app.post('/api/agents/:id/heartbeat', async (req, res) => {
     }
     
     res.json({ success: true, agent })
+    // Broadcast agent update
+    if (global.broadcastWS) global.broadcastWS("agent-updated", agent)
   } catch (err) {
     res.status(500).json({ error: err?.message ?? 'heartbeat failed' })
   }
@@ -2502,7 +2530,43 @@ process.on('SIGTERM', async () => {
   process.exit(0)
 })
 
-app.listen(PORT, '0.0.0.0', () => {
+// Create HTTP server for WebSocket upgrade
+const server = http.createServer(app)
+
+// WebSocket server for real-time updates
+const wss = new WebSocketServer({ server, path: '/ws' })
+
+const wsClients = new Set()
+
+wss.on('connection', (ws) => {
+  console.log('[WebSocket] Client connected')
+  wsClients.add(ws)
+
+  ws.on('close', () => {
+    console.log('[WebSocket] Client disconnected')
+    wsClients.delete(ws)
+  })
+
+  ws.on('error', (error) => {
+    console.error('[WebSocket] Error:', error)
+    wsClients.delete(ws)
+  })
+
+  // Send initial connection confirmation
+  ws.send(JSON.stringify({ type: 'connected', timestamp: new Date().toISOString() }))
+})
+
+// Broadcast helper
+global.broadcastWS = (type, data) => {
+  const message = JSON.stringify({ type, data, timestamp: new Date().toISOString() })
+  wsClients.forEach((client) => {
+    if (client.readyState === 1) { // WebSocket.OPEN
+      client.send(message)
+    }
+  })
+}
+
+server.listen(PORT, '0.0.0.0', () => {
   pushActivity({
     id: newId('bridge'),
     at: new Date().toISOString(),
@@ -2511,4 +2575,5 @@ app.listen(PORT, '0.0.0.0', () => {
     message: `bridge started on :${PORT}`,
   })
   logger.info(`Operator Hub bridge listening on http://0.0.0.0:${PORT}`)
+  logger.info(`WebSocket server ready on ws://0.0.0.0:${PORT}/ws`)
 })
