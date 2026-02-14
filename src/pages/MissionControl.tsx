@@ -6,7 +6,10 @@ import { usePoll } from '../lib/usePoll'
 import { useWebSocket } from '../lib/useWebSocket'
 import { Badge } from '../components/Badge'
 import { TaskModal } from '../components/TaskModal'
+import { LaneOverflowModal } from '../components/LaneOverflowModal'
 import type { ActivityEvent, BoardLane, LiveSnapshot, Priority, SystemStatus, Task, WorkerHeartbeat } from '../types'
+
+const MAX_TASKS_PER_LANE = 7
 
 type HomeTask = {
   id: string
@@ -125,6 +128,7 @@ export function MissionControl({
 
   const [openTask, setOpenTask] = useState<Task | null>(null)
   const [creating, setCreating] = useState(false)
+  const [overflowLane, setOverflowLane] = useState<{ lane: BoardLane; tasks: Task[] } | null>(null)
 
   // WebSocket for real-time updates - TEMPORARILY DISABLED due to connection storm
   // TODO: Re-enable after fixing reconnect logic
@@ -361,13 +365,17 @@ export function MissionControl({
         <div className="home-board single-row">
           {boardColumns.map((lane) => {
             const laneTasks = tasks.filter((t) => t.lane === lane.key)
+            const visibleTasks = laneTasks.slice(0, MAX_TASKS_PER_LANE)
+            const overflowCount = laneTasks.length - MAX_TASKS_PER_LANE
+            const hasOverflow = overflowCount > 0
+
             return (
               <div className="lane-group" key={lane.key}>
                 <div className="home-lane-heading">{lane.title}</div>
                 <div className="home-lane narrow">
                   <div className="stack">
                     {laneTasks.length === 0 && <div className="home-task empty">No tasks</div>}
-                    {laneTasks.map((task) => {
+                    {visibleTasks.map((task) => {
                       const canOpen = !!task.details
                       const inner = (
                         <>
@@ -395,6 +403,29 @@ export function MissionControl({
                         </div>
                       )
                     })}
+                    {hasOverflow && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        className="home-task clickable"
+                        onClick={() => setOverflowLane({ lane: lane.key, tasks: laneTasks })}
+                        title={`View all ${laneTasks.length} tasks`}
+                        style={{
+                          borderStyle: 'dashed',
+                          opacity: 0.7,
+                          fontWeight: 600,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          minHeight: '60px'
+                        }}
+                      >
+                        <div style={{ textAlign: 'center' }}>
+                          <div style={{ fontSize: '1.2rem' }}>+{overflowCount}</div>
+                          <div style={{ fontSize: '0.75rem', opacity: 0.8 }}>more tasks</div>
+                        </div>
+                      </Button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -439,6 +470,15 @@ export function MissionControl({
           task={openTask}
           onClose={() => setOpenTask(null)}
           onSaved={(t) => setOpenTask(t)}
+        />
+      )}
+
+      {overflowLane && (
+        <LaneOverflowModal
+          lane={overflowLane.lane}
+          tasks={overflowLane.tasks}
+          onTaskClick={(task) => setOpenTask(task)}
+          onClose={() => setOverflowLane(null)}
         />
       )}
     </main>
