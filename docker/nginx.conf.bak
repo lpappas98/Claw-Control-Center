@@ -2,8 +2,9 @@ server {
     listen 3000;
     server_name _;
     
-    # Proxy to bridge service
-    set $upstream "http://172.18.0.2:8787";
+    # Enable DNS resolver for dynamic service discovery
+    resolver 127.0.0.11 valid=10s;
+    set $upstream "http://host.docker.internal:8787";
 
     root /usr/share/nginx/html;
     index index.html;
