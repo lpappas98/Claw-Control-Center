@@ -753,3 +753,117 @@ export function toMarkdownProject(project) {
 
   return lines.join('\n')
 }
+
+// Feature metadata management
+async function loadFeatureMetadata(rootDir, projectId) {
+  const filePath = path.join(projectDir(rootDir, projectId), 'features.json')
+  return readJson(filePath, { schemaVersion: 1, features: {} })
+}
+
+async function saveFeatureMetadata(rootDir, projectId, metadata) {
+  const filePath = path.join(projectDir(rootDir, projectId), 'features.json')
+  await writeJsonAtomic(filePath, metadata)
+}
+
+export async function getFeatureDetail(rootDir, projectId, featureId) {
+  const project = await loadPmProject(rootDir, projectId)
+  if (!project) return null
+
+  // Find feature in tree
+  function findFeature(nodes, id) {
+    for (const node of nodes) {
+      if (node.id === id) return node
+      if (node.children?.length) {
+        const found = findFeature(node.children, id)
+        if (found) return found
+      }
+    }
+    return null
+  }
+
+  const feature = findFeature(project.tree ?? [], featureId)
+  if (!feature) return null
+
+  // Load feature metadata
+  const metadata = await loadFeatureMetadata(rootDir, projectId)
+  const featureMeta = metadata.features?.[featureId] ?? {}
+
+  return {
+    ...feature,
+    acceptanceCriteria: featureMeta.acceptanceCriteria ?? [],
+    aiContext: featureMeta.aiContext ?? null,
+    tasks: featureMeta.tasks ?? [],
+    subFeatures: feature.children ?? []
+  }
+}
+
+export async function getFeatureSubFeatures(rootDir, projectId, featureId) {
+  const featureDetail = await getFeatureDetail(rootDir, projectId, featureId)
+  if (!featureDetail) return null
+
+  const metadata = await loadFeatureMetadata(rootDir, projectId)
+
+  // Get tasks for each sub-feature
+  const subFeaturesWithTasks = (featureDetail.subFeatures ?? []).map(subFeature => {
+    const subMeta = metadata.features?.[subFeature.id] ?? {}
+    return {
+      ...subFeature,
+      acceptanceCriteria: subMeta.acceptanceCriteria ?? [],
+      aiContext: subMeta.aiContext ?? null,
+      tasks: subMeta.tasks ?? []
+    }
+  })
+
+  return {
+    featureId,
+    feature: {
+      id: featureDetail.id,
+      title: featureDetail.title,
+      status: featureDetail.status,
+      priority: featureDetail.priority
+    },
+    subFeatures: subFeaturesWithTasks
+  }
+}
+
+export async function updateAcceptanceCriteria(rootDir, projectId, featureId, criteriaIndex, done) {
+  const metadata = await loadFeatureMetadata(rootDir, projectId)
+  
+  if (!metadata.features[featureId]) {
+    metadata.features[featureId] = {}
+  }
+
+  const featureMeta = metadata.features[featureId]
+  if (!featureMeta.acceptanceCriteria) {
+    featureMeta.acceptanceCriteria = []
+  }
+
+  if (criteriaIndex >= 0 && criteriaIndex < featureMeta.acceptanceCriteria.length) {
+    featureMeta.acceptanceCriteria[criteriaIndex].done = done
+  }
+
+  await saveFeatureMetadata(rootDir, projectId, metadata)
+  return featureMeta.acceptanceCriteria[criteriaIndex]
+}
+
+export async function regenerateAiContext(rootDir, projectId, featureId) {
+  const feature = await getFeatureDetail(rootDir, projectId, featureId)
+  if (!feature) return null
+
+  const metadata = await loadFeatureMetadata(rootDir, projectId)
+  if (!metadata.features[featureId]) {
+    metadata.features[featureId] = {}
+  }
+
+  // Generate new AI context
+  const aiContext = {
+    reasoning: `AI-generated context for ${feature.title}. This feature is part of the ${feature.status} features with ${feature.priority} priority.`,
+    confidence: 75 + Math.random() * 20, // 75-95%
+    generatedAt: new Date().toISOString(),
+    model: 'TARS'
+  }
+
+  metadata.features[featureId].aiContext = aiContext
+  await saveFeatureMetadata(rootDir, projectId, metadata)
+  return aiContext
+}

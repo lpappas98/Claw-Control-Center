@@ -46,7 +46,7 @@
   {
     "id": "task-6049e6e5c7c88-1771070520750",
     "title": "Implement Projects overview page with sidebar, features grid, and activity",
-    "lane": "queued",
+    "lane": "development",
     "priority": "P0",
     "owner": "dev-1",
     "problem": "Projects page needs redesign from file_120: sidebar project list, tabbed interface (Overview/Tree/Kanban), project header with stats, features grid, description editor, quick links, activity feed",
@@ -69,8 +69,14 @@
       "Screenshot matches file_120 design"
     ],
     "createdAt": "2026-02-14T12:02:00.750Z",
-    "updatedAt": "2026-02-14T12:02:00.750Z",
+    "updatedAt": "2026-02-14T12:08:23.869Z",
     "statusHistory": [
+      {
+        "at": "2026-02-14T12:08:23.869Z",
+        "from": "queued",
+        "to": "development",
+        "note": "updated"
+      },
       {
         "at": "2026-02-14T12:02:00.750Z",
         "to": "queued",

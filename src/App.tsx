@@ -1,7 +1,10 @@
 import { useMemo, useState } from 'react'
+import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom'
 import './App.css'
 import { MissionControl } from './pages/MissionControl'
 import { Projects } from './pages/Projects'
+import { ProjectsPage } from './pages/ProjectsPage'
+import { FeatureDetailPage } from './pages/FeatureDetailPage'
 import { Activity } from './pages/Activity'
 import { Config } from './pages/Config'
 import { KanbanPage } from './pages/KanbanPage'
@@ -34,12 +37,21 @@ function saveNavTab(tab: NavTab) {
   }
 }
 
-export default function App() {
+function AppContent() {
   const [tab, setTab] = useState<NavTab>(() => loadNavTab())
   const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null)
+  const navigate = useNavigate()
 
   const cfg = useMemo(() => loadAdapterConfig(), [])
   const adapter = useMemo(() => toAdapter(cfg), [cfg])
+
+  const handleNavTab = (t: NavTab) => {
+    setTab(t)
+    saveNavTab(t)
+    if (t === 'Projects') {
+      navigate('/projects')
+    }
+  }
 
   return (
     <div className="app-shell">
@@ -54,10 +66,7 @@ export default function App() {
             <button
               className={`tab ${t === tab ? 'active' : ''}`}
               key={t}
-              onClick={() => {
-                setTab(t)
-                saveNavTab(t)
-              }}
+              onClick={() => handleNavTab(t)}
               type="button"
             >
               {t}
@@ -66,28 +75,48 @@ export default function App() {
         </nav>
       </header>
 
-      {tab === 'Mission Control' && <MissionControl adapter={adapter} />}
-      {tab === 'Projects' && <Projects adapter={adapter} />}
-      {tab === 'Activity' && <Activity adapter={adapter} />}
-      {tab === 'Kanban' && <KanbanPage selectedAgentId={selectedAgentId} />}
-      {tab === 'Recurring' && <RecurringTasksPage />}
-      {tab === 'Integrations' && <IntegrationsPage />}
-      {tab === 'System Status' && <SystemStatusPage />}
-      {tab === 'Config' && <Config adapter={adapter} />}
-      {tab === 'Docs' && (
-        <main className="main-grid">
-          <section className="panel span-4">
-            <h2>Docs</h2>
-            <p className="muted">
-              Run the optional local bridge for live status + controls.
-            </p>
-            <pre className="code">
-              {`# terminal 1\ncd ~/.openclaw/workspace/projects/tars-operator-hub\nnpm run bridge\n\n# terminal 2\ncd ~/.openclaw/workspace/projects/tars-operator-hub\nnpm run dev\n`}
-            </pre>
-            <p className="muted">Bridge defaults to http://localhost:8787</p>
-          </section>
-        </main>
-      )}
+      <Routes>
+        <Route path="/projects/:projectId/features/:featureId" element={<FeatureDetailPage />} />
+        <Route path="/projects/:projectId" element={<ProjectsPage />} />
+        <Route path="/projects" element={<ProjectsPage />} />
+        <Route
+          path="/"
+          element={
+            <>
+              {tab === 'Mission Control' && <MissionControl adapter={adapter} />}
+              {tab === 'Projects' && <Projects adapter={adapter} />}
+              {tab === 'Activity' && <Activity adapter={adapter} />}
+              {tab === 'Kanban' && <KanbanPage selectedAgentId={selectedAgentId} />}
+              {tab === 'Recurring' && <RecurringTasksPage />}
+              {tab === 'Integrations' && <IntegrationsPage />}
+              {tab === 'System Status' && <SystemStatusPage />}
+              {tab === 'Config' && <Config adapter={adapter} />}
+              {tab === 'Docs' && (
+                <main className="main-grid">
+                  <section className="panel span-4">
+                    <h2>Docs</h2>
+                    <p className="muted">
+                      Run the optional local bridge for live status + controls.
+                    </p>
+                    <pre className="code">
+                      {`# terminal 1\ncd ~/.openclaw/workspace/projects/tars-operator-hub\nnpm run bridge\n\n# terminal 2\ncd ~/.openclaw/workspace/projects/tars-operator-hub\nnpm run dev\n`}
+                    </pre>
+                    <p className="muted">Bridge defaults to http://localhost:8787</p>
+                  </section>
+                </main>
+              )}
+            </>
+          }
+        />
+      </Routes>
     </div>
+  )
+}
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <AppContent />
+    </BrowserRouter>
   )
 }
