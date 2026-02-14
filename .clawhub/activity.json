@@ -1,5 +1,181 @@
 [
   {
+    "id": "task-started-e0f30fe792b77-1771104299996",
+    "at": "2026-02-14T21:24:59.994Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: P0 Epic: Projects backend (bridge persistence + APIs) → Blueprint",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "P0 Epic: Projects backend (bridge persistence + APIs)",
+      "workerSlot": "architect",
+      "worker": "Blueprint",
+      "startedAt": "2026-02-14T21:24:59.994Z"
+    }
+  },
+  {
+    "id": "task-created-95c093abd3b25-1771104299996",
+    "at": "2026-02-14T21:24:59.994Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: P0 Epic: Projects backend (bridge persistence + APIs)",
+    "meta": {
+      "eventType": "task.created",
+      "task": "P0 Epic: Projects backend (bridge persistence + APIs)",
+      "workerSlot": "architect",
+      "worker": "Blueprint"
+    }
+  },
+  {
+    "id": "task-started-86face4b568da-1771104299996",
+    "at": "2026-02-14T21:24:59.994Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Redesign LaneOverflowModal with search, sort, and priority summary → Patch",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Redesign LaneOverflowModal with search, sort, and priority summary",
+      "workerSlot": "dev-2",
+      "worker": "Patch",
+      "startedAt": "2026-02-14T21:24:59.994Z"
+    }
+  },
+  {
+    "id": "task-created-c6d3a4fda6cd9-1771104299996",
+    "at": "2026-02-14T21:24:59.994Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: Redesign LaneOverflowModal with search, sort, and priority summary",
+    "meta": {
+      "eventType": "task.created",
+      "task": "Redesign LaneOverflowModal with search, sort, and priority summary",
+      "workerSlot": "dev-2",
+      "worker": "Patch"
+    }
+  },
+  {
+    "id": "task-started-65827dfa42e64-1771104299996",
+    "at": "2026-02-14T21:24:59.994Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Implement redesigned TaskModal component following UI/UX guide → Forge",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Implement redesigned TaskModal component following UI/UX guide",
+      "workerSlot": "dev-1",
+      "worker": "Forge",
+      "startedAt": "2026-02-14T21:24:59.994Z"
+    }
+  },
+  {
+    "id": "task-created-dd82e3d099ad4-1771104299996",
+    "at": "2026-02-14T21:24:59.994Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: Implement redesigned TaskModal component following UI/UX guide",
+    "meta": {
+      "eventType": "task.created",
+      "task": "Implement redesigned TaskModal component following UI/UX guide",
+      "workerSlot": "dev-1",
+      "worker": "Forge"
+    }
+  },
+  {
+    "id": "bridge-4521a16d151e4-1771104296116",
+    "at": "2026-02-14T21:24:56.116Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "task-started-2c56734df45bf-1771103969670",
+    "at": "2026-02-14T21:19:28.357Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: P0 Epic: Projects backend (bridge persistence + APIs) → Blueprint",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "P0 Epic: Projects backend (bridge persistence + APIs)",
+      "workerSlot": "architect",
+      "worker": "Blueprint",
+      "startedAt": "2026-02-14T21:19:28.357Z"
+    }
+  },
+  {
+    "id": "task-created-24c6f2787279e-1771103969670",
+    "at": "2026-02-14T21:19:28.357Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: P0 Epic: Projects backend (bridge persistence + APIs)",
+    "meta": {
+      "eventType": "task.created",
+      "task": "P0 Epic: Projects backend (bridge persistence + APIs)",
+      "workerSlot": "architect",
+      "worker": "Blueprint"
+    }
+  },
+  {
+    "id": "task-started-ae6ae991d745d-1771103969670",
+    "at": "2026-02-14T21:19:28.357Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Redesign LaneOverflowModal with search, sort, and priority summary → Patch",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Redesign LaneOverflowModal with search, sort, and priority summary",
+      "workerSlot": "dev-2",
+      "worker": "Patch",
+      "startedAt": "2026-02-14T21:19:28.357Z"
+    }
+  },
+  {
+    "id": "task-created-b6952b482bc09-1771103969670",
+    "at": "2026-02-14T21:19:28.357Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: Redesign LaneOverflowModal with search, sort, and priority summary",
+    "meta": {
+      "eventType": "task.created",
+      "task": "Redesign LaneOverflowModal with search, sort, and priority summary",
+      "workerSlot": "dev-2",
+      "worker": "Patch"
+    }
+  },
+  {
+    "id": "task-started-d014535bb870d-1771103969670",
+    "at": "2026-02-14T21:19:28.357Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Implement redesigned TaskModal component following UI/UX guide → Forge",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Implement redesigned TaskModal component following UI/UX guide",
+      "workerSlot": "dev-1",
+      "worker": "Forge",
+      "startedAt": "2026-02-14T21:19:28.357Z"
+    }
+  },
+  {
+    "id": "task-created-c294912f20a4e-1771103969670",
+    "at": "2026-02-14T21:19:28.357Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: Implement redesigned TaskModal component following UI/UX guide",
+    "meta": {
+      "eventType": "task.created",
+      "task": "Implement redesigned TaskModal component following UI/UX guide",
+      "workerSlot": "dev-1",
+      "worker": "Forge"
+    }
+  },
+  {
+    "id": "bridge-bf5cc4ca4be88-1771103966981",
+    "at": "2026-02-14T21:19:26.981Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
     "id": "bridge-3e860d061636a-1771071203029",
     "at": "2026-02-14T12:13:23.029Z",
     "level": "info",
@@ -5349,182 +5525,6 @@
       "task": "Orchestrating Operator Hub delivery",
       "workerSlot": "pm",
       "worker": "TARS"
-    }
-  },
-  {
-    "id": "bridge-fb4e69e9f95cf-1770788998758",
-    "at": "2026-02-11T05:49:58.758Z",
-    "level": "info",
-    "source": "operator-hub",
-    "message": "bridge started on :8787"
-  },
-  {
-    "id": "task-started-bbb7e3b36ebc7-1770788952809",
-    "at": "2026-02-11T05:49:11.646Z",
-    "level": "info",
-    "source": "tasks",
-    "message": "task assigned: Polishing layout, spacing, and status clarity → Patch",
-    "meta": {
-      "eventType": "task.assigned",
-      "task": "Polishing layout, spacing, and status clarity",
-      "workerSlot": "dev-2",
-      "worker": "Patch",
-      "startedAt": "2026-02-11T05:49:11.646Z"
-    }
-  },
-  {
-    "id": "task-created-721dfba1e56bf-1770788952809",
-    "at": "2026-02-11T05:49:11.646Z",
-    "level": "info",
-    "source": "tasks",
-    "message": "task created: Polishing layout, spacing, and status clarity",
-    "meta": {
-      "eventType": "task.created",
-      "task": "Polishing layout, spacing, and status clarity",
-      "workerSlot": "dev-2",
-      "worker": "Patch"
-    }
-  },
-  {
-    "id": "task-started-101d7736b16ca-1770788952809",
-    "at": "2026-02-11T05:49:11.646Z",
-    "level": "info",
-    "source": "tasks",
-    "message": "task assigned: Implementing Home board and agent UX → Forge",
-    "meta": {
-      "eventType": "task.assigned",
-      "task": "Implementing Home board and agent UX",
-      "workerSlot": "dev-1",
-      "worker": "Forge",
-      "startedAt": "2026-02-11T05:49:11.646Z"
-    }
-  },
-  {
-    "id": "task-created-b2f2681be6f5e-1770788952809",
-    "at": "2026-02-11T05:49:11.646Z",
-    "level": "info",
-    "source": "tasks",
-    "message": "task created: Implementing Home board and agent UX",
-    "meta": {
-      "eventType": "task.created",
-      "task": "Implementing Home board and agent UX",
-      "workerSlot": "dev-1",
-      "worker": "Forge"
-    }
-  },
-  {
-    "id": "task-started-39b7ecf3a9b04-1770788952809",
-    "at": "2026-02-11T05:49:11.646Z",
-    "level": "info",
-    "source": "tasks",
-    "message": "task assigned: Preparing hub verification checks → Sentinel",
-    "meta": {
-      "eventType": "task.assigned",
-      "task": "Preparing hub verification checks",
-      "workerSlot": "qa",
-      "worker": "Sentinel",
-      "startedAt": "2026-02-11T05:49:11.646Z"
-    }
-  },
-  {
-    "id": "task-created-86b6a19237c92-1770788952809",
-    "at": "2026-02-11T05:49:11.646Z",
-    "level": "info",
-    "source": "tasks",
-    "message": "task created: Preparing hub verification checks",
-    "meta": {
-      "eventType": "task.created",
-      "task": "Preparing hub verification checks",
-      "workerSlot": "qa",
-      "worker": "Sentinel"
-    }
-  },
-  {
-    "id": "task-started-c6d5b55230391-1770788952809",
-    "at": "2026-02-11T05:49:11.646Z",
-    "level": "info",
-    "source": "tasks",
-    "message": "task assigned: Designing permanent agent runtime model → Blueprint",
-    "meta": {
-      "eventType": "task.assigned",
-      "task": "Designing permanent agent runtime model",
-      "workerSlot": "architect",
-      "worker": "Blueprint",
-      "startedAt": "2026-02-11T05:49:11.646Z"
-    }
-  },
-  {
-    "id": "task-created-8978d7b0dd9f9-1770788952809",
-    "at": "2026-02-11T05:49:11.646Z",
-    "level": "info",
-    "source": "tasks",
-    "message": "task created: Designing permanent agent runtime model",
-    "meta": {
-      "eventType": "task.created",
-      "task": "Designing permanent agent runtime model",
-      "workerSlot": "architect",
-      "worker": "Blueprint"
-    }
-  },
-  {
-    "id": "task-started-e6b549ac79ff7-1770788952809",
-    "at": "2026-02-11T05:49:11.646Z",
-    "level": "info",
-    "source": "tasks",
-    "message": "task assigned: Orchestrating Operator Hub delivery → TARS",
-    "meta": {
-      "eventType": "task.assigned",
-      "task": "Orchestrating Operator Hub delivery",
-      "workerSlot": "pm",
-      "worker": "TARS",
-      "startedAt": "2026-02-11T05:49:11.646Z"
-    }
-  },
-  {
-    "id": "task-created-b7a37967020e6-1770788952809",
-    "at": "2026-02-11T05:49:11.646Z",
-    "level": "info",
-    "source": "tasks",
-    "message": "task created: Orchestrating Operator Hub delivery",
-    "meta": {
-      "eventType": "task.created",
-      "task": "Orchestrating Operator Hub delivery",
-      "workerSlot": "pm",
-      "worker": "TARS"
-    }
-  },
-  {
-    "id": "bridge-872ad71ce4262-1770788951381",
-    "at": "2026-02-11T05:49:11.381Z",
-    "level": "info",
-    "source": "operator-hub",
-    "message": "bridge started on :8787"
-  },
-  {
-    "id": "task-started-a262ed5abb94c-1770780114106",
-    "at": "2026-02-11T03:21:52.922Z",
-    "level": "info",
-    "source": "tasks",
-    "message": "task assigned: Polishing layout, spacing, and status clarity → Patch",
-    "meta": {
-      "eventType": "task.assigned",
-      "task": "Polishing layout, spacing, and status clarity",
-      "workerSlot": "dev-2",
-      "worker": "Patch",
-      "startedAt": "2026-02-11T03:21:52.922Z"
-    }
-  },
-  {
-    "id": "task-created-00c02fbf5e25d-1770780114106",
-    "at": "2026-02-11T03:21:52.922Z",
-    "level": "info",
-    "source": "tasks",
-    "message": "task created: Polishing layout, spacing, and status clarity",
-    "meta": {
-      "eventType": "task.created",
-      "task": "Polishing layout, spacing, and status clarity",
-      "workerSlot": "dev-2",
-      "worker": "Patch"
     }
   }
 ]

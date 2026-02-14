@@ -1,0 +1,23 @@
+[
+  {
+    "id": "tars",
+    "name": "TARS",
+    "role": "PM",
+    "status": "online",
+    "lastHeartbeat": 1707938663784
+  },
+  {
+    "id": "dev-1",
+    "name": "Forge",
+    "role": "Frontend Dev",
+    "status": "online",
+    "lastHeartbeat": 1707938663784
+  },
+  {
+    "id": "dev-2",
+    "name": "Patch",
+    "role": "Frontend Dev",
+    "status": "online",
+    "lastHeartbeat": 1707938663784
+  }
+]

@@ -52,7 +52,7 @@
   {
     "id": "task-6049e6e5c7c88-1771070520750",
     "title": "Implement Projects overview page with sidebar, features grid, and activity",
-    "lane": "review",
+    "lane": "done",
     "priority": "P0",
     "owner": "dev-1",
     "problem": "Projects page needs redesign from file_120: sidebar project list, tabbed interface (Overview/Tree/Kanban), project header with stats, features grid, description editor, quick links, activity feed",
@@ -75,8 +75,14 @@
       "Screenshot matches file_120 design"
     ],
     "createdAt": "2026-02-14T12:02:00.750Z",
-    "updatedAt": "2026-02-14T12:10:50.534Z",
+    "updatedAt": "2026-02-14T21:48:00.825Z",
     "statusHistory": [
+      {
+        "at": "2026-02-14T21:48:00.825Z",
+        "from": "review",
+        "to": "done",
+        "note": "updated"
+      },
       {
         "at": "2026-02-14T12:10:50.534Z",
         "from": "development",
@@ -273,9 +279,9 @@
   {
     "id": "task-454d2a9718497-1771056177712",
     "title": "Add idle/working status distinction for agents in UI",
-    "lane": "queued",
+    "lane": "done",
     "priority": "P1",
-    "owner": "dev-2",
+    "owner": "qa",
     "problem": "Agents show as online even when idle. No way to tell if an agent is actively working on a task vs just heartbeating",
     "scope": "Update agent status to show idle (no active task) vs working (has active task). Update heartbeat script to track current task, update bridge API response, update MissionControl UI to display status appropriately",
     "acceptanceCriteria": [
@@ -289,8 +295,20 @@
       "Test: complete task, verify status changes back to idle"
     ],
     "createdAt": "2026-02-14T08:02:57.712Z",
-    "updatedAt": "2026-02-14T12:05:05.839Z",
+    "updatedAt": "2026-02-14T21:40:07.226Z",
     "statusHistory": [
+      {
+        "at": "2026-02-14T21:40:07.226Z",
+        "from": "review",
+        "to": "done",
+        "note": "updated"
+      },
+      {
+        "at": "2026-02-14T21:22:57.127Z",
+        "from": "queued",
+        "to": "review",
+        "note": "updated"
+      },
       {
         "at": "2026-02-14T12:05:05.839Z",
         "from": "blocked",
@@ -2484,7 +2502,7 @@
   {
     "id": "task-76a9365ab1a17-1770789344740",
     "title": "P1 QA script: Projects E2E in Bridge mode",
-    "lane": "review",
+    "lane": "done",
     "priority": "P1",
     "owner": "qa",
     "problem": "Verify flows don't regress",
@@ -2495,8 +2513,14 @@
       "Tree/kanban mutations persist"
     ],
     "createdAt": "2026-02-11T05:55:44.740Z",
-    "updatedAt": "2026-02-11T08:26:52.472Z",
+    "updatedAt": "2026-02-14T21:37:19.226Z",
     "statusHistory": [
+      {
+        "at": "2026-02-14T21:37:19.226Z",
+        "from": "review",
+        "to": "done",
+        "note": "updated"
+      },
       {
         "at": "2026-02-11T08:26:52.472Z",
         "from": "development",

@@ -74,13 +74,6 @@ function unknownSystemStatus(now: string): SystemStatus {
   }
 }
 
-function taskLaneFromWorker(w: WorkerHeartbeat): BoardLane {
-  if (w.status === 'active') return 'development'
-  if (w.status === 'waiting') return 'queued'
-  if (w.status === 'stale') return 'blocked'
-  return 'queued'
-}
-
 function activityActor(e: ActivityEvent): string | null {
   const meta = e.meta ?? {}
   const slot = typeof meta.slot === 'string' ? meta.slot : typeof meta.workerSlot === 'string' ? meta.workerSlot : null
@@ -204,58 +197,21 @@ export function MissionControl({
 
   const tasks = useMemo<HomeTask[]>(() => {
     const persistedTasks = persisted.data ?? []
-    const byTitle = new Map(persistedTasks.map((t) => [String(t.title ?? '').trim(), t]))
-
-    const usedPersistedIds = new Set<string>()
-
-    const workerTasks: HomeTask[] = (live.data?.workers ?? [])
-      .filter((w) => !!w.task)
-      .map((w, idx) => {
-        const profile = agentProfile(w.slot, w.label)
-        const title = w.task ?? 'Untitled task'
-        const matched = byTitle.get(String(title).trim())
-        if (matched) usedPersistedIds.add(matched.id)
-        return {
-          id: matched?.id ?? `${w.slot}-${idx}`,
-          title: matched?.title ?? title,
-          priority: matched?.priority ?? inferPriority(title),
-          lane: matched?.lane ?? taskLaneFromWorker(w),
-          tag: matched?.tag,
-          agent: profile.name,
-          agentEmoji: profile.emoji,
-          details: matched,
-          detailsMatch: matched ? 'title' : undefined,
-        }
-      })
-
-    const seededTasks: HomeTask[] = persistedTasks
-      .filter((t) => !usedPersistedIds.has(t.id))
-      .map((t) => {
-        const lane: BoardLane = t.lane
-        return {
-          id: t.id,
-          title: t.title,
-          priority: t.priority,
-          lane,
-          tag: t.tag,
-          details: t,
-          detailsMatch: 'id',
-        }
-      })
-
-    const blockerTasks: HomeTask[] = (live.data?.blockers ?? []).map((b) => ({
-      id: `blocker-${b.id}`,
-      title: b.title,
-      priority: inferPriority(b.title),
-      lane: 'blocked',
+    
+    // Simple: just map persisted tasks to HomeTask format
+    // Use task.lane directly - no inference, no worker merging
+    const allTasks: HomeTask[] = persistedTasks.map((t) => ({
+      id: t.id,
+      title: t.title,
+      priority: t.priority,
+      lane: t.lane as BoardLane,
+      tag: t.tag,
+      details: t,
+      detailsMatch: 'id',
     }))
 
-    // Prefer showing live worker cards first, then seeded queued/proposed cards, then blockers.
-    // (Blockers are also shown in their own row.)
-    const merged = [...workerTasks, ...seededTasks, ...blockerTasks]
-
-    return merged
-  }, [live.data?.workers, live.data?.blockers, persisted.data])
+    return allTasks
+  }, [persisted.data])
 
   const boardColumns: Array<{ key: BoardLane; title: string }> = [
     { key: 'proposed', title: 'Proposed' },
