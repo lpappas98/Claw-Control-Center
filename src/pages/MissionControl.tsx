@@ -123,20 +123,21 @@ export function MissionControl({
   const [openTask, setOpenTask] = useState<Task | null>(null)
   const [creating, setCreating] = useState(false)
 
-  // WebSocket for real-time updates
-  const wsUrl = `ws://${window.location.hostname}:8787/ws`
-  useWebSocket({
-    url: wsUrl,
-    onMessage: (msg) => {
-      if (msg.type === 'task-updated' || msg.type === 'task-created') {
-        persisted.refetch()
-      }
-      if (msg.type === 'agent-updated') {
-        live.refetch()
-      }
-    },
-    enabled: true
-  })
+  // WebSocket for real-time updates - TEMPORARILY DISABLED due to connection storm
+  // TODO: Re-enable after fixing reconnect logic
+  // const wsUrl = `ws://${window.location.hostname}:8787/ws`
+  // useWebSocket({
+  //   url: wsUrl,
+  //   onMessage: (msg) => {
+  //     if (msg.type === 'task-updated' || msg.type === 'task-created') {
+  //       persisted.refetch()
+  //     }
+  //     if (msg.type === 'agent-updated') {
+  //       live.refetch()
+  //     }
+  //   },
+  //   enabled: false
+  // })
 
   useEffect(() => {
     if (!openTask) return
