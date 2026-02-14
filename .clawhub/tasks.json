@@ -1,8 +1,70 @@
 [
   {
+    "id": "task-7ae9da0edfafd-1771061641254",
+    "title": "Heartbeat Test - Verify dev-2 Pickup",
+    "lane": "done",
+    "priority": "P0",
+    "owner": "dev-2",
+    "problem": "Verify agents can query tasks using lane=queued&owner={id} parameters",
+    "scope": "Create test task and verify dev-2 agent picks it up within 30 seconds",
+    "acceptanceCriteria": [
+      "Task created in queued lane",
+      "dev-2 agent claims task within 30 seconds"
+    ],
+    "createdAt": "2026-02-14T09:34:01.254Z",
+    "updatedAt": "2026-02-14T09:45:00.236Z",
+    "statusHistory": [
+      {
+        "at": "2026-02-14T09:45:00.236Z",
+        "from": "development",
+        "to": "done",
+        "note": "updated"
+      },
+      {
+        "at": "2026-02-14T09:44:57.353Z",
+        "from": "queued",
+        "to": "development",
+        "note": "updated"
+      },
+      {
+        "at": "2026-02-14T09:34:01.254Z",
+        "to": "queued",
+        "note": "created"
+      }
+    ]
+  },
+  {
+    "id": "task-1c8c72a058663-1771061600632",
+    "title": "Agent Heartbeat Test - Query Parameter Verification",
+    "lane": "development",
+    "priority": "P0",
+    "owner": "dev-2",
+    "problem": "Verify that agents can correctly query tasks using lane=queued&owner={id} parameters",
+    "scope": "Create a test task and verify dev-2 agent picks it up within 30 seconds",
+    "acceptanceCriteria": [
+      "Task is created in queued lane",
+      "dev-2 agent claims task within 30 seconds"
+    ],
+    "createdAt": "2026-02-14T09:33:20.632Z",
+    "updatedAt": "2026-02-14T09:33:55.295Z",
+    "statusHistory": [
+      {
+        "at": "2026-02-14T09:33:55.295Z",
+        "from": "queued",
+        "to": "development",
+        "note": "updated"
+      },
+      {
+        "at": "2026-02-14T09:33:20.632Z",
+        "to": "queued",
+        "note": "created"
+      }
+    ]
+  },
+  {
     "id": "task-474a86df1401e-1771057723644",
     "title": "Redesign Mission Control page with improved agent cards and task board",
-    "lane": "queued",
+    "lane": "development",
     "priority": "P0",
     "owner": "dev-2",
     "problem": "Current Mission Control layout is cluttered and hard to scan. Agent status unclear, task board cramped, no clear visual hierarchy",
@@ -21,8 +83,14 @@
       "Take screenshot showing new Mission Control layout"
     ],
     "createdAt": "2026-02-14T08:28:43.644Z",
-    "updatedAt": "2026-02-14T08:28:43.644Z",
+    "updatedAt": "2026-02-14T09:45:03.462Z",
     "statusHistory": [
+      {
+        "at": "2026-02-14T09:45:03.462Z",
+        "from": "queued",
+        "to": "development",
+        "note": "updated"
+      },
       {
         "at": "2026-02-14T08:28:43.644Z",
         "to": "queued",
@@ -73,7 +141,7 @@
   {
     "id": "task-78451384ee3db-1771056041156",
     "title": "Add UI/UX design guide to project documentation",
-    "lane": "queued",
+    "lane": "done",
     "priority": "P1",
     "owner": "architect",
     "problem": "No documented UI/UX standards for the project. Agents and contributors need clear guidelines for modal design, form layout, visual hierarchy, spacing, and shadcn/ui usage",
@@ -87,8 +155,14 @@
       "Commit to feature branch with message: Add UI/UX design guide for consistent component styling"
     ],
     "createdAt": "2026-02-14T08:00:41.156Z",
-    "updatedAt": "2026-02-14T08:00:41.156Z",
+    "updatedAt": "2026-02-14T09:33:52.562Z",
     "statusHistory": [
+      {
+        "at": "2026-02-14T09:33:52.562Z",
+        "from": "queued",
+        "to": "done",
+        "note": "updated"
+      },
       {
         "at": "2026-02-14T08:00:41.156Z",
         "to": "queued",
@@ -220,7 +294,7 @@
   {
     "id": "task-8843a6c91b716-1771055658360",
     "title": "Update agent heartbeat script to use correct task query params",
-    "lane": "queued",
+    "lane": "review",
     "priority": "P0",
     "owner": "dev-2",
     "problem": "Agent heartbeat script queries GET /api/tasks?status=assigned&assignee={id} but tasks use lane (not status) and owner (not assignee)",
@@ -234,8 +308,14 @@
       "Update AGENT_SETUP.md with correct query pattern for documentation"
     ],
     "createdAt": "2026-02-14T07:54:18.360Z",
-    "updatedAt": "2026-02-14T07:54:18.360Z",
+    "updatedAt": "2026-02-14T09:44:47.920Z",
     "statusHistory": [
+      {
+        "at": "2026-02-14T09:44:47.920Z",
+        "from": "queued",
+        "to": "review",
+        "note": "updated"
+      },
       {
         "at": "2026-02-14T07:54:18.360Z",
         "to": "queued",
@@ -278,7 +358,7 @@
   {
     "id": "task-3f51dc1ffb461-1771055568869",
     "title": "Redesign Mission Control task board for better UX (wider columns, scannable info)",
-    "lane": "queued",
+    "lane": "review",
     "priority": "P0",
     "owner": "dev-2",
     "problem": "Task board is cramped and information-poor compared to modern task UIs like Linear/Asana. All titles truncated, no useful metadata visible, \"Unassigned\" repeated everywhere as noise.",
@@ -294,8 +374,14 @@
       "Compare side-by-side with Linear.app for reference"
     ],
     "createdAt": "2026-02-14T07:52:48.869Z",
-    "updatedAt": "2026-02-14T07:52:48.869Z",
+    "updatedAt": "2026-02-14T09:21:44.261Z",
     "statusHistory": [
+      {
+        "at": "2026-02-14T09:21:39.450Z",
+        "from": "queued",
+        "to": "review",
+        "note": "updated"
+      },
       {
         "at": "2026-02-14T07:52:48.869Z",
         "to": "queued",
@@ -306,7 +392,7 @@
   {
     "id": "task-f4a73fd134c82-1771054452804",
     "title": "Document QA verification standards based on overflow fix lesson",
-    "lane": "queued",
+    "lane": "done",
     "priority": "P1",
     "owner": "qa",
     "problem": "Need to document the QA verification process learned from task overflow fix - must actually test with screenshots/browser, not just code review",
@@ -320,8 +406,14 @@
       "Document: Changed code → Compiled → Tested → Verified → Complete"
     ],
     "createdAt": "2026-02-14T07:34:12.804Z",
-    "updatedAt": "2026-02-14T07:34:12.804Z",
+    "updatedAt": "2026-02-14T09:49:01.575Z",
     "statusHistory": [
+      {
+        "at": "2026-02-14T09:49:01.575Z",
+        "from": "queued",
+        "to": "done",
+        "note": "updated"
+      },
       {
         "at": "2026-02-14T07:34:12.804Z",
         "to": "queued",
@@ -332,7 +424,7 @@
   {
     "id": "task-ee47afdffdadc-1771051493683",
     "title": "QA: Verify task overflow fix and TaskModal dark theme styling",
-    "lane": "queued",
+    "lane": "done",
     "priority": "P0",
     "owner": "qa",
     "problem": "Need to verify two UI fixes: 1) Task title overflow in Mission Control task board, 2) TaskModal dark theme styling matches rest of UI",
@@ -350,8 +442,14 @@
       "Take screenshots and report back with PASS/FAIL for each criterion"
     ],
     "createdAt": "2026-02-14T06:44:53.683Z",
-    "updatedAt": "2026-02-14T06:44:53.683Z",
+    "updatedAt": "2026-02-14T09:48:16.827Z",
     "statusHistory": [
+      {
+        "at": "2026-02-14T09:48:16.827Z",
+        "from": "queued",
+        "to": "done",
+        "note": "updated"
+      },
       {
         "at": "2026-02-14T06:44:53.683Z",
         "to": "queued",

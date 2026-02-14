@@ -1,5 +1,83 @@
 [
   {
+    "id": "bridge-4d25d107105a4-1771063056714",
+    "at": "2026-02-14T09:57:36.714Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "gateway-063216b3ad623-1771062187343",
+    "at": "2026-02-14T09:43:07.343Z",
+    "level": "warn",
+    "source": "bridge",
+    "message": "gateway: down → warn (probe ok (runtime unknown))"
+  },
+  {
+    "id": "gateway-cdd10659b3bcc-1771062174882",
+    "at": "2026-02-14T09:42:54.882Z",
+    "level": "error",
+    "source": "bridge",
+    "message": "gateway: warn → down (probe failed)"
+  },
+  {
+    "id": "gateway-92358e307f4b1-1771062106062",
+    "at": "2026-02-14T09:41:46.062Z",
+    "level": "warn",
+    "source": "bridge",
+    "message": "gateway: down → warn (probe ok (runtime unknown))"
+  },
+  {
+    "id": "gateway-733d26ac498a3-1771061868919",
+    "at": "2026-02-14T09:37:48.919Z",
+    "level": "error",
+    "source": "bridge",
+    "message": "gateway: warn → down (probe failed)"
+  },
+  {
+    "id": "task-started-f937480a20d75-1771061641286",
+    "at": "2026-02-14T09:33:59.860Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Agent Heartbeat Test - Query Parameter Verification → Patch",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Agent Heartbeat Test - Query Parameter Verification",
+      "workerSlot": "dev-2",
+      "worker": "Patch",
+      "startedAt": "2026-02-14T09:33:59.860Z"
+    }
+  },
+  {
+    "id": "task-completed-dc2eb90d9d55e-1771061641286",
+    "at": "2026-02-14T09:33:59.860Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task completed: Implement redesigned TaskModal component following UI/UX guide · Patch · took 25m 30s",
+    "meta": {
+      "eventType": "task.completed",
+      "task": "Implement redesigned TaskModal component following UI/UX guide",
+      "workerSlot": "dev-2",
+      "worker": "Patch",
+      "durationMs": 1529669,
+      "startedAt": "2026-02-14T09:08:30.191Z",
+      "completedAt": "2026-02-14T09:33:59.860Z"
+    }
+  },
+  {
+    "id": "task-created-2009e48cd8fe1-1771061641286",
+    "at": "2026-02-14T09:33:59.860Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: Agent Heartbeat Test - Query Parameter Verification",
+    "meta": {
+      "eventType": "task.created",
+      "task": "Agent Heartbeat Test - Query Parameter Verification",
+      "workerSlot": "dev-2",
+      "worker": "Patch"
+    }
+  },
+  {
     "id": "task-started-610a4181b527a-1771060111653",
     "at": "2026-02-14T09:08:30.191Z",
     "level": "info",

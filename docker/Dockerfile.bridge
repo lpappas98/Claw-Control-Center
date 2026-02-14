@@ -40,7 +40,7 @@ USER nodejs
 EXPOSE 8787
 
 # Use dumb-init to handle signals properly
-ENTRYPOINT ["/sbin/dumb-init", "--"]
+ENTRYPOINT ["/usr/bin/dumb-init", "--"]
 
 # Start the bridge server
 CMD ["node", "bridge/server.mjs"]

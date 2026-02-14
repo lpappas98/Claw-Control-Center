@@ -54,12 +54,15 @@
     "status": "online",
     "instanceId": "local",
     "tailscaleIP": "",
-    "currentTask": "Implement redesigned TaskModal component following UI/UX guide",
+    "currentTask": {
+      "id": "task-1c8c72a058663-1771061600632",
+      "title": "Agent Heartbeat Test - Query Parameter Verification"
+    },
     "activeTasks": [],
     "metadata": {},
     "createdAt": 1771047212870,
-    "updatedAt": 1771057638877,
-    "lastHeartbeat": 1771057638876
+    "updatedAt": 1771061635297,
+    "lastHeartbeat": 1771061635296
   },
   {
     "id": "qa",
