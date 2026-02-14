@@ -219,7 +219,7 @@ export function MissionControl({
           id: matched?.id ?? `${w.slot}-${idx}`,
           title: matched?.title ?? title,
           priority: matched?.priority ?? inferPriority(title),
-          lane: taskLaneFromWorker(w),
+          lane: matched?.lane ?? taskLaneFromWorker(w),
           tag: matched?.tag,
           agent: profile.name,
           agentEmoji: profile.emoji,
