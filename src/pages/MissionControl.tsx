@@ -163,7 +163,7 @@ export function MissionControl({
 
     const pinned = PINNED_SLOTS.map((def) => {
       const w = bySlot.get(def.slot)
-      const hasTask = w ? typeof w.task === 'object' && w.task !== null : undefined
+      const hasTask = w ? (w.task !== undefined && w.task !== null && w.task !== '') : undefined
       return {
         id: def.slot,
         name: def.name,
@@ -182,7 +182,7 @@ export function MissionControl({
       .filter((w) => !pinnedSet.has(w.slot))
       .map((w) => {
         const profile = agentProfile(w.slot, w.label)
-        const hasTask = typeof w.task === 'object' && w.task !== null
+        const hasTask = w.task !== undefined && w.task !== null && w.task !== ''
         return {
           id: w.slot,
           name: profile.name,
