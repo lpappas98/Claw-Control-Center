@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/Badge'
-import { ChevronRight, Plus, Settings, AlertCircle, CheckCircle2, Clock } from 'lucide-react'
+import { ChevronRight, Plus, Settings, AlertCircle } from 'lucide-react'
 
 type ProjectTab = 'Overview' | 'Tree' | 'Kanban'
 
@@ -324,7 +324,6 @@ export function ProjectsPage() {
 
   const features = useMemo(() => flattenTree(currentProject?.tree), [currentProject])
 
-  // Load projects list
   useEffect(() => {
     const loadProjects = async () => {
       try {
@@ -334,7 +333,6 @@ export function ProjectsPage() {
         const data = await res.json()
         setProjects(data)
 
-        // Select first project or project from URL
         const selected = projectId || data[0]?.id
         if (selected) {
           loadProject(selected)
@@ -349,7 +347,6 @@ export function ProjectsPage() {
     loadProjects()
   }, [])
 
-  // Load specific project
   const loadProject = async (id: string) => {
     try {
       setLoading(true)
@@ -410,7 +407,6 @@ export function ProjectsPage() {
 
   return (
     <div className="flex h-full bg-gray-50">
-      {/* Left Sidebar - Project List */}
       <div className="w-64 border-r border-gray-200 bg-white flex flex-col">
         <ProjectList
           projects={projects}
@@ -419,9 +415,7 @@ export function ProjectsPage() {
         />
       </div>
 
-      {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Header */}
         <div className="bg-white border-b border-gray-200 p-6">
           <div className="flex items-start justify-between gap-4 mb-4">
             <div>
@@ -456,7 +450,6 @@ export function ProjectsPage() {
           </div>
         </div>
 
-        {/* Tab Bar */}
         <div className="bg-white border-b border-gray-200 px-6 flex gap-1">
           {(['Overview', 'Tree', 'Kanban'] as const).map((t) => (
             <button
@@ -473,16 +466,13 @@ export function ProjectsPage() {
           ))}
         </div>
 
-        {/* Content Area - Split View */}
         <div className="flex-1 overflow-hidden flex">
-          {/* Main Content */}
           <div className="flex-1 overflow-auto p-6">
             {tab === 'Overview' && <OverviewTab project={currentProject} features={features} />}
             {tab === 'Tree' && <TreeTab />}
             {tab === 'Kanban' && <KanbanTab />}
           </div>
 
-          {/* Right Sidebar */}
           <div className="w-80 border-l border-gray-200 bg-white overflow-auto p-4 space-y-6">
             <DescriptionEditor
               project={currentProject}
