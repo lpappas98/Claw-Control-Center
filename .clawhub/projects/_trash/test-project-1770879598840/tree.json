@@ -1,0 +1,32 @@
+[
+  {
+    "id": "feat-1",
+    "title": "📊 **Interactive Treemap**: Visualize bundle sizes with an interactive treemap interface",
+    "status": "planned",
+    "priority": "p2"
+  },
+  {
+    "id": "feat-2",
+    "title": "🎯 **Route-based Analysis**: Analyze bundle data for specific routes in your application",
+    "status": "planned",
+    "priority": "p2"
+  },
+  {
+    "id": "feat-3",
+    "title": "🔍 **Dependency Tracking**: View import chains and dependency relationships",
+    "status": "planned",
+    "priority": "p2"
+  },
+  {
+    "id": "feat-4",
+    "title": "🎨 **Filter Controls**: Filter by environment (client/server) and file types (JS/CSS/JSON/Assets)",
+    "status": "planned",
+    "priority": "p2"
+  },
+  {
+    "id": "feat-5",
+    "title": "🔎 **Search Functionality**: Search through files in your bundle",
+    "status": "planned",
+    "priority": "p2"
+  }
+]

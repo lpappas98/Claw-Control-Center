@@ -1,0 +1,65 @@
+{
+  "version": 1,
+  "skills": {
+    "homeassistant": {
+      "version": "1.0.0",
+      "installedAt": 1770448942303
+    },
+    "sonos": {
+      "version": "1.0.0",
+      "installedAt": 1770448950501
+    },
+    "proactive-solvr": {
+      "version": "1.3.2",
+      "installedAt": 1770452183010
+    },
+    "product-manager-toolkit": {
+      "version": "1.0.0",
+      "installedAt": 1770452198774
+    },
+    "github-api": {
+      "version": "1.0.1",
+      "installedAt": 1770452215573
+    },
+    "browser-automation": {
+      "version": "1.0.1",
+      "installedAt": 1770452232528
+    },
+    "deep-research-pro": {
+      "version": "1.0.2",
+      "installedAt": 1770452256524
+    },
+    "capability-evolver": {
+      "version": "1.4.5",
+      "installedAt": 1770452286707
+    },
+    "nima-core": {
+      "version": "1.0.0",
+      "installedAt": 1770452300039
+    },
+    "senseguard": {
+      "version": "1.0.0",
+      "installedAt": 1770452313894
+    },
+    "microsoft-excel": {
+      "version": "1.0.0",
+      "installedAt": 1770452332840
+    },
+    "linear-api": {
+      "version": "1.0.1",
+      "installedAt": 1770452344176
+    },
+    "monday": {
+      "version": "1.0.1",
+      "installedAt": 1770452352822
+    },
+    "todoist-api": {
+      "version": "1.0.0",
+      "installedAt": 1770452364246
+    },
+    "snipit": {
+      "version": "1.0.0",
+      "installedAt": 1770452378170
+    }
+  }
+}

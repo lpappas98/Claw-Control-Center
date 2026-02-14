@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "id": "questra",
+  "name": "questra",
+  "summary": "Questra is a comprehensive travel planning application built with Flutter and Firebase, designed to help users discover, plan, and organize their trips around the world with AI-powered recommendations and social collaboration features.",
+  "status": "active",
+  "tags": [
+    "Kubernetes",
+    "Firebase",
+    "Swift",
+    "Dart",
+    "Flutter",
+    "imported"
+  ],
+  "owner": "imported",
+  "links": [],
+  "createdAt": "2026-02-12T08:20:55.960Z",
+  "updatedAt": "2026-02-12T08:20:55.960Z"
+}

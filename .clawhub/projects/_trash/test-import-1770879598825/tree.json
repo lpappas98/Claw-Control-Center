@@ -1,0 +1,9 @@
+[
+  {
+    "id": "feat-1",
+    "title": "Project Setup",
+    "summary": "Initial project configuration and dependencies",
+    "status": "planned",
+    "priority": "p1"
+  }
+]

@@ -1,0 +1,82 @@
+[
+  {
+    "id": "card-1",
+    "title": "Offline mode with full trip access",
+    "priority": "p2",
+    "column": "todo",
+    "createdAt": "2026-02-12T08:20:55.960Z",
+    "updatedAt": "2026-02-12T08:20:55.960Z"
+  },
+  {
+    "id": "card-2",
+    "title": "Advanced budget tracking with expense splitting",
+    "priority": "p2",
+    "column": "todo",
+    "createdAt": "2026-02-12T08:20:55.960Z",
+    "updatedAt": "2026-02-12T08:20:55.960Z"
+  },
+  {
+    "id": "card-3",
+    "title": "Integration with booking platforms (flights, hotels)",
+    "priority": "p2",
+    "column": "todo",
+    "createdAt": "2026-02-12T08:20:55.960Z",
+    "updatedAt": "2026-02-12T08:20:55.960Z"
+  },
+  {
+    "id": "card-4",
+    "title": "Custom map styles and themes",
+    "priority": "p2",
+    "column": "todo",
+    "createdAt": "2026-02-12T08:20:55.960Z",
+    "updatedAt": "2026-02-12T08:20:55.960Z"
+  },
+  {
+    "id": "card-5",
+    "title": "AI-powered photo recognition for automatic location tagging",
+    "priority": "p2",
+    "column": "todo",
+    "createdAt": "2026-02-12T08:20:55.960Z",
+    "updatedAt": "2026-02-12T08:20:55.960Z"
+  },
+  {
+    "id": "card-6",
+    "title": "Voice-guided navigation",
+    "priority": "p2",
+    "column": "todo",
+    "createdAt": "2026-02-12T08:20:55.960Z",
+    "updatedAt": "2026-02-12T08:20:55.960Z"
+  },
+  {
+    "id": "card-7",
+    "title": "Multi-language support",
+    "priority": "p2",
+    "column": "todo",
+    "createdAt": "2026-02-12T08:20:55.960Z",
+    "updatedAt": "2026-02-12T08:20:55.960Z"
+  },
+  {
+    "id": "card-8",
+    "title": "Weather integration",
+    "priority": "p2",
+    "column": "todo",
+    "createdAt": "2026-02-12T08:20:55.960Z",
+    "updatedAt": "2026-02-12T08:20:55.960Z"
+  },
+  {
+    "id": "card-9",
+    "title": "Travel journal with rich media",
+    "priority": "p2",
+    "column": "todo",
+    "createdAt": "2026-02-12T08:20:55.960Z",
+    "updatedAt": "2026-02-12T08:20:55.960Z"
+  },
+  {
+    "id": "card-10",
+    "title": "Carbon footprint tracking",
+    "priority": "p2",
+    "column": "todo",
+    "createdAt": "2026-02-12T08:20:55.960Z",
+    "updatedAt": "2026-02-12T08:20:55.960Z"
+  }
+]

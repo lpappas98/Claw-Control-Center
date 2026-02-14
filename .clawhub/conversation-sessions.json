@@ -1,0 +1,82 @@
+{
+  "e-commerce-marketplace-platform-6": {
+    "projectId": "e-commerce-marketplace-platform-6",
+    "projectIdea": "Build a multi-vendor e-commerce marketplace where sellers can create stores, list products, and manage inventory. Buyers can browse, compare prices, add to cart, and checkout with multiple payment methods. Include seller dashboard, buyer reviews, and order tracking.",
+    "projectType": "project",
+    "messages": [
+      {
+        "role": "assistant",
+        "content": "What specific problem or frustration are you trying to solve for sellers or buyers that existing marketplace platforms (like Etsy, Amazon, Shopify) don't address well enough?",
+        "timestamp": "2026-02-12T05:39:37.103Z"
+      },
+      {
+        "role": "user",
+        "content": "Buyers should pay the marketplace at checkout; we take a 10% commission and then pay out sellers weekly via Stripe Connect. Refunds should be initiated by sellers but processed through the marketplace, and chargebacks should be handled centrally with seller dispute evidence.",
+        "timestamp": "2026-02-12T05:39:37.113Z"
+      },
+      {
+        "role": "assistant",
+        "content": "I understand the payment flow—but stepping back: why would sellers choose your marketplace over Etsy or Shopify, and why would buyers shop here instead of those established platforms? What's your unique value proposition?",
+        "timestamp": "2026-02-12T05:39:50.062Z"
+      }
+    ],
+    "answers": [
+      {
+        "question": "What specific problem or frustration are you trying to solve for sellers or buyers that existing marketplace platforms (like Etsy, Amazon, Shopify) don't address well enough?",
+        "answer": "Buyers should pay the marketplace at checkout; we take a 10% commission and then pay out sellers weekly via Stripe Connect. Refunds should be initiated by sellers but processed through the marketplace, and chargebacks should be handled centrally with seller dispute evidence.",
+        "timestamp": "2026-02-12T05:39:37.113Z"
+      }
+    ],
+    "questionCount": 1,
+    "maxQuestions": 8,
+    "minQuestions": 5,
+    "createdAt": "2026-02-12T05:39:25.490Z",
+    "updatedAt": "2026-02-12T05:39:50.062Z",
+    "completed": false
+  },
+  "e-commerce-marketplace-platform-7": {
+    "projectId": "e-commerce-marketplace-platform-7",
+    "projectIdea": "Build a multi-vendor e-commerce marketplace where sellers can create stores, list products, and manage inventory. Buyers can browse, compare prices, add to cart, and checkout with multiple payment methods. Include seller dashboard, buyer reviews, and order tracking.",
+    "projectType": "project",
+    "messages": [
+      {
+        "role": "assistant",
+        "content": "What specific problem or pain point are you trying to solve for sellers or buyers that existing marketplace platforms (like Shopify, Etsy, Amazon, WooCommerce) don't address well enough?",
+        "timestamp": "2026-02-12T05:41:18.727Z"
+      }
+    ],
+    "answers": [],
+    "questionCount": 0,
+    "maxQuestions": 8,
+    "minQuestions": 5,
+    "createdAt": "2026-02-12T05:39:54.177Z",
+    "updatedAt": "2026-02-12T05:41:18.727Z",
+    "completed": false
+  },
+  "kubernetes-migration-project": {
+    "projectId": "kubernetes-migration-project",
+    "projectIdea": "Migrate our monolithic application to Kubernetes. Currently running on 5 VMs with manual deployment. Need container orchestration, auto-scaling, monitoring, and CI/CD pipeline. Target: AWS EKS with Terraform infrastructure as code.",
+    "projectType": "ops",
+    "messages": [],
+    "answers": [],
+    "questionCount": 0,
+    "maxQuestions": 8,
+    "minQuestions": 5,
+    "createdAt": "2026-02-12T05:40:16.832Z",
+    "updatedAt": "2026-02-12T05:40:16.832Z",
+    "completed": false
+  },
+  "ml-analytics-dashboard": {
+    "projectId": "ml-analytics-dashboard",
+    "projectIdea": "Build a real-time analytics dashboard with ML-powered insights. Ingest data from multiple sources (API, databases, CSV), run anomaly detection algorithms, and visualize trends. Includes data pipeline (Kafka/Spark), ML models (Python), and web dashboard (React).",
+    "projectType": "project",
+    "messages": [],
+    "answers": [],
+    "questionCount": 0,
+    "maxQuestions": 8,
+    "minQuestions": 5,
+    "createdAt": "2026-02-12T05:40:39.458Z",
+    "updatedAt": "2026-02-12T05:40:39.458Z",
+    "completed": false
+  }
+}

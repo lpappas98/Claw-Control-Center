@@ -1,0 +1,57 @@
+{
+  "feat-1": {
+    "status": "not_started",
+    "currentQuestionIndex": 0,
+    "questions": [
+      {
+        "id": "q-goal",
+        "category": "goal",
+        "prompt": "What is the user trying to accomplish with \"Authentication System\"?",
+        "hint": "Think about the end goal, not the steps. What problem does this solve for them?",
+        "answer": ""
+      },
+      {
+        "id": "q-trigger",
+        "category": "trigger",
+        "prompt": "What action or event triggers this feature?",
+        "hint": "e.g., \"User clicks the export button\", \"System receives a webhook\", \"Timer fires at midnight\""
+      },
+      {
+        "id": "q-flow",
+        "category": "flow",
+        "prompt": "Walk me through the main flow step-by-step.",
+        "hint": "Describe what happens from trigger to completion. Include user actions and system responses."
+      },
+      {
+        "id": "q-edge",
+        "category": "edge_cases",
+        "prompt": "What could go wrong? What edge cases should we handle?",
+        "hint": "Think about errors, empty states, permissions, network failures, invalid inputs..."
+      },
+      {
+        "id": "q-success",
+        "category": "success",
+        "prompt": "How do you know this feature is working correctly?",
+        "hint": "What would you test? What does success look like to the user?"
+      },
+      {
+        "id": "q-auth",
+        "category": "constraints",
+        "prompt": "What permissions or roles are involved?",
+        "hint": "Who can do what? Are there different access levels?"
+      },
+      {
+        "id": "q-deps",
+        "category": "dependencies",
+        "prompt": "Does this feature depend on other features being done first?",
+        "hint": "List any blockers or prerequisites. \"None\" is a valid answer."
+      },
+      {
+        "id": "q-priority",
+        "category": "priority",
+        "prompt": "How critical is this feature for launch?",
+        "hint": "Must-have for v1? Nice-to-have? Can it be simplified for initial release?"
+      }
+    ]
+  }
+}

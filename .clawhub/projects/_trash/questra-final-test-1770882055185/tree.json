@@ -1,0 +1,37 @@
+[
+  {
+    "id": "feat-1",
+    "title": "Authentication System",
+    "summary": "Authentication System functionality",
+    "status": "planned",
+    "priority": "p1"
+  },
+  {
+    "id": "feat-2",
+    "title": "Discover Places",
+    "summary": "Discover Places functionality",
+    "status": "planned",
+    "priority": "p1"
+  },
+  {
+    "id": "feat-3",
+    "title": "Trip Planning",
+    "summary": "Trip Planning functionality",
+    "status": "planned",
+    "priority": "p1"
+  },
+  {
+    "id": "feat-4",
+    "title": "Social Sharing",
+    "summary": "Social Sharing functionality",
+    "status": "planned",
+    "priority": "p2"
+  },
+  {
+    "id": "feat-5",
+    "title": "User Profiles",
+    "summary": "User Profiles functionality",
+    "status": "planned",
+    "priority": "p2"
+  }
+]

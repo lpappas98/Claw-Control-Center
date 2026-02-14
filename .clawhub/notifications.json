@@ -1,0 +1,47 @@
+[
+  {
+    "id": "notif-19aa3651e8c7c-1771025957000",
+    "agentId": "test-agent-1",
+    "type": "task-assigned",
+    "title": "Welcome",
+    "text": "You have a new task",
+    "taskId": null,
+    "projectId": null,
+    "from": null,
+    "read": false,
+    "delivered": false,
+    "deliveredAt": null,
+    "createdAt": 1771025957000,
+    "metadata": {}
+  },
+  {
+    "id": "notif-1ea9d88174172-1771025965032",
+    "agentId": "designer-1",
+    "type": "task-assigned",
+    "title": "Design task ready",
+    "text": "New UI mockup design needed",
+    "taskId": null,
+    "projectId": null,
+    "from": null,
+    "read": true,
+    "delivered": false,
+    "deliveredAt": null,
+    "createdAt": 1771025965032,
+    "metadata": {}
+  },
+  {
+    "id": "notif-bffa8ecf27a39-1771026041543",
+    "agentId": "test-backend-agent",
+    "type": "task-assigned",
+    "title": "New task ready",
+    "text": "Implement user authentication",
+    "taskId": null,
+    "projectId": null,
+    "from": null,
+    "read": true,
+    "delivered": false,
+    "deliveredAt": null,
+    "createdAt": 1771026041543,
+    "metadata": {}
+  }
+]

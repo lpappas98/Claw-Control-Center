@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "id": "file-upload-test",
+  "name": "File Upload Test",
+  "summary": "Testing import from uploaded files",
+  "status": "active",
+  "tags": [
+    "imported"
+  ],
+  "owner": "imported",
+  "links": [],
+  "createdAt": "2026-02-12T06:37:46.987Z",
+  "updatedAt": "2026-02-12T06:37:46.987Z"
+}

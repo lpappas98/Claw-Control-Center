@@ -1,0 +1,14 @@
+{
+  "test-node": {
+    "status": "in_progress",
+    "currentQuestionIndex": 1,
+    "questions": [
+      {
+        "id": "q-1",
+        "category": "goal",
+        "prompt": "What is the goal?",
+        "answer": "Test answer"
+      }
+    ]
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "id": "questra",
+  "name": "Questra",
+  "summary": "Travel planning trip app with social media integrations",
+  "status": "active",
+  "tags": [
+    "Kubernetes",
+    "imported"
+  ],
+  "owner": "imported",
+  "links": [],
+  "createdAt": "2026-02-12T07:05:03.881Z",
+  "updatedAt": "2026-02-12T07:05:03.881Z"
+}

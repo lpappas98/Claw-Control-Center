@@ -1,0 +1,101 @@
+[
+  {
+    "id": "agent-1",
+    "name": "Developer Agent",
+    "emoji": "👨‍💻",
+    "roles": [
+      "backend-dev",
+      "api"
+    ],
+    "model": "anthropic/claude-haiku-4-5",
+    "workspace": "/home/openclaw/.openclaw/workspace",
+    "status": "busy",
+    "instanceId": "",
+    "tailscaleIP": "",
+    "currentTask": "task-123",
+    "activeTasks": [],
+    "metadata": {},
+    "createdAt": 1771025921713,
+    "updatedAt": 1771025932707,
+    "lastHeartbeat": 1771025932707
+  },
+  {
+    "id": "test-agent-1",
+    "name": "Test Agent 1",
+    "emoji": "🧪",
+    "roles": [
+      "backend-dev",
+      "api"
+    ],
+    "model": "test/model",
+    "workspace": "",
+    "status": "busy",
+    "instanceId": "",
+    "tailscaleIP": "",
+    "currentTask": null,
+    "activeTasks": [],
+    "metadata": {},
+    "createdAt": 1771025956964,
+    "updatedAt": 1771025957040,
+    "lastHeartbeat": 1771025957040
+  },
+  {
+    "id": "designer-1",
+    "name": "Design Agent",
+    "emoji": "🎨",
+    "roles": [
+      "designer",
+      "ui"
+    ],
+    "model": "",
+    "workspace": "",
+    "status": "busy",
+    "instanceId": "",
+    "tailscaleIP": "",
+    "currentTask": "design-123",
+    "activeTasks": [],
+    "metadata": {},
+    "createdAt": 1771025964985,
+    "updatedAt": 1771025965065,
+    "lastHeartbeat": 1771025965065
+  },
+  {
+    "id": "test-backend-agent",
+    "name": "Test Backend Developer",
+    "emoji": "👨‍💻",
+    "roles": [
+      "backend-dev",
+      "api"
+    ],
+    "model": "anthropic/claude-haiku-4-5",
+    "workspace": "",
+    "status": "busy",
+    "instanceId": "",
+    "tailscaleIP": "",
+    "currentTask": "task-123",
+    "activeTasks": [],
+    "metadata": {},
+    "createdAt": 1771026041496,
+    "updatedAt": 1771026041532,
+    "lastHeartbeat": 1771026041532
+  },
+  {
+    "id": "test-agent",
+    "name": "test-agent",
+    "emoji": "🧪",
+    "roles": [
+      "qa",
+      "testing"
+    ],
+    "model": "anthropic/claude-haiku-4-5",
+    "workspace": "/home/openclaw/.openclaw/workspace",
+    "status": "online",
+    "instanceId": "openclaw-openclaw-bozeman1",
+    "tailscaleIP": "100.103.251.17",
+    "currentTask": null,
+    "activeTasks": [],
+    "metadata": {},
+    "createdAt": 1771028978631,
+    "updatedAt": 1771028978631
+  }
+]

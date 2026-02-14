@@ -1,0 +1,22 @@
+{
+  "/_global-error/page": "app/_global-error/page.js",
+  "/_not-found/page": "app/_not-found/page.js",
+  "/activity/page": "app/activity/page.js",
+  "/api/e2e/debug/boards/route": "app/api/e2e/debug/boards/route.js",
+  "/api/e2e/token/route": "app/api/e2e/token/route.js",
+  "/api/intake/extract/route": "app/api/intake/extract/route.js",
+  "/api/qa/status/route": "app/api/qa/status/route.js",
+  "/board/[boardId]/page": "app/board/[boardId]/page.js",
+  "/board/[boardId]/settings/page": "app/board/[boardId]/settings/page.js",
+  "/board/[boardId]/task/[taskId]/page": "app/board/[boardId]/task/[taskId]/page.js",
+  "/boards/page": "app/boards/page.js",
+  "/e2e/login/page": "app/e2e/login/page.js",
+  "/favicon.ico/route": "app/favicon.ico/route.js",
+  "/instances/connect/page": "app/instances/connect/page.js",
+  "/instances/page": "app/instances/page.js",
+  "/intake/page": "app/intake/page.js",
+  "/onboarding/page": "app/onboarding/page.js",
+  "/page": "app/page.js",
+  "/sign-in/page": "app/sign-in/page.js",
+  "/task/[taskId]/page": "app/task/[taskId]/page.js"
+}

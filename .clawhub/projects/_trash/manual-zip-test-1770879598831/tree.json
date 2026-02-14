@@ -1,0 +1,14 @@
+[
+  {
+    "id": "feat-1",
+    "title": "Feature 1",
+    "status": "planned",
+    "priority": "p2"
+  },
+  {
+    "id": "feat-2",
+    "title": "Feature 2",
+    "status": "planned",
+    "priority": "p2"
+  }
+]

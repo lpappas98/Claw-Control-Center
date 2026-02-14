@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "id": "hello-world-test",
+  "name": "Hello World Test",
+  "summary": "Testing import from GitHub",
+  "status": "active",
+  "tags": [
+    "imported"
+  ],
+  "owner": "imported",
+  "links": [],
+  "createdAt": "2026-02-12T06:37:39.916Z",
+  "updatedAt": "2026-02-12T06:37:39.916Z"
+}

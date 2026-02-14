@@ -1,0 +1,205 @@
+[
+  {
+    "id": "e-commerce-marketplace-platform-5",
+    "title": "E-commerce Marketplace Platform",
+    "idea": "Build a multi-vendor e-commerce marketplace where sellers can create stores, list products, and manage inventory. Buyers can browse, compare prices, add to cart, and checkout with multiple payment methods. Include seller dashboard, buyer reviews, and order tracking.",
+    "status": "idea",
+    "tags": [],
+    "questions": [],
+    "scope": null,
+    "featureTree": [],
+    "createdAt": "2026-02-12T05:36:50.792Z",
+    "updatedAt": "2026-02-12T05:36:50.792Z"
+  },
+  {
+    "id": "e-commerce-marketplace-platform-4",
+    "title": "E-commerce Marketplace Platform",
+    "idea": "Build a multi-vendor e-commerce marketplace where sellers can create stores, list products, and manage inventory. Buyers can browse, compare prices, add to cart, and checkout with multiple payment methods. Include seller dashboard, buyer reviews, and order tracking.",
+    "status": "idea",
+    "tags": [],
+    "questions": [],
+    "scope": null,
+    "featureTree": [],
+    "createdAt": "2026-02-12T05:36:45.113Z",
+    "updatedAt": "2026-02-12T05:36:45.113Z"
+  },
+  {
+    "id": "e-commerce-marketplace-platform-3",
+    "title": "E-commerce Marketplace Platform",
+    "idea": "Build a multi-vendor e-commerce marketplace where sellers can create stores, list products, and manage inventory. Buyers can browse, compare prices, add to cart, and checkout with multiple payment methods. Include seller dashboard, buyer reviews, and order tracking.",
+    "status": "idea",
+    "tags": [],
+    "questions": [],
+    "scope": null,
+    "featureTree": [],
+    "createdAt": "2026-02-12T05:36:38.584Z",
+    "updatedAt": "2026-02-12T05:36:38.584Z"
+  },
+  {
+    "id": "e-commerce-marketplace-platform-2",
+    "title": "E-commerce Marketplace Platform",
+    "idea": "Build a multi-vendor e-commerce marketplace where sellers can create stores, list products, and manage inventory. Buyers can browse, compare prices, add to cart, and checkout with multiple payment methods. Include seller dashboard, buyer reviews, and order tracking.",
+    "status": "idea",
+    "tags": [],
+    "questions": [],
+    "scope": null,
+    "featureTree": [],
+    "createdAt": "2026-02-12T05:36:33.938Z",
+    "updatedAt": "2026-02-12T05:36:33.938Z"
+  },
+  {
+    "id": "e-commerce-marketplace-platform",
+    "title": "E-commerce Marketplace Platform",
+    "idea": "Build a multi-vendor e-commerce marketplace where sellers can create stores, list products, and manage inventory. Buyers can browse, compare prices, add to cart, and checkout with multiple payment methods. Include seller dashboard, buyer reviews, and order tracking.",
+    "status": "idea",
+    "tags": [],
+    "questions": [],
+    "scope": null,
+    "featureTree": [],
+    "createdAt": "2026-02-12T05:36:30.190Z",
+    "updatedAt": "2026-02-12T05:36:30.190Z"
+  },
+  {
+    "id": "test-conv",
+    "title": "Test Conv",
+    "idea": "Build a todo app",
+    "status": "idea",
+    "tags": [],
+    "questions": [],
+    "scope": null,
+    "featureTree": [],
+    "createdAt": "2026-02-12T05:34:32.397Z",
+    "updatedAt": "2026-02-12T05:34:32.397Z"
+  },
+  {
+    "id": "collaborative-whiteboard-app",
+    "title": "Collaborative Whiteboard App",
+    "idea": "Build a real-time collaborative whiteboard app for remote teams with voice chat, infinite canvas, and smart shape recognition.",
+    "status": "questions",
+    "tags": [],
+    "questions": [
+      {
+        "id": "q-4d55423469cff-1770870073804",
+        "category": "Goal",
+        "prompt": "What problem are we solving, and for whom (primary user persona)?",
+        "required": true,
+        "answer": ""
+      },
+      {
+        "id": "q-a046f78505bce-1770870073804",
+        "category": "Goal",
+        "prompt": "How will we measure success (metrics / outcomes)?",
+        "required": true,
+        "answer": ""
+      },
+      {
+        "id": "q-ca30a04e46c6b-1770870073804",
+        "category": "Users",
+        "prompt": "Who are the user roles, and what permissions do they need?",
+        "required": true,
+        "answer": ""
+      },
+      {
+        "id": "q-c596fb5fc1333-1770870073804",
+        "category": "Workflow",
+        "prompt": "Describe the happy-path workflow step-by-step from start to finish.",
+        "required": true,
+        "answer": ""
+      },
+      {
+        "id": "q-dbc8c5a8dd32b-1770870073804",
+        "category": "Scope",
+        "prompt": "What is explicitly out of scope for v1?",
+        "required": true,
+        "answer": ""
+      },
+      {
+        "id": "q-0e67522072c79-1770870073804",
+        "category": "Data",
+        "prompt": "What entities/data must be stored? Any retention or audit requirements?",
+        "required": false,
+        "answer": ""
+      },
+      {
+        "id": "q-8a17fabf700fc-1770870073804",
+        "category": "UX",
+        "prompt": "What are the key screens/views we need for v1?",
+        "required": true,
+        "answer": ""
+      },
+      {
+        "id": "q-c5ae1083bdf4-1770870073804",
+        "category": "Constraints",
+        "prompt": "Any deadlines, dependencies, or constraints (tech/legal/security)?",
+        "required": false,
+        "answer": ""
+      },
+      {
+        "id": "q-75cb0674e5974-1770870073804",
+        "category": "Edge cases",
+        "prompt": "What are the top 5 edge cases or failure modes we must handle?",
+        "required": false,
+        "answer": ""
+      },
+      {
+        "id": "q-7b216996884e9-1770870073804",
+        "category": "Integrations",
+        "prompt": "Which external systems do we integrate with, and what auth method is required?",
+        "required": false,
+        "answer": ""
+      }
+    ],
+    "scope": null,
+    "featureTree": [],
+    "createdAt": "2026-02-12T04:21:12.711Z",
+    "updatedAt": "2026-02-12T04:21:13.804Z"
+  },
+  {
+    "id": "ai-test-project",
+    "title": "AI Test Project",
+    "idea": "Build a collaborative document editor with real-time sync",
+    "status": "questions",
+    "tags": [],
+    "questions": [
+      {
+        "id": "q-ad76547fc9b32-1770870052454",
+        "category": "Goal",
+        "prompt": "What problem are we solving, and for whom (primary user persona)?",
+        "required": true,
+        "answer": ""
+      },
+      {
+        "id": "q-4dfb7ac45b05f-1770870052454",
+        "category": "Goal",
+        "prompt": "How will we measure success (metrics / outcomes)?",
+        "required": true,
+        "answer": ""
+      },
+      {
+        "id": "q-446ad149cf1f4-1770870052454",
+        "category": "Users",
+        "prompt": "Who are the user roles, and what permissions do they need?",
+        "required": true,
+        "answer": ""
+      },
+      {
+        "id": "q-93f9ad34d004c-1770870052454",
+        "category": "Workflow",
+        "prompt": "Describe the happy-path workflow step-by-step from start to finish.",
+        "required": true,
+        "answer": ""
+      },
+      {
+        "id": "q-223ecbeb5bb8f-1770870052454",
+        "category": "Scope",
+        "prompt": "What is explicitly out of scope for v1?",
+        "required": true,
+        "answer": ""
+      }
+    ],
+    "scope": null,
+    "featureTree": [],
+    "createdAt": "2026-02-12T04:20:47.813Z",
+    "updatedAt": "2026-02-12T04:20:52.454Z"
+  }
+]

@@ -1,0 +1,5057 @@
+[
+  {
+    "id": "blockers-5b3245d195fe-1771040617225",
+    "at": "2026-02-14T03:43:37.225Z",
+    "level": "warn",
+    "source": "bridge",
+    "message": "blockers changed (+1 -0): now 1",
+    "meta": {
+      "added": [
+        "workers-unhealthy"
+      ],
+      "removed": []
+    }
+  },
+  {
+    "id": "bridge-4986359f99cae-1771040532583",
+    "at": "2026-02-14T03:42:12.583Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-3dc607aecc95e-1771040518668",
+    "at": "2026-02-14T03:41:58.668Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-8ae76e000198d-1771040504745",
+    "at": "2026-02-14T03:41:44.745Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-fbc0de18b222d-1771040478348",
+    "at": "2026-02-14T03:41:18.348Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-a3824ca36a253-1771040467657",
+    "at": "2026-02-14T03:41:07.657Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-59621593f9d1a-1771040445778",
+    "at": "2026-02-14T03:40:45.778Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-c0630a7857943-1771040427052",
+    "at": "2026-02-14T03:40:27.052Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-490f0b9d821b3-1771040425360",
+    "at": "2026-02-14T03:40:25.360Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-d0658ae81469d-1771040401839",
+    "at": "2026-02-14T03:40:01.839Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-925d17b0f8a35-1771040394676",
+    "at": "2026-02-14T03:39:54.676Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-9c18cb936fd44-1771040373458",
+    "at": "2026-02-14T03:39:33.458Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-9b4eb6e2491b5-1771040329932",
+    "at": "2026-02-14T03:38:49.932Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-56b2f30f737bd-1771038159171",
+    "at": "2026-02-14T03:02:39.171Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-a8bf66d86d463-1771038133895",
+    "at": "2026-02-14T03:02:13.895Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-1a05eef308183-1771038121623",
+    "at": "2026-02-14T03:02:01.623Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-a8d568e45ec7f-1771038112124",
+    "at": "2026-02-14T03:01:52.124Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-20e8505b1ff14-1771038106388",
+    "at": "2026-02-14T03:01:46.388Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-a411c4c88c5b2-1771038096075",
+    "at": "2026-02-14T03:01:36.075Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-6aa02fbaf19d7-1771038093256",
+    "at": "2026-02-14T03:01:33.256Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-1b27e2b66d1ac-1771038089747",
+    "at": "2026-02-14T03:01:29.747Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-03db60c8789ba-1771038075555",
+    "at": "2026-02-14T03:01:15.555Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-5f0a612cfec4b-1771038055507",
+    "at": "2026-02-14T03:00:55.507Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-b3abf5897106-1771038051226",
+    "at": "2026-02-14T03:00:51.226Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-9488a237d4726-1771026039544",
+    "at": "2026-02-13T23:40:39.544Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-159b97e8298ae-1771025906969",
+    "at": "2026-02-13T23:38:26.969Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-48da2ceb9094f-1771025899882",
+    "at": "2026-02-13T23:38:19.882Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-9b167eacb7623-1771023768454",
+    "at": "2026-02-13T23:02:48.454Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-8570666d31727-1770949656392",
+    "at": "2026-02-13T02:27:36.392Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-4ce6e6c5ef94e-1770907056234",
+    "at": "2026-02-12T14:37:36.234Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-fb397873c8ff6-1770905241786",
+    "at": "2026-02-12T14:07:21.786Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-8e7741ed9036f-1770903429174",
+    "at": "2026-02-12T13:37:09.174Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-14ec9e93699c6-1770901614696",
+    "at": "2026-02-12T13:06:54.696Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-670b30bc06ef5-1770899803524",
+    "at": "2026-02-12T12:36:43.524Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-26211a0353da9-1770897990731",
+    "at": "2026-02-12T12:06:30.731Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-110b6a6c9e502-1770896180817",
+    "at": "2026-02-12T11:36:20.817Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-0db0625b4d98c-1770896172966",
+    "at": "2026-02-12T11:36:12.966Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-e338f64a3fa4c-1770894357182",
+    "at": "2026-02-12T11:05:57.182Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-f2d40d90dba69-1770892545033",
+    "at": "2026-02-12T10:35:45.033Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-7ed16e2e876d1-1770890735162",
+    "at": "2026-02-12T10:05:35.162Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-33ff5bfc78a41-1770888926636",
+    "at": "2026-02-12T09:35:26.636Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-e3eed96f5a198-1770887118195",
+    "at": "2026-02-12T09:05:18.195Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-1dcc141e0ee12-1770886374963",
+    "at": "2026-02-12T08:52:54.963Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-b43530dd28d5d-1770886287545",
+    "at": "2026-02-12T08:51:27.545Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-768b7ad19e76d-1770886200431",
+    "at": "2026-02-12T08:50:00.431Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-ff5a33e5dabc4-1770884372999",
+    "at": "2026-02-12T08:19:32.999Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-fac124ef21b5c-1770882105671",
+    "at": "2026-02-12T07:41:45.671Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-51e3a1f67b2b1-1770882043223",
+    "at": "2026-02-12T07:40:43.223Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-c8c6ab3f46c2f-1770881999214",
+    "at": "2026-02-12T07:39:59.214Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-8945caec8deaa-1770881940831",
+    "at": "2026-02-12T07:39:00.831Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-a2d3777565bb-1770881924898",
+    "at": "2026-02-12T07:38:44.898Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-06b5bda68ba36-1770881835373",
+    "at": "2026-02-12T07:37:15.373Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-738bedb9b810f-1770881709223",
+    "at": "2026-02-12T07:35:09.223Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-e5dc0185a2d34-1770881508178",
+    "at": "2026-02-12T07:31:48.178Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-04e31d4bbcb88-1770880980024",
+    "at": "2026-02-12T07:23:00.024Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-eff5dd71ab6f3-1770880248285",
+    "at": "2026-02-12T07:10:48.285Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-7f646c20a704a-1770878987249",
+    "at": "2026-02-12T06:49:47.249Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-b82869146377b-1770878914856",
+    "at": "2026-02-12T06:48:34.856Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-f2e18ab594795-1770878377749",
+    "at": "2026-02-12T06:39:37.749Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-05342ab896f69-1770878236151",
+    "at": "2026-02-12T06:37:16.151Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-2c2aa0471ba91-1770878219837",
+    "at": "2026-02-12T06:36:59.837Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "task-completed-33d3adffa3f0d-1770878188181",
+    "at": "2026-02-12T06:36:26.745Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task completed: task-f29b88c8e2b35-1770878021846 · dev-1 · took 34s",
+    "meta": {
+      "eventType": "task.completed",
+      "task": "task-f29b88c8e2b35-1770878021846",
+      "workerSlot": "dev-1",
+      "worker": "dev-1",
+      "durationMs": 33750,
+      "startedAt": "2026-02-12T06:35:52.995Z",
+      "completedAt": "2026-02-12T06:36:26.745Z"
+    }
+  },
+  {
+    "id": "task-started-c2c932fe89be3-1770878159338",
+    "at": "2026-02-12T06:35:58.140Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: task-f791e316cdb51-1770878021842 → dev-2",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "task-f791e316cdb51-1770878021842",
+      "workerSlot": "dev-2",
+      "worker": "dev-2",
+      "startedAt": "2026-02-12T06:35:58.140Z"
+    }
+  },
+  {
+    "id": "task-created-0ecb015aaa488-1770878159338",
+    "at": "2026-02-12T06:35:58.140Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: task-f791e316cdb51-1770878021842",
+    "meta": {
+      "eventType": "task.created",
+      "task": "task-f791e316cdb51-1770878021842",
+      "workerSlot": "dev-2",
+      "worker": "dev-2"
+    }
+  },
+  {
+    "id": "task-started-b346b27a56c43-1770878154398",
+    "at": "2026-02-12T06:35:52.995Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: task-f29b88c8e2b35-1770878021846 → dev-1",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "task-f29b88c8e2b35-1770878021846",
+      "workerSlot": "dev-1",
+      "worker": "dev-1",
+      "startedAt": "2026-02-12T06:35:52.995Z"
+    }
+  },
+  {
+    "id": "task-created-10d8c6831b2d6-1770878154398",
+    "at": "2026-02-12T06:35:52.995Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: task-f29b88c8e2b35-1770878021846",
+    "meta": {
+      "eventType": "task.created",
+      "task": "task-f29b88c8e2b35-1770878021846",
+      "workerSlot": "dev-1",
+      "worker": "dev-1"
+    }
+  },
+  {
+    "id": "task-completed-9eb551d5fceae-1770878131889",
+    "at": "2026-02-12T06:35:30.503Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task completed: task-601d843256049-1770878021844 · dev-2 · took 34s",
+    "meta": {
+      "eventType": "task.completed",
+      "task": "task-601d843256049-1770878021844",
+      "workerSlot": "dev-2",
+      "worker": "dev-2",
+      "durationMs": 33634,
+      "startedAt": "2026-02-12T06:34:56.869Z",
+      "completedAt": "2026-02-12T06:35:30.503Z"
+    }
+  },
+  {
+    "id": "task-completed-cfe02969518b2-1770878131889",
+    "at": "2026-02-12T06:35:30.503Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task completed: task-90d9a5dc90bd1-1770878021841 · dev-1 · took 34s",
+    "meta": {
+      "eventType": "task.completed",
+      "task": "task-90d9a5dc90bd1-1770878021841",
+      "workerSlot": "dev-1",
+      "worker": "dev-1",
+      "durationMs": 33634,
+      "startedAt": "2026-02-12T06:34:56.869Z",
+      "completedAt": "2026-02-12T06:35:30.503Z"
+    }
+  },
+  {
+    "id": "task-completed-bbab37d80938-1770878131889",
+    "at": "2026-02-12T06:35:30.503Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task completed: task-ec2ea21e3faff-1770878021837 · architect · took 34s",
+    "meta": {
+      "eventType": "task.completed",
+      "task": "task-ec2ea21e3faff-1770878021837",
+      "workerSlot": "architect",
+      "worker": "architect",
+      "durationMs": 33634,
+      "startedAt": "2026-02-12T06:34:56.869Z",
+      "completedAt": "2026-02-12T06:35:30.503Z"
+    }
+  },
+  {
+    "id": "task-started-c0e3e6ab0d821-1770878098078",
+    "at": "2026-02-12T06:34:56.869Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: task-601d843256049-1770878021844 → dev-2",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "task-601d843256049-1770878021844",
+      "workerSlot": "dev-2",
+      "worker": "dev-2",
+      "startedAt": "2026-02-12T06:34:56.869Z"
+    }
+  },
+  {
+    "id": "task-created-974c66977eae7-1770878098078",
+    "at": "2026-02-12T06:34:56.869Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: task-601d843256049-1770878021844",
+    "meta": {
+      "eventType": "task.created",
+      "task": "task-601d843256049-1770878021844",
+      "workerSlot": "dev-2",
+      "worker": "dev-2"
+    }
+  },
+  {
+    "id": "task-started-02290ba56ee76-1770878098078",
+    "at": "2026-02-12T06:34:56.869Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: task-90d9a5dc90bd1-1770878021841 → dev-1",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "task-90d9a5dc90bd1-1770878021841",
+      "workerSlot": "dev-1",
+      "worker": "dev-1",
+      "startedAt": "2026-02-12T06:34:56.869Z"
+    }
+  },
+  {
+    "id": "task-created-deda5474275fd-1770878098078",
+    "at": "2026-02-12T06:34:56.869Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: task-90d9a5dc90bd1-1770878021841",
+    "meta": {
+      "eventType": "task.created",
+      "task": "task-90d9a5dc90bd1-1770878021841",
+      "workerSlot": "dev-1",
+      "worker": "dev-1"
+    }
+  },
+  {
+    "id": "task-started-0e44441e74a4c-1770878098078",
+    "at": "2026-02-12T06:34:56.869Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: task-ec2ea21e3faff-1770878021837 → architect",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "task-ec2ea21e3faff-1770878021837",
+      "workerSlot": "architect",
+      "worker": "architect",
+      "startedAt": "2026-02-12T06:34:56.869Z"
+    }
+  },
+  {
+    "id": "task-created-ea8dcde7cb257-1770878098078",
+    "at": "2026-02-12T06:34:56.869Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: task-ec2ea21e3faff-1770878021837",
+    "meta": {
+      "eventType": "task.created",
+      "task": "task-ec2ea21e3faff-1770878021837",
+      "workerSlot": "architect",
+      "worker": "architect"
+    }
+  },
+  {
+    "id": "bridge-92bf6638e310f-1770876596972",
+    "at": "2026-02-12T06:09:56.972Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-868e804e9e2db-1770874739188",
+    "at": "2026-02-12T05:38:59.188Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-7ed843537769c-1770874643196",
+    "at": "2026-02-12T05:37:23.196Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-6b7c6189631b1-1770874446410",
+    "at": "2026-02-12T05:34:06.410Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-2f99b743f1788-1770874377275",
+    "at": "2026-02-12T05:32:57.275Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-b027346dafa1f-1770874326323",
+    "at": "2026-02-12T05:32:06.323Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-dd015aae4598e-1770874137134",
+    "at": "2026-02-12T05:28:57.134Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-8646b41895d4c-1770874106758",
+    "at": "2026-02-12T05:28:26.758Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-7ebd678681348-1770874025959",
+    "at": "2026-02-12T05:27:05.959Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "worker-34789a9461f02-1770873928147",
+    "at": "2026-02-12T05:25:28.147Z",
+    "level": "info",
+    "source": "bridge",
+    "message": "worker qa: offline → active (task-af8d0dcd01836-1770873563500)"
+  },
+  {
+    "id": "worker-6b90fd61141df-1770873928147",
+    "at": "2026-02-12T05:25:28.147Z",
+    "level": "info",
+    "source": "bridge",
+    "message": "worker dev-2: offline → active (task-241824c902ff9-1770873563482)"
+  },
+  {
+    "id": "worker-15d8a0db5a10c-1770873928147",
+    "at": "2026-02-12T05:25:28.147Z",
+    "level": "info",
+    "source": "bridge",
+    "message": "worker dev-1: offline → active (task-2d8cb7680e45d-1770873550826)"
+  },
+  {
+    "id": "worker-cec23ece5a6b8-1770873928147",
+    "at": "2026-02-12T05:25:28.147Z",
+    "level": "info",
+    "source": "bridge",
+    "message": "worker architect: offline → active"
+  },
+  {
+    "id": "worker-b6b7aa7a7b2a5-1770873928147",
+    "at": "2026-02-12T05:25:28.147Z",
+    "level": "info",
+    "source": "bridge",
+    "message": "worker pm: offline → active"
+  },
+  {
+    "id": "task-started-1f58f5ac812d2-1770873925870",
+    "at": "2026-02-12T05:25:24.670Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: task-af8d0dcd01836-1770873563500 → qa",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "task-af8d0dcd01836-1770873563500",
+      "workerSlot": "qa",
+      "worker": "qa",
+      "startedAt": "2026-02-12T05:25:24.670Z"
+    }
+  },
+  {
+    "id": "task-created-94d28f380b113-1770873925870",
+    "at": "2026-02-12T05:25:24.670Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: task-af8d0dcd01836-1770873563500",
+    "meta": {
+      "eventType": "task.created",
+      "task": "task-af8d0dcd01836-1770873563500",
+      "workerSlot": "qa",
+      "worker": "qa"
+    }
+  },
+  {
+    "id": "task-started-5dca88a8ea032-1770873925870",
+    "at": "2026-02-12T05:25:24.670Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: task-241824c902ff9-1770873563482 → dev-2",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "task-241824c902ff9-1770873563482",
+      "workerSlot": "dev-2",
+      "worker": "dev-2",
+      "startedAt": "2026-02-12T05:25:24.670Z"
+    }
+  },
+  {
+    "id": "task-created-551d8b7037622-1770873925870",
+    "at": "2026-02-12T05:25:24.670Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: task-241824c902ff9-1770873563482",
+    "meta": {
+      "eventType": "task.created",
+      "task": "task-241824c902ff9-1770873563482",
+      "workerSlot": "dev-2",
+      "worker": "dev-2"
+    }
+  },
+  {
+    "id": "task-started-5ca20685169c-1770873925870",
+    "at": "2026-02-12T05:25:24.670Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: task-2d8cb7680e45d-1770873550826 → dev-1",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "task-2d8cb7680e45d-1770873550826",
+      "workerSlot": "dev-1",
+      "worker": "dev-1",
+      "startedAt": "2026-02-12T05:25:24.670Z"
+    }
+  },
+  {
+    "id": "task-created-b1a44a74624d2-1770873925870",
+    "at": "2026-02-12T05:25:24.670Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: task-2d8cb7680e45d-1770873550826",
+    "meta": {
+      "eventType": "task.created",
+      "task": "task-2d8cb7680e45d-1770873550826",
+      "workerSlot": "dev-1",
+      "worker": "dev-1"
+    }
+  },
+  {
+    "id": "bridge-a85630b059c73-1770873256874",
+    "at": "2026-02-12T05:14:16.874Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-215422a542c8-1770873244878",
+    "at": "2026-02-12T05:14:04.878Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "worker-f2a46d3d57b3e-1770872006773",
+    "at": "2026-02-12T04:53:26.773Z",
+    "level": "error",
+    "source": "bridge",
+    "message": "worker qa: stale → offline"
+  },
+  {
+    "id": "worker-4e3ad3c240c14-1770872006773",
+    "at": "2026-02-12T04:53:26.773Z",
+    "level": "error",
+    "source": "bridge",
+    "message": "worker dev-2: stale → offline"
+  },
+  {
+    "id": "worker-2235511b5920f-1770872006773",
+    "at": "2026-02-12T04:53:26.773Z",
+    "level": "error",
+    "source": "bridge",
+    "message": "worker dev-1: stale → offline"
+  },
+  {
+    "id": "worker-8d2fb5fb9b877-1770872006773",
+    "at": "2026-02-12T04:53:26.773Z",
+    "level": "error",
+    "source": "bridge",
+    "message": "worker architect: stale → offline"
+  },
+  {
+    "id": "worker-22b6237321797-1770872006773",
+    "at": "2026-02-12T04:53:26.773Z",
+    "level": "error",
+    "source": "bridge",
+    "message": "worker pm: stale → offline"
+  },
+  {
+    "id": "bridge-189f0f211bde7-1770871399826",
+    "at": "2026-02-12T04:43:19.826Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-a329b05b3aa98-1770871386208",
+    "at": "2026-02-12T04:43:06.208Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-36cfa1d98a95-1770870987553",
+    "at": "2026-02-12T04:36:27.553Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-1d41d86c83ce4-1770870980494",
+    "at": "2026-02-12T04:36:20.494Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-d4829a09aeebd-1770870970470",
+    "at": "2026-02-12T04:36:10.470Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-4dd88ae9d9fa2-1770870187777",
+    "at": "2026-02-12T04:23:07.777Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-3f95f8136c335-1770870126514",
+    "at": "2026-02-12T04:22:06.514Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-82a0bb83cebdd-1770870041263",
+    "at": "2026-02-12T04:20:41.263Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-ab460108e2258-1770870030487",
+    "at": "2026-02-12T04:20:30.487Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-4842b620818b7-1770869993374",
+    "at": "2026-02-12T04:19:53.374Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-df0abbd3419aa-1770869989150",
+    "at": "2026-02-12T04:19:49.150Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-d8b4491e10be4-1770869962912",
+    "at": "2026-02-12T04:19:22.912Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-6b4bb0ab91d5d-1770869940513",
+    "at": "2026-02-12T04:19:00.513Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-53fec2301f33-1770869901429",
+    "at": "2026-02-12T04:18:21.429Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-52543993f0696-1770869895825",
+    "at": "2026-02-12T04:18:15.825Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-0089d3036947e-1770869892305",
+    "at": "2026-02-12T04:18:12.305Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "task-completed-71706dfce124c-1770869680719",
+    "at": "2026-02-12T04:14:39.476Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task completed: task-738f5dc50f025-1770869572633 · dev-1 · took 6s",
+    "meta": {
+      "eventType": "task.completed",
+      "task": "task-738f5dc50f025-1770869572633",
+      "workerSlot": "dev-1",
+      "worker": "dev-1",
+      "durationMs": 6231,
+      "startedAt": "2026-02-12T04:14:33.245Z",
+      "completedAt": "2026-02-12T04:14:39.476Z"
+    }
+  },
+  {
+    "id": "task-started-4bcb8b193162b-1770869674465",
+    "at": "2026-02-12T04:14:33.245Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: task-738f5dc50f025-1770869572633 → dev-1",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "task-738f5dc50f025-1770869572633",
+      "workerSlot": "dev-1",
+      "worker": "dev-1",
+      "startedAt": "2026-02-12T04:14:33.245Z"
+    }
+  },
+  {
+    "id": "task-created-c4cb33151d6be-1770869674465",
+    "at": "2026-02-12T04:14:33.245Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: task-738f5dc50f025-1770869572633",
+    "meta": {
+      "eventType": "task.created",
+      "task": "task-738f5dc50f025-1770869572633",
+      "workerSlot": "dev-1",
+      "worker": "dev-1"
+    }
+  },
+  {
+    "id": "task-completed-03986acdf565b-1770869674465",
+    "at": "2026-02-12T04:14:33.245Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task completed: task-04a0247604ee1-1770869584637 · qa · took 59s",
+    "meta": {
+      "eventType": "task.completed",
+      "task": "task-04a0247604ee1-1770869584637",
+      "workerSlot": "qa",
+      "worker": "qa",
+      "durationMs": 59305,
+      "startedAt": "2026-02-12T04:13:33.940Z",
+      "completedAt": "2026-02-12T04:14:33.245Z"
+    }
+  },
+  {
+    "id": "task-completed-4dddcb0a94e64-1770869622268",
+    "at": "2026-02-12T04:13:41.043Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task completed: task-4c2d11771a04d-1770869563425 · dev-2 · took 35s",
+    "meta": {
+      "eventType": "task.completed",
+      "task": "task-4c2d11771a04d-1770869563425",
+      "workerSlot": "dev-2",
+      "worker": "dev-2",
+      "durationMs": 35267,
+      "startedAt": "2026-02-12T04:13:05.776Z",
+      "completedAt": "2026-02-12T04:13:41.043Z"
+    }
+  },
+  {
+    "id": "task-completed-28bf21bf0efaf-1770869615225",
+    "at": "2026-02-12T04:13:33.940Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task completed: task-dd258509ed361-1770869554259 · dev-1 · took 28s",
+    "meta": {
+      "eventType": "task.completed",
+      "task": "task-dd258509ed361-1770869554259",
+      "workerSlot": "dev-1",
+      "worker": "dev-1",
+      "durationMs": 28164,
+      "startedAt": "2026-02-12T04:13:05.776Z",
+      "completedAt": "2026-02-12T04:13:33.940Z"
+    }
+  },
+  {
+    "id": "task-started-e028fdd6c040c-1770869615225",
+    "at": "2026-02-12T04:13:33.940Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: task-04a0247604ee1-1770869584637 → qa",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "task-04a0247604ee1-1770869584637",
+      "workerSlot": "qa",
+      "worker": "qa",
+      "startedAt": "2026-02-12T04:13:33.940Z"
+    }
+  },
+  {
+    "id": "task-created-1710dab43ce62-1770869615225",
+    "at": "2026-02-12T04:13:33.940Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: task-04a0247604ee1-1770869584637",
+    "meta": {
+      "eventType": "task.created",
+      "task": "task-04a0247604ee1-1770869584637",
+      "workerSlot": "qa",
+      "worker": "qa"
+    }
+  },
+  {
+    "id": "task-completed-1c5802a091cac-1770869586983",
+    "at": "2026-02-12T04:13:05.776Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task completed: task-13d82cda2a938-1770869545237 · architect · took 33s",
+    "meta": {
+      "eventType": "task.completed",
+      "task": "task-13d82cda2a938-1770869545237",
+      "workerSlot": "architect",
+      "worker": "architect",
+      "durationMs": 33266,
+      "startedAt": "2026-02-12T04:12:32.510Z",
+      "completedAt": "2026-02-12T04:13:05.776Z"
+    }
+  },
+  {
+    "id": "task-completed-51568d8218fd2-1770869586983",
+    "at": "2026-02-12T04:13:05.776Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task completed: task-e1aaa6b9f86f8-1770869536508 · pm · took 33s",
+    "meta": {
+      "eventType": "task.completed",
+      "task": "task-e1aaa6b9f86f8-1770869536508",
+      "workerSlot": "pm",
+      "worker": "pm",
+      "durationMs": 33266,
+      "startedAt": "2026-02-12T04:12:32.510Z",
+      "completedAt": "2026-02-12T04:13:05.776Z"
+    }
+  },
+  {
+    "id": "task-started-1d464c5ce875e-1770869586983",
+    "at": "2026-02-12T04:13:05.776Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: task-4c2d11771a04d-1770869563425 → dev-2",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "task-4c2d11771a04d-1770869563425",
+      "workerSlot": "dev-2",
+      "worker": "dev-2",
+      "startedAt": "2026-02-12T04:13:05.776Z"
+    }
+  },
+  {
+    "id": "task-created-8d1cf7668313f-1770869586983",
+    "at": "2026-02-12T04:13:05.776Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: task-4c2d11771a04d-1770869563425",
+    "meta": {
+      "eventType": "task.created",
+      "task": "task-4c2d11771a04d-1770869563425",
+      "workerSlot": "dev-2",
+      "worker": "dev-2"
+    }
+  },
+  {
+    "id": "task-started-be2e9875fa0f4-1770869586983",
+    "at": "2026-02-12T04:13:05.776Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: task-dd258509ed361-1770869554259 → dev-1",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "task-dd258509ed361-1770869554259",
+      "workerSlot": "dev-1",
+      "worker": "dev-1",
+      "startedAt": "2026-02-12T04:13:05.776Z"
+    }
+  },
+  {
+    "id": "task-created-8073f9eeb9779-1770869586983",
+    "at": "2026-02-12T04:13:05.776Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: task-dd258509ed361-1770869554259",
+    "meta": {
+      "eventType": "task.created",
+      "task": "task-dd258509ed361-1770869554259",
+      "workerSlot": "dev-1",
+      "worker": "dev-1"
+    }
+  },
+  {
+    "id": "task-started-2a85edf38b5d1-1770869553764",
+    "at": "2026-02-12T04:12:32.510Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: task-13d82cda2a938-1770869545237 → architect",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "task-13d82cda2a938-1770869545237",
+      "workerSlot": "architect",
+      "worker": "architect",
+      "startedAt": "2026-02-12T04:12:32.510Z"
+    }
+  },
+  {
+    "id": "task-created-7356df158a12e-1770869553764",
+    "at": "2026-02-12T04:12:32.510Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: task-13d82cda2a938-1770869545237",
+    "meta": {
+      "eventType": "task.created",
+      "task": "task-13d82cda2a938-1770869545237",
+      "workerSlot": "architect",
+      "worker": "architect"
+    }
+  },
+  {
+    "id": "task-started-a016f5d49746c-1770869553764",
+    "at": "2026-02-12T04:12:32.510Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: task-e1aaa6b9f86f8-1770869536508 → pm",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "task-e1aaa6b9f86f8-1770869536508",
+      "workerSlot": "pm",
+      "worker": "pm",
+      "startedAt": "2026-02-12T04:12:32.510Z"
+    }
+  },
+  {
+    "id": "task-created-59855f57ef581-1770869553764",
+    "at": "2026-02-12T04:12:32.510Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: task-e1aaa6b9f86f8-1770869536508",
+    "meta": {
+      "eventType": "task.created",
+      "task": "task-e1aaa6b9f86f8-1770869536508",
+      "workerSlot": "pm",
+      "worker": "pm"
+    }
+  },
+  {
+    "id": "bridge-9f67fcfc2c582-1770868244635",
+    "at": "2026-02-12T03:50:44.635Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "task-completed-0b35f33406bb8-1770868147390",
+    "at": "2026-02-12T03:49:06.191Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task completed: task-f97cde47dc30b-1770868079301 · dev-1 · took 32s",
+    "meta": {
+      "eventType": "task.completed",
+      "task": "task-f97cde47dc30b-1770868079301",
+      "workerSlot": "dev-1",
+      "worker": "dev-1",
+      "durationMs": 31665,
+      "startedAt": "2026-02-12T03:48:34.526Z",
+      "completedAt": "2026-02-12T03:49:06.191Z"
+    }
+  },
+  {
+    "id": "task-started-e0d064d094f88-1770868115747",
+    "at": "2026-02-12T03:48:34.526Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: task-f97cde47dc30b-1770868079301 → dev-1",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "task-f97cde47dc30b-1770868079301",
+      "workerSlot": "dev-1",
+      "worker": "dev-1",
+      "startedAt": "2026-02-12T03:48:34.526Z"
+    }
+  },
+  {
+    "id": "task-created-71e682870d204-1770868115747",
+    "at": "2026-02-12T03:48:34.526Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: task-f97cde47dc30b-1770868079301",
+    "meta": {
+      "eventType": "task.created",
+      "task": "task-f97cde47dc30b-1770868079301",
+      "workerSlot": "dev-1",
+      "worker": "dev-1"
+    }
+  },
+  {
+    "id": "bridge-0a2f32f755a7d-1770866382174",
+    "at": "2026-02-12T03:19:42.174Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "task-started-5d478b4ca282d-1770865668678",
+    "at": "2026-02-12T03:07:47.280Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Architecture: Design worker service schema and heartbeat format → Blueprint",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Architecture: Design worker service schema and heartbeat format",
+      "workerSlot": "architect",
+      "worker": "Blueprint",
+      "startedAt": "2026-02-12T03:07:47.280Z"
+    }
+  },
+  {
+    "id": "task-created-5ae2937db55c8-1770865668678",
+    "at": "2026-02-12T03:07:47.280Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: Architecture: Design worker service schema and heartbeat format",
+    "meta": {
+      "eventType": "task.created",
+      "task": "Architecture: Design worker service schema and heartbeat format",
+      "workerSlot": "architect",
+      "worker": "Blueprint"
+    }
+  },
+  {
+    "id": "task-started-a1f424c468688-1770865668678",
+    "at": "2026-02-12T03:07:47.280Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Epic: Real Worker Services - Replace fake heartbeats with persistent agents → TARS",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Epic: Real Worker Services - Replace fake heartbeats with persistent agents",
+      "workerSlot": "pm",
+      "worker": "TARS",
+      "startedAt": "2026-02-12T03:07:47.280Z"
+    }
+  },
+  {
+    "id": "task-created-45cc6bca6d2-1770865668678",
+    "at": "2026-02-12T03:07:47.280Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: Epic: Real Worker Services - Replace fake heartbeats with persistent agents",
+    "meta": {
+      "eventType": "task.created",
+      "task": "Epic: Real Worker Services - Replace fake heartbeats with persistent agents",
+      "workerSlot": "pm",
+      "worker": "TARS"
+    }
+  },
+  {
+    "id": "task-completed-a44641aa19fba-1770864741448",
+    "at": "2026-02-12T02:52:19.866Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task completed: Feature: Click agent tile to edit worker metadata · Patch · took 2m 57s",
+    "meta": {
+      "eventType": "task.completed",
+      "task": "Feature: Click agent tile to edit worker metadata",
+      "workerSlot": "dev-2",
+      "worker": "Patch",
+      "durationMs": 176853,
+      "startedAt": "2026-02-12T02:49:23.013Z",
+      "completedAt": "2026-02-12T02:52:19.866Z"
+    }
+  },
+  {
+    "id": "task-completed-448ff16e179cd-1770864647711",
+    "at": "2026-02-12T02:50:46.500Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task completed: P0 Bridge API: tree CRUD + reorder + deps · Blueprint · took 1m 23s",
+    "meta": {
+      "eventType": "task.completed",
+      "task": "P0 Bridge API: tree CRUD + reorder + deps",
+      "workerSlot": "architect",
+      "worker": "Blueprint",
+      "durationMs": 83487,
+      "startedAt": "2026-02-12T02:49:23.013Z",
+      "completedAt": "2026-02-12T02:50:46.500Z"
+    }
+  },
+  {
+    "id": "task-started-35c575a539a48-1770864564205",
+    "at": "2026-02-12T02:49:23.013Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Feature: Click agent tile to edit worker metadata → Patch",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Feature: Click agent tile to edit worker metadata",
+      "workerSlot": "dev-2",
+      "worker": "Patch",
+      "startedAt": "2026-02-12T02:49:23.013Z"
+    }
+  },
+  {
+    "id": "task-created-c641336e2ee7-1770864564205",
+    "at": "2026-02-12T02:49:23.013Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: Feature: Click agent tile to edit worker metadata",
+    "meta": {
+      "eventType": "task.created",
+      "task": "Feature: Click agent tile to edit worker metadata",
+      "workerSlot": "dev-2",
+      "worker": "Patch"
+    }
+  },
+  {
+    "id": "task-started-2118e7104cfec-1770864564205",
+    "at": "2026-02-12T02:49:23.013Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: P0 Bridge API: tree CRUD + reorder + deps → Blueprint",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "P0 Bridge API: tree CRUD + reorder + deps",
+      "workerSlot": "architect",
+      "worker": "Blueprint",
+      "startedAt": "2026-02-12T02:49:23.013Z"
+    }
+  },
+  {
+    "id": "task-created-504e9f5bb2544-1770864564205",
+    "at": "2026-02-12T02:49:23.013Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: P0 Bridge API: tree CRUD + reorder + deps",
+    "meta": {
+      "eventType": "task.created",
+      "task": "P0 Bridge API: tree CRUD + reorder + deps",
+      "workerSlot": "architect",
+      "worker": "Blueprint"
+    }
+  },
+  {
+    "id": "bridge-f97053a5a3b7f-1770864556739",
+    "at": "2026-02-12T02:49:16.739Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "task-started-d852003d28a5f-1770864410069",
+    "at": "2026-02-12T02:46:48.605Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: P0 Bridge API: tree CRUD + reorder + deps → Blueprint",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "P0 Bridge API: tree CRUD + reorder + deps",
+      "workerSlot": "architect",
+      "worker": "Blueprint",
+      "startedAt": "2026-02-12T02:46:48.605Z"
+    }
+  },
+  {
+    "id": "task-created-1e57b025d9689-1770864410069",
+    "at": "2026-02-12T02:46:48.605Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: P0 Bridge API: tree CRUD + reorder + deps",
+    "meta": {
+      "eventType": "task.created",
+      "task": "P0 Bridge API: tree CRUD + reorder + deps",
+      "workerSlot": "architect",
+      "worker": "Blueprint"
+    }
+  },
+  {
+    "id": "task-completed-d8918182c840b-1770864347571",
+    "at": "2026-02-12T02:45:46.101Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task completed: Fix: Display agent names instead of slot IDs in task views · Forge · took 2m 26s",
+    "meta": {
+      "eventType": "task.completed",
+      "task": "Fix: Display agent names instead of slot IDs in task views",
+      "workerSlot": "dev-1",
+      "worker": "Forge",
+      "durationMs": 145604,
+      "startedAt": "2026-02-12T02:43:20.497Z",
+      "completedAt": "2026-02-12T02:45:46.101Z"
+    }
+  },
+  {
+    "id": "task-started-d42a83812bfc6-1770864334869",
+    "at": "2026-02-12T02:45:33.671Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Feature: Click agent tile to edit worker metadata → Patch",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Feature: Click agent tile to edit worker metadata",
+      "workerSlot": "dev-2",
+      "worker": "Patch",
+      "startedAt": "2026-02-12T02:45:33.671Z"
+    }
+  },
+  {
+    "id": "task-created-cddf2e90f2733-1770864334869",
+    "at": "2026-02-12T02:45:33.671Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: Feature: Click agent tile to edit worker metadata",
+    "meta": {
+      "eventType": "task.created",
+      "task": "Feature: Click agent tile to edit worker metadata",
+      "workerSlot": "dev-2",
+      "worker": "Patch"
+    }
+  },
+  {
+    "id": "task-started-d960594d649c5-1770864201672",
+    "at": "2026-02-12T02:43:20.497Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Fix: Display agent names instead of slot IDs in task views → Forge",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Fix: Display agent names instead of slot IDs in task views",
+      "workerSlot": "dev-1",
+      "worker": "Forge",
+      "startedAt": "2026-02-12T02:43:20.497Z"
+    }
+  },
+  {
+    "id": "task-created-5cc60ca4afff7-1770864201672",
+    "at": "2026-02-12T02:43:20.497Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: Fix: Display agent names instead of slot IDs in task views",
+    "meta": {
+      "eventType": "task.created",
+      "task": "Fix: Display agent names instead of slot IDs in task views",
+      "workerSlot": "dev-1",
+      "worker": "Forge"
+    }
+  },
+  {
+    "id": "task-completed-2314243e0ed24-1770864170711",
+    "at": "2026-02-12T02:42:49.292Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task completed: Feature: Enhanced blocked task display with resolution options · Forge · took 1m 21s",
+    "meta": {
+      "eventType": "task.completed",
+      "task": "Feature: Enhanced blocked task display with resolution options",
+      "workerSlot": "dev-1",
+      "worker": "Forge",
+      "durationMs": 81396,
+      "startedAt": "2026-02-12T02:41:27.896Z",
+      "completedAt": "2026-02-12T02:42:49.292Z"
+    }
+  },
+  {
+    "id": "task-started-1196837df982e-1770864089088",
+    "at": "2026-02-12T02:41:27.896Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Feature: Enhanced blocked task display with resolution options → Forge",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Feature: Enhanced blocked task display with resolution options",
+      "workerSlot": "dev-1",
+      "worker": "Forge",
+      "startedAt": "2026-02-12T02:41:27.896Z"
+    }
+  },
+  {
+    "id": "task-created-0c5f084b15627-1770864089088",
+    "at": "2026-02-12T02:41:27.896Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: Feature: Enhanced blocked task display with resolution options",
+    "meta": {
+      "eventType": "task.created",
+      "task": "Feature: Enhanced blocked task display with resolution options",
+      "workerSlot": "dev-1",
+      "worker": "Forge"
+    }
+  },
+  {
+    "id": "worker-8ae0b04258393-1770863972520",
+    "at": "2026-02-12T02:39:32.520Z",
+    "level": "info",
+    "source": "bridge",
+    "message": "worker qa: stale → active"
+  },
+  {
+    "id": "worker-d0d6d202658ce-1770863972520",
+    "at": "2026-02-12T02:39:32.520Z",
+    "level": "info",
+    "source": "bridge",
+    "message": "worker dev-2: stale → active"
+  },
+  {
+    "id": "worker-7b1a2b0d38efc-1770863972520",
+    "at": "2026-02-12T02:39:32.520Z",
+    "level": "info",
+    "source": "bridge",
+    "message": "worker dev-1: stale → active"
+  },
+  {
+    "id": "worker-aafe579791d2d-1770863972520",
+    "at": "2026-02-12T02:39:32.520Z",
+    "level": "info",
+    "source": "bridge",
+    "message": "worker architect: stale → active"
+  },
+  {
+    "id": "worker-57787597bcdc2-1770863972520",
+    "at": "2026-02-12T02:39:32.520Z",
+    "level": "info",
+    "source": "bridge",
+    "message": "worker pm: stale → active"
+  },
+  {
+    "id": "task-completed-364efbe6ec6c7-1770863961992",
+    "at": "2026-02-12T02:39:20.814Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task completed: UI: Display severity badges + category grouping in Config · Forge · took 8m 29s",
+    "meta": {
+      "eventType": "task.completed",
+      "task": "UI: Display severity badges + category grouping in Config",
+      "workerSlot": "dev-1",
+      "worker": "Forge",
+      "durationMs": 508680,
+      "startedAt": "2026-02-12T02:30:52.134Z",
+      "completedAt": "2026-02-12T02:39:20.814Z"
+    }
+  },
+  {
+    "id": "task-completed-aae8ae3ec34df-1770863961991",
+    "at": "2026-02-12T02:39:20.814Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task completed: Epic: Rules system v2 - Severity levels + categories + workspace integration · TARS · took 8m 29s",
+    "meta": {
+      "eventType": "task.completed",
+      "task": "Epic: Rules system v2 - Severity levels + categories + workspace integration",
+      "workerSlot": "pm",
+      "worker": "TARS",
+      "durationMs": 508680,
+      "startedAt": "2026-02-12T02:30:52.134Z",
+      "completedAt": "2026-02-12T02:39:20.814Z"
+    }
+  },
+  {
+    "id": "task-started-21f09fc53747b-1770863453542",
+    "at": "2026-02-12T02:30:52.134Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: UI: Display severity badges + category grouping in Config → Forge",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "UI: Display severity badges + category grouping in Config",
+      "workerSlot": "dev-1",
+      "worker": "Forge",
+      "startedAt": "2026-02-12T02:30:52.134Z"
+    }
+  },
+  {
+    "id": "task-created-8b5474dc8b5cb-1770863453542",
+    "at": "2026-02-12T02:30:52.134Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: UI: Display severity badges + category grouping in Config",
+    "meta": {
+      "eventType": "task.created",
+      "task": "UI: Display severity badges + category grouping in Config",
+      "workerSlot": "dev-1",
+      "worker": "Forge"
+    }
+  },
+  {
+    "id": "task-started-483f29551b895-1770863453542",
+    "at": "2026-02-12T02:30:52.134Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Epic: Rules system v2 - Severity levels + categories + workspace integration → TARS",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Epic: Rules system v2 - Severity levels + categories + workspace integration",
+      "workerSlot": "pm",
+      "worker": "TARS",
+      "startedAt": "2026-02-12T02:30:52.134Z"
+    }
+  },
+  {
+    "id": "task-created-ad2e814cae5e1-1770863453542",
+    "at": "2026-02-12T02:30:52.134Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: Epic: Rules system v2 - Severity levels + categories + workspace integration",
+    "meta": {
+      "eventType": "task.created",
+      "task": "Epic: Rules system v2 - Severity levels + categories + workspace integration",
+      "workerSlot": "pm",
+      "worker": "TARS"
+    }
+  },
+  {
+    "id": "bridge-724e47f80083c-1770863342477",
+    "at": "2026-02-12T02:29:02.477Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "task-started-c4dfeb36aa77f-1770863288208",
+    "at": "2026-02-12T02:28:06.807Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Bridge: Support severity + category in rules endpoints → Blueprint",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Bridge: Support severity + category in rules endpoints",
+      "workerSlot": "architect",
+      "worker": "Blueprint",
+      "startedAt": "2026-02-12T02:28:06.807Z"
+    }
+  },
+  {
+    "id": "task-completed-38b368e8761ea-1770863288208",
+    "at": "2026-02-12T02:28:06.807Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task completed: Types: Add severity + category to Rule type · Blueprint · took 32s",
+    "meta": {
+      "eventType": "task.completed",
+      "task": "Types: Add severity + category to Rule type",
+      "workerSlot": "architect",
+      "worker": "Blueprint",
+      "durationMs": 31512,
+      "startedAt": "2026-02-12T02:27:35.295Z",
+      "completedAt": "2026-02-12T02:28:06.807Z"
+    }
+  },
+  {
+    "id": "task-created-673997ee6d55c-1770863288208",
+    "at": "2026-02-12T02:28:06.807Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: Bridge: Support severity + category in rules endpoints",
+    "meta": {
+      "eventType": "task.created",
+      "task": "Bridge: Support severity + category in rules endpoints",
+      "workerSlot": "architect",
+      "worker": "Blueprint"
+    }
+  },
+  {
+    "id": "task-started-2bb1d6081bf35-1770863256783",
+    "at": "2026-02-12T02:27:35.295Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Types: Add severity + category to Rule type → Blueprint",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Types: Add severity + category to Rule type",
+      "workerSlot": "architect",
+      "worker": "Blueprint",
+      "startedAt": "2026-02-12T02:27:35.295Z"
+    }
+  },
+  {
+    "id": "task-created-bbbea309ffd55-1770863256783",
+    "at": "2026-02-12T02:27:35.295Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: Types: Add severity + category to Rule type",
+    "meta": {
+      "eventType": "task.created",
+      "task": "Types: Add severity + category to Rule type",
+      "workerSlot": "architect",
+      "worker": "Blueprint"
+    }
+  },
+  {
+    "id": "task-started-94029b5f10ddc-1770863244068",
+    "at": "2026-02-12T02:27:22.598Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Epic: Rules system v2 - Severity levels + categories + workspace integration → TARS",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Epic: Rules system v2 - Severity levels + categories + workspace integration",
+      "workerSlot": "pm",
+      "worker": "TARS",
+      "startedAt": "2026-02-12T02:27:22.598Z"
+    }
+  },
+  {
+    "id": "task-created-ab43cd7b0a7e9-1770863244068",
+    "at": "2026-02-12T02:27:22.598Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: Epic: Rules system v2 - Severity levels + categories + workspace integration",
+    "meta": {
+      "eventType": "task.created",
+      "task": "Epic: Rules system v2 - Severity levels + categories + workspace integration",
+      "workerSlot": "pm",
+      "worker": "TARS"
+    }
+  },
+  {
+    "id": "bridge-183b299edeadf-1770862395895",
+    "at": "2026-02-12T02:13:15.895Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-e8b3ec3bb40e-1770861791160",
+    "at": "2026-02-12T02:03:11.160Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "session-75a90f153c0a6-1770861734946",
+    "at": "2026-02-12T02:02:14.946Z",
+    "level": "info",
+    "source": "sessions",
+    "message": "session terminated: test-agent (session-df32a82b66ef-1770861253793)",
+    "meta": {
+      "sessionId": "session-df32a82b66ef-1770861253793",
+      "instanceId": "test-instance"
+    }
+  },
+  {
+    "id": "task-completed-82013a6651483-1770861650208",
+    "at": "2026-02-12T02:00:49.008Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task completed: Waiting for assignment · Sentinel · took 2m 29s",
+    "meta": {
+      "eventType": "task.completed",
+      "task": "Waiting for assignment",
+      "workerSlot": "qa",
+      "worker": "Sentinel",
+      "durationMs": 148893,
+      "startedAt": "2026-02-12T01:58:20.115Z",
+      "completedAt": "2026-02-12T02:00:49.008Z"
+    }
+  },
+  {
+    "id": "task-completed-7d364ffbce1f8-1770861650208",
+    "at": "2026-02-12T02:00:49.008Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task completed: Waiting for assignment · Patch · took 2m 29s",
+    "meta": {
+      "eventType": "task.completed",
+      "task": "Waiting for assignment",
+      "workerSlot": "dev-2",
+      "worker": "Patch",
+      "durationMs": 148893,
+      "startedAt": "2026-02-12T01:58:20.115Z",
+      "completedAt": "2026-02-12T02:00:49.008Z"
+    }
+  },
+  {
+    "id": "task-completed-cc1f890cb2fa3-1770861650208",
+    "at": "2026-02-12T02:00:49.008Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task completed: Waiting for assignment · Forge · took 2m 29s",
+    "meta": {
+      "eventType": "task.completed",
+      "task": "Waiting for assignment",
+      "workerSlot": "dev-1",
+      "worker": "Forge",
+      "durationMs": 148893,
+      "startedAt": "2026-02-12T01:58:20.115Z",
+      "completedAt": "2026-02-12T02:00:49.008Z"
+    }
+  },
+  {
+    "id": "task-completed-4cce896f9a9bb-1770861650208",
+    "at": "2026-02-12T02:00:49.008Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task completed: Waiting for assignment · Blueprint · took 2m 29s",
+    "meta": {
+      "eventType": "task.completed",
+      "task": "Waiting for assignment",
+      "workerSlot": "architect",
+      "worker": "Blueprint",
+      "durationMs": 148893,
+      "startedAt": "2026-02-12T01:58:20.115Z",
+      "completedAt": "2026-02-12T02:00:49.008Z"
+    }
+  },
+  {
+    "id": "task-completed-0688584a64c9-1770861650208",
+    "at": "2026-02-12T02:00:49.008Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task completed: Orchestrating delivery · TARS · took 2m 29s",
+    "meta": {
+      "eventType": "task.completed",
+      "task": "Orchestrating delivery",
+      "workerSlot": "pm",
+      "worker": "TARS",
+      "durationMs": 148893,
+      "startedAt": "2026-02-12T01:58:20.115Z",
+      "completedAt": "2026-02-12T02:00:49.008Z"
+    }
+  },
+  {
+    "id": "task-started-fd8be17d8b1f7-1770861501334",
+    "at": "2026-02-12T01:58:20.115Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Waiting for assignment → Sentinel",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Waiting for assignment",
+      "workerSlot": "qa",
+      "worker": "Sentinel",
+      "startedAt": "2026-02-12T01:58:20.115Z"
+    }
+  },
+  {
+    "id": "task-started-de31cc54aecb8-1770861501334",
+    "at": "2026-02-12T01:58:20.115Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Waiting for assignment → Patch",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Waiting for assignment",
+      "workerSlot": "dev-2",
+      "worker": "Patch",
+      "startedAt": "2026-02-12T01:58:20.115Z"
+    }
+  },
+  {
+    "id": "task-started-9d7f83023c44f-1770861501334",
+    "at": "2026-02-12T01:58:20.115Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Waiting for assignment → Forge",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Waiting for assignment",
+      "workerSlot": "dev-1",
+      "worker": "Forge",
+      "startedAt": "2026-02-12T01:58:20.115Z"
+    }
+  },
+  {
+    "id": "task-started-69195081e5a45-1770861501334",
+    "at": "2026-02-12T01:58:20.115Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Waiting for assignment → Blueprint",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Waiting for assignment",
+      "workerSlot": "architect",
+      "worker": "Blueprint",
+      "startedAt": "2026-02-12T01:58:20.115Z"
+    }
+  },
+  {
+    "id": "task-created-7578ffd163898-1770861501334",
+    "at": "2026-02-12T01:58:20.115Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: Waiting for assignment",
+    "meta": {
+      "eventType": "task.created",
+      "task": "Waiting for assignment",
+      "workerSlot": "architect",
+      "worker": "Blueprint"
+    }
+  },
+  {
+    "id": "task-started-5c936997bcc5-1770861501334",
+    "at": "2026-02-12T01:58:20.115Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Orchestrating delivery → TARS",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Orchestrating delivery",
+      "workerSlot": "pm",
+      "worker": "TARS",
+      "startedAt": "2026-02-12T01:58:20.115Z"
+    }
+  },
+  {
+    "id": "task-created-c15a1c76e29f9-1770861501334",
+    "at": "2026-02-12T01:58:20.115Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: Orchestrating delivery",
+    "meta": {
+      "eventType": "task.created",
+      "task": "Orchestrating delivery",
+      "workerSlot": "pm",
+      "worker": "TARS"
+    }
+  },
+  {
+    "id": "bridge-56175cf189555-1770861495564",
+    "at": "2026-02-12T01:58:15.564Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "worker-dfe500e7d15a1-1770861477021",
+    "at": "2026-02-12T01:57:57.021Z",
+    "level": "info",
+    "source": "bridge",
+    "message": "worker qa: offline → active (Waiting for assignment)"
+  },
+  {
+    "id": "worker-90d5efb52648e-1770861477021",
+    "at": "2026-02-12T01:57:57.021Z",
+    "level": "info",
+    "source": "bridge",
+    "message": "worker dev-2: offline → active (Waiting for assignment)"
+  },
+  {
+    "id": "worker-3cd8147b929f3-1770861477021",
+    "at": "2026-02-12T01:57:57.021Z",
+    "level": "info",
+    "source": "bridge",
+    "message": "worker dev-1: offline → active (Waiting for assignment)"
+  },
+  {
+    "id": "worker-769efa912d31b-1770861477021",
+    "at": "2026-02-12T01:57:57.021Z",
+    "level": "info",
+    "source": "bridge",
+    "message": "worker architect: offline → active (Waiting for assignment)"
+  },
+  {
+    "id": "worker-778fa1e48be07-1770861477021",
+    "at": "2026-02-12T01:57:57.021Z",
+    "level": "info",
+    "source": "bridge",
+    "message": "worker pm: offline → active (Orchestrating delivery)"
+  },
+  {
+    "id": "session-ddba14557109a-1770861253793",
+    "at": "2026-02-12T01:54:13.793Z",
+    "level": "info",
+    "source": "sessions",
+    "message": "session registered: test-agent (session-df32a82b66ef-1770861253793)",
+    "meta": {
+      "sessionId": "session-df32a82b66ef-1770861253793",
+      "instanceId": "test-instance",
+      "task": "Testing"
+    }
+  },
+  {
+    "id": "task-started-2830431b298fc-1770861103611",
+    "at": "2026-02-12T01:51:41.921Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Waiting for assignment → Sentinel",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Waiting for assignment",
+      "workerSlot": "qa",
+      "worker": "Sentinel",
+      "startedAt": "2026-02-12T01:51:41.921Z"
+    }
+  },
+  {
+    "id": "task-started-e2b1f9faec259-1770861103611",
+    "at": "2026-02-12T01:51:41.921Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Waiting for assignment → Patch",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Waiting for assignment",
+      "workerSlot": "dev-2",
+      "worker": "Patch",
+      "startedAt": "2026-02-12T01:51:41.921Z"
+    }
+  },
+  {
+    "id": "task-started-47152fef5f2b8-1770861103611",
+    "at": "2026-02-12T01:51:41.921Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Waiting for assignment → Forge",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Waiting for assignment",
+      "workerSlot": "dev-1",
+      "worker": "Forge",
+      "startedAt": "2026-02-12T01:51:41.921Z"
+    }
+  },
+  {
+    "id": "task-started-58d2cb29495ff-1770861103611",
+    "at": "2026-02-12T01:51:41.921Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Waiting for assignment → Blueprint",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Waiting for assignment",
+      "workerSlot": "architect",
+      "worker": "Blueprint",
+      "startedAt": "2026-02-12T01:51:41.921Z"
+    }
+  },
+  {
+    "id": "task-created-e868294fdfd04-1770861103611",
+    "at": "2026-02-12T01:51:41.921Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: Waiting for assignment",
+    "meta": {
+      "eventType": "task.created",
+      "task": "Waiting for assignment",
+      "workerSlot": "architect",
+      "worker": "Blueprint"
+    }
+  },
+  {
+    "id": "task-started-241e2b9f96ed5-1770861103611",
+    "at": "2026-02-12T01:51:41.921Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Orchestrating delivery → TARS",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Orchestrating delivery",
+      "workerSlot": "pm",
+      "worker": "TARS",
+      "startedAt": "2026-02-12T01:51:41.921Z"
+    }
+  },
+  {
+    "id": "task-created-6b99cd3ac5802-1770861103611",
+    "at": "2026-02-12T01:51:41.921Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: Orchestrating delivery",
+    "meta": {
+      "eventType": "task.created",
+      "task": "Orchestrating delivery",
+      "workerSlot": "pm",
+      "worker": "TARS"
+    }
+  },
+  {
+    "id": "bridge-08814bf16276d-1770860381681",
+    "at": "2026-02-12T01:39:41.681Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "session-59ceffb141515-1770860296492",
+    "at": "2026-02-12T01:38:16.492Z",
+    "level": "info",
+    "source": "sessions",
+    "message": "session terminated: Integration Test (session-0c3d2b5c635fa-1770860296446)",
+    "meta": {
+      "sessionId": "session-0c3d2b5c635fa-1770860296446",
+      "instanceId": "test-instance-123"
+    }
+  },
+  {
+    "id": "session-a0dc3d1aa6542-1770860296474",
+    "at": "2026-02-12T01:38:16.474Z",
+    "level": "info",
+    "source": "sessions",
+    "message": "session updated: Integration Test (session-0c3d2b5c635fa-1770860296446) - status: idle",
+    "meta": {
+      "sessionId": "session-0c3d2b5c635fa-1770860296446",
+      "status": "idle",
+      "task": "Updated integration test task"
+    }
+  },
+  {
+    "id": "session-21b22a9c0d06e-1770860296446",
+    "at": "2026-02-12T01:38:16.446Z",
+    "level": "info",
+    "source": "sessions",
+    "message": "session registered: Integration Test (session-0c3d2b5c635fa-1770860296446)",
+    "meta": {
+      "sessionId": "session-0c3d2b5c635fa-1770860296446",
+      "instanceId": "test-instance-123",
+      "task": "Running integration tests"
+    }
+  },
+  {
+    "id": "bridge-6389b56a4ce42-1770860265175",
+    "at": "2026-02-12T01:37:45.175Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "session-ae4956df01095-1770860227107",
+    "at": "2026-02-12T01:37:07.107Z",
+    "level": "info",
+    "source": "sessions",
+    "message": "session registered: Another Test Session (session-2599ab661ab62-1770860227107)",
+    "meta": {
+      "sessionId": "session-2599ab661ab62-1770860227107",
+      "instanceId": "openclaw-test-2",
+      "task": "Testing instance filtering"
+    }
+  },
+  {
+    "id": "session-e45019ffa3efb-1770860222751",
+    "at": "2026-02-12T01:37:02.751Z",
+    "level": "info",
+    "source": "sessions",
+    "message": "session terminated: Test Session (session-8ff2bbad6d7bf-1770860209881)",
+    "meta": {
+      "sessionId": "session-8ff2bbad6d7bf-1770860209881",
+      "instanceId": "openclaw-test-1"
+    }
+  },
+  {
+    "id": "session-72c4a2f92a651-1770860218085",
+    "at": "2026-02-12T01:36:58.085Z",
+    "level": "info",
+    "source": "sessions",
+    "message": "session updated: Test Session (session-8ff2bbad6d7bf-1770860209881) - status: idle",
+    "meta": {
+      "sessionId": "session-8ff2bbad6d7bf-1770860209881",
+      "status": "idle",
+      "task": "Updated task description"
+    }
+  },
+  {
+    "id": "session-6714d6441a3eb-1770860209881",
+    "at": "2026-02-12T01:36:49.881Z",
+    "level": "info",
+    "source": "sessions",
+    "message": "session registered: Test Session (session-8ff2bbad6d7bf-1770860209881)",
+    "meta": {
+      "sessionId": "session-8ff2bbad6d7bf-1770860209881",
+      "instanceId": "openclaw-test-1",
+      "task": "Testing active sessions implementation"
+    }
+  },
+  {
+    "id": "bridge-caeb501b69672-1770860193635",
+    "at": "2026-02-12T01:36:33.635Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-2bd4cde2cddc6-1770860178629",
+    "at": "2026-02-12T01:36:18.629Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-197514a51b039-1770860173229",
+    "at": "2026-02-12T01:36:13.229Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-38dff489e8dac-1770860170224",
+    "at": "2026-02-12T01:36:10.224Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-51fc7c6dd4022-1770860166136",
+    "at": "2026-02-12T01:36:06.136Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-8d79d2d8d9999-1770860145691",
+    "at": "2026-02-12T01:35:45.691Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-d3b40518ae749-1770859685844",
+    "at": "2026-02-12T01:28:05.844Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-d128e0f87904-1770843729622",
+    "at": "2026-02-11T21:02:09.622Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-14bd011ce2c9-1770841864300",
+    "at": "2026-02-11T20:31:04.300Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-8aa9bd705d18d-1770840010217",
+    "at": "2026-02-11T20:00:10.217Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-f90d5bdb4b0d1-1770838149951",
+    "at": "2026-02-11T19:29:09.951Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-904b148c4ba6e-1770836308933",
+    "at": "2026-02-11T18:58:28.933Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-965aa9d1147ae-1770834749560",
+    "at": "2026-02-11T18:32:29.560Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-fd1db392d5504-1770833361925",
+    "at": "2026-02-11T18:09:21.925Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-8671865fc16fd-1770831426837",
+    "at": "2026-02-11T17:37:06.837Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-4b9c3fb5b182-1770826806178",
+    "at": "2026-02-11T16:20:06.178Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-509bdda7b777-1770826228510",
+    "at": "2026-02-11T16:10:28.510Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-0c3782d55cc-1770822680763",
+    "at": "2026-02-11T15:11:20.763Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-56467488d82fe-1770820775774",
+    "at": "2026-02-11T14:39:35.774Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-8c1e4968c0621-1770818957340",
+    "at": "2026-02-11T14:09:17.340Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-4a87dfcf0bef2-1770817147303",
+    "at": "2026-02-11T13:39:07.303Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-46fcd61137e07-1770815328581",
+    "at": "2026-02-11T13:08:48.581Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-4a8aff1d5f0b5-1770813519933",
+    "at": "2026-02-11T12:38:39.933Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-c1702129e8727-1770811701598",
+    "at": "2026-02-11T12:08:21.598Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-639825eee8c05-1770809894532",
+    "at": "2026-02-11T11:38:14.532Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-01e8758dcf4de-1770808077767",
+    "at": "2026-02-11T11:07:57.767Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-80a20a51d3fc8-1770806271844",
+    "at": "2026-02-11T10:37:51.844Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-14cf093864159-1770804456347",
+    "at": "2026-02-11T10:07:36.347Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-1aa39da53ee5e-1770802642959",
+    "at": "2026-02-11T09:37:22.959Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-7fcad3d5c2d32-1770801584891",
+    "at": "2026-02-11T09:19:44.891Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-b281b9471be5-1770801011964",
+    "at": "2026-02-11T09:10:11.964Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-cea267e9746f-1770800947470",
+    "at": "2026-02-11T09:09:07.470Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "task-started-706421521245e-1770800821601",
+    "at": "2026-02-11T09:07:00.425Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Waiting for assignment → Sentinel",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Waiting for assignment",
+      "workerSlot": "qa",
+      "worker": "Sentinel",
+      "startedAt": "2026-02-11T09:07:00.425Z"
+    }
+  },
+  {
+    "id": "task-started-d204935c44f7b-1770800821601",
+    "at": "2026-02-11T09:07:00.425Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Waiting for assignment → Patch",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Waiting for assignment",
+      "workerSlot": "dev-2",
+      "worker": "Patch",
+      "startedAt": "2026-02-11T09:07:00.425Z"
+    }
+  },
+  {
+    "id": "task-started-0b69fc79ab457-1770800821601",
+    "at": "2026-02-11T09:07:00.425Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Waiting for assignment → Forge",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Waiting for assignment",
+      "workerSlot": "dev-1",
+      "worker": "Forge",
+      "startedAt": "2026-02-11T09:07:00.425Z"
+    }
+  },
+  {
+    "id": "task-started-774f2aee818e9-1770800821601",
+    "at": "2026-02-11T09:07:00.425Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Waiting for assignment → Blueprint",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Waiting for assignment",
+      "workerSlot": "architect",
+      "worker": "Blueprint",
+      "startedAt": "2026-02-11T09:07:00.425Z"
+    }
+  },
+  {
+    "id": "task-created-40f36febb2e23-1770800821601",
+    "at": "2026-02-11T09:07:00.425Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: Waiting for assignment",
+    "meta": {
+      "eventType": "task.created",
+      "task": "Waiting for assignment",
+      "workerSlot": "architect",
+      "worker": "Blueprint"
+    }
+  },
+  {
+    "id": "task-started-40fc82595565c-1770800821601",
+    "at": "2026-02-11T09:07:00.425Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Orchestrating delivery → TARS",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Orchestrating delivery",
+      "workerSlot": "pm",
+      "worker": "TARS",
+      "startedAt": "2026-02-11T09:07:00.425Z"
+    }
+  },
+  {
+    "id": "task-created-f5d6c62d3e5fc-1770800821601",
+    "at": "2026-02-11T09:07:00.425Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: Orchestrating delivery",
+    "meta": {
+      "eventType": "task.created",
+      "task": "Orchestrating delivery",
+      "workerSlot": "pm",
+      "worker": "TARS"
+    }
+  },
+  {
+    "id": "bridge-9980c08556d48-1770800813215",
+    "at": "2026-02-11T09:06:53.215Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "task-started-324aab2ac30a4-1770800783636",
+    "at": "2026-02-11T09:06:22.425Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Waiting for assignment → Sentinel",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Waiting for assignment",
+      "workerSlot": "qa",
+      "worker": "Sentinel",
+      "startedAt": "2026-02-11T09:06:22.425Z"
+    }
+  },
+  {
+    "id": "task-started-13ad1be746c9d-1770800783636",
+    "at": "2026-02-11T09:06:22.425Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Waiting for assignment → Patch",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Waiting for assignment",
+      "workerSlot": "dev-2",
+      "worker": "Patch",
+      "startedAt": "2026-02-11T09:06:22.425Z"
+    }
+  },
+  {
+    "id": "task-started-b48666798702b-1770800783636",
+    "at": "2026-02-11T09:06:22.425Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Waiting for assignment → Forge",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Waiting for assignment",
+      "workerSlot": "dev-1",
+      "worker": "Forge",
+      "startedAt": "2026-02-11T09:06:22.425Z"
+    }
+  },
+  {
+    "id": "task-started-5488695e81d47-1770800783636",
+    "at": "2026-02-11T09:06:22.425Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Waiting for assignment → Blueprint",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Waiting for assignment",
+      "workerSlot": "architect",
+      "worker": "Blueprint",
+      "startedAt": "2026-02-11T09:06:22.425Z"
+    }
+  },
+  {
+    "id": "task-created-dccdca4c7dde-1770800783636",
+    "at": "2026-02-11T09:06:22.425Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: Waiting for assignment",
+    "meta": {
+      "eventType": "task.created",
+      "task": "Waiting for assignment",
+      "workerSlot": "architect",
+      "worker": "Blueprint"
+    }
+  },
+  {
+    "id": "task-started-270534fe78c85-1770800783636",
+    "at": "2026-02-11T09:06:22.425Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Orchestrating delivery → TARS",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Orchestrating delivery",
+      "workerSlot": "pm",
+      "worker": "TARS",
+      "startedAt": "2026-02-11T09:06:22.425Z"
+    }
+  },
+  {
+    "id": "task-created-ddf66cc1bafca-1770800783636",
+    "at": "2026-02-11T09:06:22.425Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: Orchestrating delivery",
+    "meta": {
+      "eventType": "task.created",
+      "task": "Orchestrating delivery",
+      "workerSlot": "pm",
+      "worker": "TARS"
+    }
+  },
+  {
+    "id": "bridge-85cf103c7744c-1770800777371",
+    "at": "2026-02-11T09:06:17.371Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "task-started-e2ddbbc9ace29-1770800767124",
+    "at": "2026-02-11T09:06:05.956Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Waiting for assignment → Sentinel",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Waiting for assignment",
+      "workerSlot": "qa",
+      "worker": "Sentinel",
+      "startedAt": "2026-02-11T09:06:05.956Z"
+    }
+  },
+  {
+    "id": "task-started-a532e2a0ee00b-1770800767124",
+    "at": "2026-02-11T09:06:05.956Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Waiting for assignment → Patch",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Waiting for assignment",
+      "workerSlot": "dev-2",
+      "worker": "Patch",
+      "startedAt": "2026-02-11T09:06:05.956Z"
+    }
+  },
+  {
+    "id": "task-started-a3392b0aeb99d-1770800767124",
+    "at": "2026-02-11T09:06:05.956Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Waiting for assignment → Forge",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Waiting for assignment",
+      "workerSlot": "dev-1",
+      "worker": "Forge",
+      "startedAt": "2026-02-11T09:06:05.956Z"
+    }
+  },
+  {
+    "id": "task-started-567cb37d4fad6-1770800767123",
+    "at": "2026-02-11T09:06:05.956Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Waiting for assignment → Blueprint",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Waiting for assignment",
+      "workerSlot": "architect",
+      "worker": "Blueprint",
+      "startedAt": "2026-02-11T09:06:05.956Z"
+    }
+  },
+  {
+    "id": "task-created-703047a9386ba-1770800767123",
+    "at": "2026-02-11T09:06:05.956Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: Waiting for assignment",
+    "meta": {
+      "eventType": "task.created",
+      "task": "Waiting for assignment",
+      "workerSlot": "architect",
+      "worker": "Blueprint"
+    }
+  },
+  {
+    "id": "task-started-98eb561251b24-1770800767123",
+    "at": "2026-02-11T09:06:05.956Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Orchestrating delivery → TARS",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Orchestrating delivery",
+      "workerSlot": "pm",
+      "worker": "TARS",
+      "startedAt": "2026-02-11T09:06:05.956Z"
+    }
+  },
+  {
+    "id": "task-created-3c477618edb13-1770800767123",
+    "at": "2026-02-11T09:06:05.956Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: Orchestrating delivery",
+    "meta": {
+      "eventType": "task.created",
+      "task": "Orchestrating delivery",
+      "workerSlot": "pm",
+      "worker": "TARS"
+    }
+  },
+  {
+    "id": "bridge-ad84b1c09945a-1770800759548",
+    "at": "2026-02-11T09:05:59.548Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "task-started-ea7d53101bd54-1770800626406",
+    "at": "2026-02-11T09:03:44.993Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Waiting for assignment → Sentinel",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Waiting for assignment",
+      "workerSlot": "qa",
+      "worker": "Sentinel",
+      "startedAt": "2026-02-11T09:03:44.993Z"
+    }
+  },
+  {
+    "id": "task-started-2b007e47c90c4-1770800626406",
+    "at": "2026-02-11T09:03:44.993Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Waiting for assignment → Patch",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Waiting for assignment",
+      "workerSlot": "dev-2",
+      "worker": "Patch",
+      "startedAt": "2026-02-11T09:03:44.993Z"
+    }
+  },
+  {
+    "id": "task-started-4970f6c3a91de-1770800626406",
+    "at": "2026-02-11T09:03:44.993Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Waiting for assignment → Forge",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Waiting for assignment",
+      "workerSlot": "dev-1",
+      "worker": "Forge",
+      "startedAt": "2026-02-11T09:03:44.993Z"
+    }
+  },
+  {
+    "id": "task-started-41940ac02c1dc-1770800626406",
+    "at": "2026-02-11T09:03:44.993Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Waiting for assignment → Blueprint",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Waiting for assignment",
+      "workerSlot": "architect",
+      "worker": "Blueprint",
+      "startedAt": "2026-02-11T09:03:44.993Z"
+    }
+  },
+  {
+    "id": "task-created-693066b49b19e-1770800626406",
+    "at": "2026-02-11T09:03:44.993Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: Waiting for assignment",
+    "meta": {
+      "eventType": "task.created",
+      "task": "Waiting for assignment",
+      "workerSlot": "architect",
+      "worker": "Blueprint"
+    }
+  },
+  {
+    "id": "task-started-48b2724fe40d9-1770800626406",
+    "at": "2026-02-11T09:03:44.993Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Orchestrating delivery → TARS",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Orchestrating delivery",
+      "workerSlot": "pm",
+      "worker": "TARS",
+      "startedAt": "2026-02-11T09:03:44.993Z"
+    }
+  },
+  {
+    "id": "task-created-7bcf81a17e29c-1770800626406",
+    "at": "2026-02-11T09:03:44.993Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: Orchestrating delivery",
+    "meta": {
+      "eventType": "task.created",
+      "task": "Orchestrating delivery",
+      "workerSlot": "pm",
+      "worker": "TARS"
+    }
+  },
+  {
+    "id": "bridge-148fc29c4205c-1770800452473",
+    "at": "2026-02-11T09:00:52.473Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-a0e865ad5a0ce-1770800357262",
+    "at": "2026-02-11T08:59:17.262Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "task-started-0e275fd3dc8bf-1770800324314",
+    "at": "2026-02-11T08:58:43.121Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Waiting for assignment → Sentinel",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Waiting for assignment",
+      "workerSlot": "qa",
+      "worker": "Sentinel",
+      "startedAt": "2026-02-11T08:58:43.121Z"
+    }
+  },
+  {
+    "id": "task-started-38bcafcee6b2a-1770800324314",
+    "at": "2026-02-11T08:58:43.121Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Waiting for assignment → Patch",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Waiting for assignment",
+      "workerSlot": "dev-2",
+      "worker": "Patch",
+      "startedAt": "2026-02-11T08:58:43.121Z"
+    }
+  },
+  {
+    "id": "task-started-df75c60d5a062-1770800324314",
+    "at": "2026-02-11T08:58:43.121Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Waiting for assignment → Forge",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Waiting for assignment",
+      "workerSlot": "dev-1",
+      "worker": "Forge",
+      "startedAt": "2026-02-11T08:58:43.121Z"
+    }
+  },
+  {
+    "id": "task-started-00ba5f4746881-1770800324314",
+    "at": "2026-02-11T08:58:43.121Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Waiting for assignment → Blueprint",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Waiting for assignment",
+      "workerSlot": "architect",
+      "worker": "Blueprint",
+      "startedAt": "2026-02-11T08:58:43.121Z"
+    }
+  },
+  {
+    "id": "task-created-d962f6b630977-1770800324314",
+    "at": "2026-02-11T08:58:43.121Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: Waiting for assignment",
+    "meta": {
+      "eventType": "task.created",
+      "task": "Waiting for assignment",
+      "workerSlot": "architect",
+      "worker": "Blueprint"
+    }
+  },
+  {
+    "id": "task-started-7a7bbc401884b-1770800324314",
+    "at": "2026-02-11T08:58:43.121Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Orchestrating delivery → TARS",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Orchestrating delivery",
+      "workerSlot": "pm",
+      "worker": "TARS",
+      "startedAt": "2026-02-11T08:58:43.121Z"
+    }
+  },
+  {
+    "id": "task-created-f80140685af91-1770800324314",
+    "at": "2026-02-11T08:58:43.121Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: Orchestrating delivery",
+    "meta": {
+      "eventType": "task.created",
+      "task": "Orchestrating delivery",
+      "workerSlot": "pm",
+      "worker": "TARS"
+    }
+  },
+  {
+    "id": "bridge-a276937230227-1770800320628",
+    "at": "2026-02-11T08:58:40.628Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-919bd3cc7fc2c-1770800288974",
+    "at": "2026-02-11T08:58:08.974Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-5a994cd3ac58c-1770798490125",
+    "at": "2026-02-11T08:28:10.125Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "task-started-e9af9a80e1aa-1770798462679",
+    "at": "2026-02-11T08:27:42.678Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Waiting for assignment → Blueprint",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Waiting for assignment",
+      "workerSlot": "architect",
+      "worker": "Blueprint",
+      "startedAt": "2026-02-11T08:27:42.678Z"
+    }
+  },
+  {
+    "id": "task-completed-53ea636c89a79-1770798462679",
+    "at": "2026-02-11T08:27:42.678Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task completed: P0 Bridge API: kanban CRUD + move cards · Blueprint · took 2m 56s",
+    "meta": {
+      "eventType": "task.completed",
+      "task": "P0 Bridge API: kanban CRUD + move cards",
+      "workerSlot": "architect",
+      "worker": "Blueprint",
+      "durationMs": 176110,
+      "startedAt": "2026-02-11T08:24:46.568Z",
+      "completedAt": "2026-02-11T08:27:42.678Z"
+    }
+  },
+  {
+    "id": "task-started-fa357817c8d54-1770798462679",
+    "at": "2026-02-11T08:27:42.678Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Orchestrating delivery → TARS",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Orchestrating delivery",
+      "workerSlot": "pm",
+      "worker": "TARS",
+      "startedAt": "2026-02-11T08:27:42.678Z"
+    }
+  },
+  {
+    "id": "task-completed-1f9bba58bfff8-1770798462679",
+    "at": "2026-02-11T08:27:42.678Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task completed: P2 PM: Projects delivery tracking + unblockers · TARS · took 2m 56s",
+    "meta": {
+      "eventType": "task.completed",
+      "task": "P2 PM: Projects delivery tracking + unblockers",
+      "workerSlot": "pm",
+      "worker": "TARS",
+      "durationMs": 176110,
+      "startedAt": "2026-02-11T08:24:46.568Z",
+      "completedAt": "2026-02-11T08:27:42.678Z"
+    }
+  },
+  {
+    "id": "task-created-ee4ad000551f9-1770798462679",
+    "at": "2026-02-11T08:27:42.678Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: Orchestrating delivery",
+    "meta": {
+      "eventType": "task.created",
+      "task": "Orchestrating delivery",
+      "workerSlot": "pm",
+      "worker": "TARS"
+    }
+  },
+  {
+    "id": "task-started-bb0ea4df33a9f-1770798287760",
+    "at": "2026-02-11T08:24:46.568Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Waiting for assignment → Sentinel",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Waiting for assignment",
+      "workerSlot": "qa",
+      "worker": "Sentinel",
+      "startedAt": "2026-02-11T08:24:46.568Z"
+    }
+  },
+  {
+    "id": "task-started-4f38249a7478b-1770798287760",
+    "at": "2026-02-11T08:24:46.568Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Waiting for assignment → Patch",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Waiting for assignment",
+      "workerSlot": "dev-2",
+      "worker": "Patch",
+      "startedAt": "2026-02-11T08:24:46.568Z"
+    }
+  },
+  {
+    "id": "task-started-9baf3ee7884aa-1770798287760",
+    "at": "2026-02-11T08:24:46.568Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Waiting for assignment → Forge",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Waiting for assignment",
+      "workerSlot": "dev-1",
+      "worker": "Forge",
+      "startedAt": "2026-02-11T08:24:46.568Z"
+    }
+  },
+  {
+    "id": "task-created-99ad27000c1d9-1770798287760",
+    "at": "2026-02-11T08:24:46.568Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: Waiting for assignment",
+    "meta": {
+      "eventType": "task.created",
+      "task": "Waiting for assignment",
+      "workerSlot": "dev-1",
+      "worker": "Forge"
+    }
+  },
+  {
+    "id": "task-started-71c648a508458-1770798287760",
+    "at": "2026-02-11T08:24:46.568Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: P0 Bridge API: kanban CRUD + move cards → Blueprint",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "P0 Bridge API: kanban CRUD + move cards",
+      "workerSlot": "architect",
+      "worker": "Blueprint",
+      "startedAt": "2026-02-11T08:24:46.568Z"
+    }
+  },
+  {
+    "id": "task-created-686d6da3932d8-1770798287760",
+    "at": "2026-02-11T08:24:46.568Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: P0 Bridge API: kanban CRUD + move cards",
+    "meta": {
+      "eventType": "task.created",
+      "task": "P0 Bridge API: kanban CRUD + move cards",
+      "workerSlot": "architect",
+      "worker": "Blueprint"
+    }
+  },
+  {
+    "id": "task-started-4b2f167b1e82b-1770798287760",
+    "at": "2026-02-11T08:24:46.568Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: P2 PM: Projects delivery tracking + unblockers → TARS",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "P2 PM: Projects delivery tracking + unblockers",
+      "workerSlot": "pm",
+      "worker": "TARS",
+      "startedAt": "2026-02-11T08:24:46.568Z"
+    }
+  },
+  {
+    "id": "task-created-f28bb1dac45a1-1770798287760",
+    "at": "2026-02-11T08:24:46.568Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: P2 PM: Projects delivery tracking + unblockers",
+    "meta": {
+      "eventType": "task.created",
+      "task": "P2 PM: Projects delivery tracking + unblockers",
+      "workerSlot": "pm",
+      "worker": "TARS"
+    }
+  },
+  {
+    "id": "bridge-842bdd9584a53-1770798127840",
+    "at": "2026-02-11T08:22:07.840Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "task-started-87402b40c60f8-1770798004113",
+    "at": "2026-02-11T08:20:02.902Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: P0 UI: wire New Project wizard to adapter create/import → Forge",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "P0 UI: wire New Project wizard to adapter create/import",
+      "workerSlot": "dev-1",
+      "worker": "Forge",
+      "startedAt": "2026-02-11T08:20:02.902Z"
+    }
+  },
+  {
+    "id": "task-completed-f8ece663128a1-1770798004113",
+    "at": "2026-02-11T08:20:02.902Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task completed: P0 UI: wire Tree interactions to adapter (open, add, edit) · Forge · took 13s",
+    "meta": {
+      "eventType": "task.completed",
+      "task": "P0 UI: wire Tree interactions to adapter (open, add, edit)",
+      "workerSlot": "dev-1",
+      "worker": "Forge",
+      "durationMs": 12579,
+      "startedAt": "2026-02-11T08:19:50.323Z",
+      "completedAt": "2026-02-11T08:20:02.902Z"
+    }
+  },
+  {
+    "id": "task-created-dfcfd9490d7ed-1770798004113",
+    "at": "2026-02-11T08:20:02.902Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: P0 UI: wire New Project wizard to adapter create/import",
+    "meta": {
+      "eventType": "task.created",
+      "task": "P0 UI: wire New Project wizard to adapter create/import",
+      "workerSlot": "dev-1",
+      "worker": "Forge"
+    }
+  },
+  {
+    "id": "task-started-16aa1ea7bd375-1770797991633",
+    "at": "2026-02-11T08:19:50.323Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Waiting for assignment → Patch",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Waiting for assignment",
+      "workerSlot": "dev-2",
+      "worker": "Patch",
+      "startedAt": "2026-02-11T08:19:50.323Z"
+    }
+  },
+  {
+    "id": "task-completed-6de345229c5c3-1770797991633",
+    "at": "2026-02-11T08:19:50.323Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task completed: P1 Adapter: extend adapter.ts + bridgeAdapter.ts + mockAdapter.ts for Projects · Patch · took 25m 28s",
+    "meta": {
+      "eventType": "task.completed",
+      "task": "P1 Adapter: extend adapter.ts + bridgeAdapter.ts + mockAdapter.ts for Projects",
+      "workerSlot": "dev-2",
+      "worker": "Patch",
+      "durationMs": 1528281,
+      "startedAt": "2026-02-11T07:54:22.042Z",
+      "completedAt": "2026-02-11T08:19:50.323Z"
+    }
+  },
+  {
+    "id": "task-started-2897e28c0d3df-1770797991633",
+    "at": "2026-02-11T08:19:50.323Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: P0 UI: wire Tree interactions to adapter (open, add, edit) → Forge",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "P0 UI: wire Tree interactions to adapter (open, add, edit)",
+      "workerSlot": "dev-1",
+      "worker": "Forge",
+      "startedAt": "2026-02-11T08:19:50.323Z"
+    }
+  },
+  {
+    "id": "task-completed-d43af7edea87d-1770797991633",
+    "at": "2026-02-11T08:19:50.323Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task completed: P0 UI: swap Projects page data source to adapter (list/select) · Forge · took 25m 28s",
+    "meta": {
+      "eventType": "task.completed",
+      "task": "P0 UI: swap Projects page data source to adapter (list/select)",
+      "workerSlot": "dev-1",
+      "worker": "Forge",
+      "durationMs": 1528281,
+      "startedAt": "2026-02-11T07:54:22.042Z",
+      "completedAt": "2026-02-11T08:19:50.323Z"
+    }
+  },
+  {
+    "id": "task-created-baabbce534bd6-1770797991632",
+    "at": "2026-02-11T08:19:50.323Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: P0 UI: wire Tree interactions to adapter (open, add, edit)",
+    "meta": {
+      "eventType": "task.created",
+      "task": "P0 UI: wire Tree interactions to adapter (open, add, edit)",
+      "workerSlot": "dev-1",
+      "worker": "Forge"
+    }
+  },
+  {
+    "id": "task-started-986419ab5056-1770796612251",
+    "at": "2026-02-11T07:56:51.088Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: P0 Bridge API: kanban CRUD + move cards → Blueprint",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "P0 Bridge API: kanban CRUD + move cards",
+      "workerSlot": "architect",
+      "worker": "Blueprint",
+      "startedAt": "2026-02-11T07:56:51.088Z"
+    }
+  },
+  {
+    "id": "task-completed-50559fc503c55-1770796612250",
+    "at": "2026-02-11T07:56:51.088Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task completed: P0 Bridge: define projects storage layout + JSON schema · Blueprint · took 2m 29s",
+    "meta": {
+      "eventType": "task.completed",
+      "task": "P0 Bridge: define projects storage layout + JSON schema",
+      "workerSlot": "architect",
+      "worker": "Blueprint",
+      "durationMs": 149046,
+      "startedAt": "2026-02-11T07:54:22.042Z",
+      "completedAt": "2026-02-11T07:56:51.088Z"
+    }
+  },
+  {
+    "id": "task-created-1d998b9a89226-1770796612250",
+    "at": "2026-02-11T07:56:51.088Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: P0 Bridge API: kanban CRUD + move cards",
+    "meta": {
+      "eventType": "task.created",
+      "task": "P0 Bridge API: kanban CRUD + move cards",
+      "workerSlot": "architect",
+      "worker": "Blueprint"
+    }
+  },
+  {
+    "id": "task-started-af4daf9a0eb33-1770796463690",
+    "at": "2026-02-11T07:54:22.042Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Waiting for assignment → Sentinel",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Waiting for assignment",
+      "workerSlot": "qa",
+      "worker": "Sentinel",
+      "startedAt": "2026-02-11T07:54:22.042Z"
+    }
+  },
+  {
+    "id": "task-created-7f90dd72c62c7-1770796463690",
+    "at": "2026-02-11T07:54:22.042Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: Waiting for assignment",
+    "meta": {
+      "eventType": "task.created",
+      "task": "Waiting for assignment",
+      "workerSlot": "qa",
+      "worker": "Sentinel"
+    }
+  },
+  {
+    "id": "task-started-1dda1a4914a8b-1770796463690",
+    "at": "2026-02-11T07:54:22.042Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: P1 Adapter: extend adapter.ts + bridgeAdapter.ts + mockAdapter.ts for Projects → Patch",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "P1 Adapter: extend adapter.ts + bridgeAdapter.ts + mockAdapter.ts for Projects",
+      "workerSlot": "dev-2",
+      "worker": "Patch",
+      "startedAt": "2026-02-11T07:54:22.042Z"
+    }
+  },
+  {
+    "id": "task-created-db29b27ff4266-1770796463690",
+    "at": "2026-02-11T07:54:22.042Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: P1 Adapter: extend adapter.ts + bridgeAdapter.ts + mockAdapter.ts for Projects",
+    "meta": {
+      "eventType": "task.created",
+      "task": "P1 Adapter: extend adapter.ts + bridgeAdapter.ts + mockAdapter.ts for Projects",
+      "workerSlot": "dev-2",
+      "worker": "Patch"
+    }
+  },
+  {
+    "id": "task-started-e279e0f4cf68a-1770796463690",
+    "at": "2026-02-11T07:54:22.042Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: P0 UI: swap Projects page data source to adapter (list/select) → Forge",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "P0 UI: swap Projects page data source to adapter (list/select)",
+      "workerSlot": "dev-1",
+      "worker": "Forge",
+      "startedAt": "2026-02-11T07:54:22.042Z"
+    }
+  },
+  {
+    "id": "task-created-06aa33e9cb10d-1770796463690",
+    "at": "2026-02-11T07:54:22.042Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: P0 UI: swap Projects page data source to adapter (list/select)",
+    "meta": {
+      "eventType": "task.created",
+      "task": "P0 UI: swap Projects page data source to adapter (list/select)",
+      "workerSlot": "dev-1",
+      "worker": "Forge"
+    }
+  },
+  {
+    "id": "task-started-9eb42b468c246-1770796463690",
+    "at": "2026-02-11T07:54:22.042Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: P0 Bridge: define projects storage layout + JSON schema → Blueprint",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "P0 Bridge: define projects storage layout + JSON schema",
+      "workerSlot": "architect",
+      "worker": "Blueprint",
+      "startedAt": "2026-02-11T07:54:22.042Z"
+    }
+  },
+  {
+    "id": "task-created-6cfbe9c5b1ffc-1770796463690",
+    "at": "2026-02-11T07:54:22.042Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: P0 Bridge: define projects storage layout + JSON schema",
+    "meta": {
+      "eventType": "task.created",
+      "task": "P0 Bridge: define projects storage layout + JSON schema",
+      "workerSlot": "architect",
+      "worker": "Blueprint"
+    }
+  },
+  {
+    "id": "task-started-5109ce52521b3-1770796463690",
+    "at": "2026-02-11T07:54:22.042Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: P2 PM: Projects delivery tracking + unblockers → TARS",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "P2 PM: Projects delivery tracking + unblockers",
+      "workerSlot": "pm",
+      "worker": "TARS",
+      "startedAt": "2026-02-11T07:54:22.042Z"
+    }
+  },
+  {
+    "id": "task-created-df2a9f7074849-1770796463690",
+    "at": "2026-02-11T07:54:22.042Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: P2 PM: Projects delivery tracking + unblockers",
+    "meta": {
+      "eventType": "task.created",
+      "task": "P2 PM: Projects delivery tracking + unblockers",
+      "workerSlot": "pm",
+      "worker": "TARS"
+    }
+  },
+  {
+    "id": "bridge-a70a609c415db-1770796287907",
+    "at": "2026-02-11T07:51:27.907Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "models-441598692b13f-1770792797658",
+    "at": "2026-02-11T06:53:15.089Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "model set: openai-codex/gpt-5.2",
+    "meta": {
+      "eventType": "model.set",
+      "modelKey": "openai-codex/gpt-5.2",
+      "resolvedDefault": "openai-codex/gpt-5.2",
+      "output": "Updated ~/.openclaw/openclaw.json\nDefault model: openai-codex/gpt-5.2"
+    }
+  },
+  {
+    "id": "bridge-b429668bb38c6-1770792783269",
+    "at": "2026-02-11T06:53:03.269Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "gateway-318af3e01ea25-1770791499099",
+    "at": "2026-02-11T06:31:39.099Z",
+    "level": "error",
+    "source": "bridge",
+    "message": "gateway: warn → down (probe failed)"
+  },
+  {
+    "id": "models-7f6814ac5d2a-1770791497263",
+    "at": "2026-02-11T06:31:35.051Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "model set: openai/gpt-5.2",
+    "meta": {
+      "eventType": "model.set",
+      "modelKey": "openai/gpt-5.2",
+      "resolvedDefault": "openai/gpt-5.2",
+      "output": "Updated ~/.openclaw/openclaw.json\nDefault model: openai/gpt-5.2"
+    }
+  },
+  {
+    "id": "task-started-beedd6bda16b-1770790031886",
+    "at": "2026-02-11T06:07:10.712Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: P0 UI: swap Projects page data source to adapter (list/select) → Forge",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "P0 UI: swap Projects page data source to adapter (list/select)",
+      "workerSlot": "dev-1",
+      "worker": "Forge",
+      "startedAt": "2026-02-11T06:07:10.712Z"
+    }
+  },
+  {
+    "id": "task-completed-97ab43993f609-1770790031886",
+    "at": "2026-02-11T06:07:10.712Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task completed: Waiting for assignment · Forge · took 25s",
+    "meta": {
+      "eventType": "task.completed",
+      "task": "Waiting for assignment",
+      "workerSlot": "dev-1",
+      "worker": "Forge",
+      "durationMs": 24710,
+      "startedAt": "2026-02-11T06:06:46.002Z",
+      "completedAt": "2026-02-11T06:07:10.712Z"
+    }
+  },
+  {
+    "id": "task-created-7796509f5745e-1770790031886",
+    "at": "2026-02-11T06:07:10.712Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: P0 UI: swap Projects page data source to adapter (list/select)",
+    "meta": {
+      "eventType": "task.created",
+      "task": "P0 UI: swap Projects page data source to adapter (list/select)",
+      "workerSlot": "dev-1",
+      "worker": "Forge"
+    }
+  },
+  {
+    "id": "task-started-2ca28ecb8058f-1770790007174",
+    "at": "2026-02-11T06:06:46.002Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Waiting for assignment → Sentinel",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Waiting for assignment",
+      "workerSlot": "qa",
+      "worker": "Sentinel",
+      "startedAt": "2026-02-11T06:06:46.002Z"
+    }
+  },
+  {
+    "id": "task-started-149f60b41d8b8-1770790007174",
+    "at": "2026-02-11T06:06:46.002Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: P1 Adapter: extend adapter.ts + bridgeAdapter.ts + mockAdapter.ts for Projects → Patch",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "P1 Adapter: extend adapter.ts + bridgeAdapter.ts + mockAdapter.ts for Projects",
+      "workerSlot": "dev-2",
+      "worker": "Patch",
+      "startedAt": "2026-02-11T06:06:46.002Z"
+    }
+  },
+  {
+    "id": "task-created-5dfde6b5b6d1b-1770790007174",
+    "at": "2026-02-11T06:06:46.002Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: P1 Adapter: extend adapter.ts + bridgeAdapter.ts + mockAdapter.ts for Projects",
+    "meta": {
+      "eventType": "task.created",
+      "task": "P1 Adapter: extend adapter.ts + bridgeAdapter.ts + mockAdapter.ts for Projects",
+      "workerSlot": "dev-2",
+      "worker": "Patch"
+    }
+  },
+  {
+    "id": "task-started-136c649f2119-1770790007174",
+    "at": "2026-02-11T06:06:46.002Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Waiting for assignment → Forge",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Waiting for assignment",
+      "workerSlot": "dev-1",
+      "worker": "Forge",
+      "startedAt": "2026-02-11T06:06:46.002Z"
+    }
+  },
+  {
+    "id": "task-created-144ae9638464-1770790007174",
+    "at": "2026-02-11T06:06:46.002Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: Waiting for assignment",
+    "meta": {
+      "eventType": "task.created",
+      "task": "Waiting for assignment",
+      "workerSlot": "dev-1",
+      "worker": "Forge"
+    }
+  },
+  {
+    "id": "task-started-48b62f005fcb-1770790007174",
+    "at": "2026-02-11T06:06:46.002Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: P0 Bridge: define projects storage layout + JSON schema → Blueprint",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "P0 Bridge: define projects storage layout + JSON schema",
+      "workerSlot": "architect",
+      "worker": "Blueprint",
+      "startedAt": "2026-02-11T06:06:46.002Z"
+    }
+  },
+  {
+    "id": "task-created-ed3ea6b138175-1770790007174",
+    "at": "2026-02-11T06:06:46.002Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: P0 Bridge: define projects storage layout + JSON schema",
+    "meta": {
+      "eventType": "task.created",
+      "task": "P0 Bridge: define projects storage layout + JSON schema",
+      "workerSlot": "architect",
+      "worker": "Blueprint"
+    }
+  },
+  {
+    "id": "task-started-25a70846c435d-1770790007174",
+    "at": "2026-02-11T06:06:46.002Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: P2 PM: Projects delivery tracking + unblockers → TARS",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "P2 PM: Projects delivery tracking + unblockers",
+      "workerSlot": "pm",
+      "worker": "TARS",
+      "startedAt": "2026-02-11T06:06:46.002Z"
+    }
+  },
+  {
+    "id": "task-created-9005ff829b6ea-1770790007174",
+    "at": "2026-02-11T06:06:46.002Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: P2 PM: Projects delivery tracking + unblockers",
+    "meta": {
+      "eventType": "task.created",
+      "task": "P2 PM: Projects delivery tracking + unblockers",
+      "workerSlot": "pm",
+      "worker": "TARS"
+    }
+  },
+  {
+    "id": "bridge-96c0ee6c13f09-1770789999231",
+    "at": "2026-02-11T06:06:39.231Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "task-started-75881ba3318c1-1770789824302",
+    "at": "2026-02-11T06:03:43.109Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: P1 Adapter: extend adapter.ts + bridgeAdapter.ts + mockAdapter.ts for Projects → Patch",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "P1 Adapter: extend adapter.ts + bridgeAdapter.ts + mockAdapter.ts for Projects",
+      "workerSlot": "dev-2",
+      "worker": "Patch",
+      "startedAt": "2026-02-11T06:03:43.109Z"
+    }
+  },
+  {
+    "id": "task-completed-31926ca3ce613-1770789824302",
+    "at": "2026-02-11T06:03:43.109Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task completed: Waiting for assignment · Patch · took 12s",
+    "meta": {
+      "eventType": "task.completed",
+      "task": "Waiting for assignment",
+      "workerSlot": "dev-2",
+      "worker": "Patch",
+      "durationMs": 12347,
+      "startedAt": "2026-02-11T06:03:30.762Z",
+      "completedAt": "2026-02-11T06:03:43.109Z"
+    }
+  },
+  {
+    "id": "task-created-9582e30b04206-1770789824302",
+    "at": "2026-02-11T06:03:43.109Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: P1 Adapter: extend adapter.ts + bridgeAdapter.ts + mockAdapter.ts for Projects",
+    "meta": {
+      "eventType": "task.created",
+      "task": "P1 Adapter: extend adapter.ts + bridgeAdapter.ts + mockAdapter.ts for Projects",
+      "workerSlot": "dev-2",
+      "worker": "Patch"
+    }
+  },
+  {
+    "id": "task-started-f5f78f2b46665-1770789824302",
+    "at": "2026-02-11T06:03:43.109Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: P0 Bridge: define projects storage layout + JSON schema → Blueprint",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "P0 Bridge: define projects storage layout + JSON schema",
+      "workerSlot": "architect",
+      "worker": "Blueprint",
+      "startedAt": "2026-02-11T06:03:43.109Z"
+    }
+  },
+  {
+    "id": "task-completed-e5f7742a8fbb9-1770789824302",
+    "at": "2026-02-11T06:03:43.109Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task completed: Waiting for assignment · Blueprint · took 12s",
+    "meta": {
+      "eventType": "task.completed",
+      "task": "Waiting for assignment",
+      "workerSlot": "architect",
+      "worker": "Blueprint",
+      "durationMs": 12347,
+      "startedAt": "2026-02-11T06:03:30.762Z",
+      "completedAt": "2026-02-11T06:03:43.109Z"
+    }
+  },
+  {
+    "id": "task-created-85a3f83b39818-1770789824302",
+    "at": "2026-02-11T06:03:43.109Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: P0 Bridge: define projects storage layout + JSON schema",
+    "meta": {
+      "eventType": "task.created",
+      "task": "P0 Bridge: define projects storage layout + JSON schema",
+      "workerSlot": "architect",
+      "worker": "Blueprint"
+    }
+  },
+  {
+    "id": "task-started-751329a090b55-1770789824302",
+    "at": "2026-02-11T06:03:43.109Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: P2 PM: Projects delivery tracking + unblockers → TARS",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "P2 PM: Projects delivery tracking + unblockers",
+      "workerSlot": "pm",
+      "worker": "TARS",
+      "startedAt": "2026-02-11T06:03:43.109Z"
+    }
+  },
+  {
+    "id": "task-completed-ed2c5d589083d-1770789824302",
+    "at": "2026-02-11T06:03:43.109Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task completed: Orchestrating delivery · TARS · took 12s",
+    "meta": {
+      "eventType": "task.completed",
+      "task": "Orchestrating delivery",
+      "workerSlot": "pm",
+      "worker": "TARS",
+      "durationMs": 12347,
+      "startedAt": "2026-02-11T06:03:30.762Z",
+      "completedAt": "2026-02-11T06:03:43.109Z"
+    }
+  },
+  {
+    "id": "task-created-48777cc520a47-1770789824302",
+    "at": "2026-02-11T06:03:43.109Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: P2 PM: Projects delivery tracking + unblockers",
+    "meta": {
+      "eventType": "task.created",
+      "task": "P2 PM: Projects delivery tracking + unblockers",
+      "workerSlot": "pm",
+      "worker": "TARS"
+    }
+  },
+  {
+    "id": "task-started-091340d5a2a0d-1770789811924",
+    "at": "2026-02-11T06:03:30.762Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Waiting for assignment → Sentinel",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Waiting for assignment",
+      "workerSlot": "qa",
+      "worker": "Sentinel",
+      "startedAt": "2026-02-11T06:03:30.762Z"
+    }
+  },
+  {
+    "id": "task-started-23f47b593daa3-1770789811924",
+    "at": "2026-02-11T06:03:30.762Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Waiting for assignment → Patch",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Waiting for assignment",
+      "workerSlot": "dev-2",
+      "worker": "Patch",
+      "startedAt": "2026-02-11T06:03:30.762Z"
+    }
+  },
+  {
+    "id": "task-started-40365a09c3c8b-1770789811924",
+    "at": "2026-02-11T06:03:30.762Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Waiting for assignment → Forge",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Waiting for assignment",
+      "workerSlot": "dev-1",
+      "worker": "Forge",
+      "startedAt": "2026-02-11T06:03:30.762Z"
+    }
+  },
+  {
+    "id": "task-started-cf5cb3e8fc563-1770789811923",
+    "at": "2026-02-11T06:03:30.762Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Waiting for assignment → Blueprint",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Waiting for assignment",
+      "workerSlot": "architect",
+      "worker": "Blueprint",
+      "startedAt": "2026-02-11T06:03:30.762Z"
+    }
+  },
+  {
+    "id": "task-created-8b8b2fe1291a9-1770789811923",
+    "at": "2026-02-11T06:03:30.762Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: Waiting for assignment",
+    "meta": {
+      "eventType": "task.created",
+      "task": "Waiting for assignment",
+      "workerSlot": "architect",
+      "worker": "Blueprint"
+    }
+  },
+  {
+    "id": "task-started-b0a9aaa74f7db-1770789811923",
+    "at": "2026-02-11T06:03:30.762Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Orchestrating delivery → TARS",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Orchestrating delivery",
+      "workerSlot": "pm",
+      "worker": "TARS",
+      "startedAt": "2026-02-11T06:03:30.762Z"
+    }
+  },
+  {
+    "id": "task-created-cbb635aafadaa-1770789811923",
+    "at": "2026-02-11T06:03:30.762Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: Orchestrating delivery",
+    "meta": {
+      "eventType": "task.created",
+      "task": "Orchestrating delivery",
+      "workerSlot": "pm",
+      "worker": "TARS"
+    }
+  },
+  {
+    "id": "bridge-28b850641197f-1770789808236",
+    "at": "2026-02-11T06:03:28.236Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "task-started-aa46771f4838c-1770789774842",
+    "at": "2026-02-11T06:02:53.676Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Waiting for assignment → Sentinel",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Waiting for assignment",
+      "workerSlot": "qa",
+      "worker": "Sentinel",
+      "startedAt": "2026-02-11T06:02:53.676Z"
+    }
+  },
+  {
+    "id": "task-completed-4ded7922b307-1770789774842",
+    "at": "2026-02-11T06:02:53.676Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task completed: Projects E2E verification script (bridge mode) · Sentinel · took 4m 32s",
+    "meta": {
+      "eventType": "task.completed",
+      "task": "Projects E2E verification script (bridge mode)",
+      "workerSlot": "qa",
+      "worker": "Sentinel",
+      "durationMs": 271961,
+      "startedAt": "2026-02-11T05:58:21.715Z",
+      "completedAt": "2026-02-11T06:02:53.676Z"
+    }
+  },
+  {
+    "id": "task-started-680f00b9ea5d-1770789774842",
+    "at": "2026-02-11T06:02:53.676Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Waiting for assignment → Patch",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Waiting for assignment",
+      "workerSlot": "dev-2",
+      "worker": "Patch",
+      "startedAt": "2026-02-11T06:02:53.676Z"
+    }
+  },
+  {
+    "id": "task-completed-b4bb945f38497-1770789774842",
+    "at": "2026-02-11T06:02:53.676Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task completed: Projects types + adapter parity · Patch · took 4m 32s",
+    "meta": {
+      "eventType": "task.completed",
+      "task": "Projects types + adapter parity",
+      "workerSlot": "dev-2",
+      "worker": "Patch",
+      "durationMs": 271961,
+      "startedAt": "2026-02-11T05:58:21.715Z",
+      "completedAt": "2026-02-11T06:02:53.676Z"
+    }
+  },
+  {
+    "id": "task-started-8041a03513ec6-1770789774842",
+    "at": "2026-02-11T06:02:53.676Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Waiting for assignment → Forge",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Waiting for assignment",
+      "workerSlot": "dev-1",
+      "worker": "Forge",
+      "startedAt": "2026-02-11T06:02:53.676Z"
+    }
+  },
+  {
+    "id": "task-completed-1b665d6218bf7-1770789774842",
+    "at": "2026-02-11T06:02:53.676Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task completed: Projects UI: wire to bridge adapter (keep UI) · Forge · took 4m 32s",
+    "meta": {
+      "eventType": "task.completed",
+      "task": "Projects UI: wire to bridge adapter (keep UI)",
+      "workerSlot": "dev-1",
+      "worker": "Forge",
+      "durationMs": 271961,
+      "startedAt": "2026-02-11T05:58:21.715Z",
+      "completedAt": "2026-02-11T06:02:53.676Z"
+    }
+  },
+  {
+    "id": "task-started-81ae46028ac57-1770789774842",
+    "at": "2026-02-11T06:02:53.676Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Waiting for assignment → Blueprint",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Waiting for assignment",
+      "workerSlot": "architect",
+      "worker": "Blueprint",
+      "startedAt": "2026-02-11T06:02:53.676Z"
+    }
+  },
+  {
+    "id": "task-completed-2bc411cf0087f-1770789774842",
+    "at": "2026-02-11T06:02:53.676Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task completed: Bridge: projects persistence + APIs · Blueprint · took 4m 32s",
+    "meta": {
+      "eventType": "task.completed",
+      "task": "Bridge: projects persistence + APIs",
+      "workerSlot": "architect",
+      "worker": "Blueprint",
+      "durationMs": 271961,
+      "startedAt": "2026-02-11T05:58:21.715Z",
+      "completedAt": "2026-02-11T06:02:53.676Z"
+    }
+  },
+  {
+    "id": "task-created-ab2f750b1a1b4-1770789774842",
+    "at": "2026-02-11T06:02:53.676Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: Waiting for assignment",
+    "meta": {
+      "eventType": "task.created",
+      "task": "Waiting for assignment",
+      "workerSlot": "architect",
+      "worker": "Blueprint"
+    }
+  },
+  {
+    "id": "task-started-676b41378ddbc-1770789774842",
+    "at": "2026-02-11T06:02:53.676Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Orchestrating delivery → TARS",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Orchestrating delivery",
+      "workerSlot": "pm",
+      "worker": "TARS",
+      "startedAt": "2026-02-11T06:02:53.676Z"
+    }
+  },
+  {
+    "id": "task-completed-49c92ed166c7c-1770789774841",
+    "at": "2026-02-11T06:02:53.676Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task completed: Tracking Projects delivery + unblocking · TARS · took 4m 32s",
+    "meta": {
+      "eventType": "task.completed",
+      "task": "Tracking Projects delivery + unblocking",
+      "workerSlot": "pm",
+      "worker": "TARS",
+      "durationMs": 271961,
+      "startedAt": "2026-02-11T05:58:21.715Z",
+      "completedAt": "2026-02-11T06:02:53.676Z"
+    }
+  },
+  {
+    "id": "task-created-b564fc400fbd5-1770789774841",
+    "at": "2026-02-11T06:02:53.676Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: Orchestrating delivery",
+    "meta": {
+      "eventType": "task.created",
+      "task": "Orchestrating delivery",
+      "workerSlot": "pm",
+      "worker": "TARS"
+    }
+  },
+  {
+    "id": "task-started-941ea1e3d6dc5-1770789502895",
+    "at": "2026-02-11T05:58:21.715Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Projects E2E verification script (bridge mode) → Sentinel",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Projects E2E verification script (bridge mode)",
+      "workerSlot": "qa",
+      "worker": "Sentinel",
+      "startedAt": "2026-02-11T05:58:21.715Z"
+    }
+  },
+  {
+    "id": "task-completed-017dc99eb53d8-1770789502895",
+    "at": "2026-02-11T05:58:21.715Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task completed: Preparing hub verification checks · Sentinel · took 7m 51s",
+    "meta": {
+      "eventType": "task.completed",
+      "task": "Preparing hub verification checks",
+      "workerSlot": "qa",
+      "worker": "Sentinel",
+      "durationMs": 470598,
+      "startedAt": "2026-02-11T05:50:31.117Z",
+      "completedAt": "2026-02-11T05:58:21.715Z"
+    }
+  },
+  {
+    "id": "task-created-648834ad51f71-1770789502895",
+    "at": "2026-02-11T05:58:21.715Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: Projects E2E verification script (bridge mode)",
+    "meta": {
+      "eventType": "task.created",
+      "task": "Projects E2E verification script (bridge mode)",
+      "workerSlot": "qa",
+      "worker": "Sentinel"
+    }
+  },
+  {
+    "id": "task-started-aaaf04fb28e9c-1770789502895",
+    "at": "2026-02-11T05:58:21.715Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Projects types + adapter parity → Patch",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Projects types + adapter parity",
+      "workerSlot": "dev-2",
+      "worker": "Patch",
+      "startedAt": "2026-02-11T05:58:21.715Z"
+    }
+  },
+  {
+    "id": "task-completed-988fd2e0bbcf4-1770789502895",
+    "at": "2026-02-11T05:58:21.715Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task completed: Polishing layout, spacing, and status clarity · Patch · took 7m 51s",
+    "meta": {
+      "eventType": "task.completed",
+      "task": "Polishing layout, spacing, and status clarity",
+      "workerSlot": "dev-2",
+      "worker": "Patch",
+      "durationMs": 470598,
+      "startedAt": "2026-02-11T05:50:31.117Z",
+      "completedAt": "2026-02-11T05:58:21.715Z"
+    }
+  },
+  {
+    "id": "task-created-4fb4c947c6dc4-1770789502895",
+    "at": "2026-02-11T05:58:21.715Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: Projects types + adapter parity",
+    "meta": {
+      "eventType": "task.created",
+      "task": "Projects types + adapter parity",
+      "workerSlot": "dev-2",
+      "worker": "Patch"
+    }
+  },
+  {
+    "id": "task-started-a766887ef280b-1770789502895",
+    "at": "2026-02-11T05:58:21.715Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Projects UI: wire to bridge adapter (keep UI) → Forge",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Projects UI: wire to bridge adapter (keep UI)",
+      "workerSlot": "dev-1",
+      "worker": "Forge",
+      "startedAt": "2026-02-11T05:58:21.715Z"
+    }
+  },
+  {
+    "id": "task-completed-4b31591a254d8-1770789502895",
+    "at": "2026-02-11T05:58:21.715Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task completed: Implementing Home board and agent UX · Forge · took 7m 51s",
+    "meta": {
+      "eventType": "task.completed",
+      "task": "Implementing Home board and agent UX",
+      "workerSlot": "dev-1",
+      "worker": "Forge",
+      "durationMs": 470598,
+      "startedAt": "2026-02-11T05:50:31.117Z",
+      "completedAt": "2026-02-11T05:58:21.715Z"
+    }
+  },
+  {
+    "id": "task-created-d32edd2397893-1770789502895",
+    "at": "2026-02-11T05:58:21.715Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: Projects UI: wire to bridge adapter (keep UI)",
+    "meta": {
+      "eventType": "task.created",
+      "task": "Projects UI: wire to bridge adapter (keep UI)",
+      "workerSlot": "dev-1",
+      "worker": "Forge"
+    }
+  },
+  {
+    "id": "task-started-150d41df5c9f-1770789502895",
+    "at": "2026-02-11T05:58:21.715Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Bridge: projects persistence + APIs → Blueprint",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Bridge: projects persistence + APIs",
+      "workerSlot": "architect",
+      "worker": "Blueprint",
+      "startedAt": "2026-02-11T05:58:21.715Z"
+    }
+  },
+  {
+    "id": "task-completed-57e879175219a-1770789502895",
+    "at": "2026-02-11T05:58:21.715Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task completed: Designing permanent agent runtime model · Blueprint · took 7m 51s",
+    "meta": {
+      "eventType": "task.completed",
+      "task": "Designing permanent agent runtime model",
+      "workerSlot": "architect",
+      "worker": "Blueprint",
+      "durationMs": 470598,
+      "startedAt": "2026-02-11T05:50:31.117Z",
+      "completedAt": "2026-02-11T05:58:21.715Z"
+    }
+  },
+  {
+    "id": "task-created-ad4b0a085eb55-1770789502895",
+    "at": "2026-02-11T05:58:21.715Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: Bridge: projects persistence + APIs",
+    "meta": {
+      "eventType": "task.created",
+      "task": "Bridge: projects persistence + APIs",
+      "workerSlot": "architect",
+      "worker": "Blueprint"
+    }
+  },
+  {
+    "id": "task-started-710a11c7368c3-1770789502895",
+    "at": "2026-02-11T05:58:21.715Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Tracking Projects delivery + unblocking → TARS",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Tracking Projects delivery + unblocking",
+      "workerSlot": "pm",
+      "worker": "TARS",
+      "startedAt": "2026-02-11T05:58:21.715Z"
+    }
+  },
+  {
+    "id": "task-completed-d86e15c8706d8-1770789502895",
+    "at": "2026-02-11T05:58:21.715Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task completed: Orchestrating Operator Hub delivery · TARS · took 7m 51s",
+    "meta": {
+      "eventType": "task.completed",
+      "task": "Orchestrating Operator Hub delivery",
+      "workerSlot": "pm",
+      "worker": "TARS",
+      "durationMs": 470598,
+      "startedAt": "2026-02-11T05:50:31.117Z",
+      "completedAt": "2026-02-11T05:58:21.715Z"
+    }
+  },
+  {
+    "id": "task-created-4aff0b6a5b8a8-1770789502895",
+    "at": "2026-02-11T05:58:21.715Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: Tracking Projects delivery + unblocking",
+    "meta": {
+      "eventType": "task.created",
+      "task": "Tracking Projects delivery + unblocking",
+      "workerSlot": "pm",
+      "worker": "TARS"
+    }
+  },
+  {
+    "id": "task-started-197719ed016b4-1770789032298",
+    "at": "2026-02-11T05:50:31.117Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Polishing layout, spacing, and status clarity → Patch",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Polishing layout, spacing, and status clarity",
+      "workerSlot": "dev-2",
+      "worker": "Patch",
+      "startedAt": "2026-02-11T05:50:31.117Z"
+    }
+  },
+  {
+    "id": "task-created-1d8d9bb9caabd-1770789032298",
+    "at": "2026-02-11T05:50:31.117Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: Polishing layout, spacing, and status clarity",
+    "meta": {
+      "eventType": "task.created",
+      "task": "Polishing layout, spacing, and status clarity",
+      "workerSlot": "dev-2",
+      "worker": "Patch"
+    }
+  },
+  {
+    "id": "task-started-f27a4008a6809-1770789032298",
+    "at": "2026-02-11T05:50:31.117Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Implementing Home board and agent UX → Forge",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Implementing Home board and agent UX",
+      "workerSlot": "dev-1",
+      "worker": "Forge",
+      "startedAt": "2026-02-11T05:50:31.117Z"
+    }
+  },
+  {
+    "id": "task-created-3312eed6b4103-1770789032298",
+    "at": "2026-02-11T05:50:31.117Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: Implementing Home board and agent UX",
+    "meta": {
+      "eventType": "task.created",
+      "task": "Implementing Home board and agent UX",
+      "workerSlot": "dev-1",
+      "worker": "Forge"
+    }
+  },
+  {
+    "id": "task-started-c53b9588cc08-1770789032298",
+    "at": "2026-02-11T05:50:31.117Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Preparing hub verification checks → Sentinel",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Preparing hub verification checks",
+      "workerSlot": "qa",
+      "worker": "Sentinel",
+      "startedAt": "2026-02-11T05:50:31.117Z"
+    }
+  },
+  {
+    "id": "task-created-9d735f51201b3-1770789032298",
+    "at": "2026-02-11T05:50:31.117Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: Preparing hub verification checks",
+    "meta": {
+      "eventType": "task.created",
+      "task": "Preparing hub verification checks",
+      "workerSlot": "qa",
+      "worker": "Sentinel"
+    }
+  },
+  {
+    "id": "task-started-9c2ece5171-1770789032298",
+    "at": "2026-02-11T05:50:31.117Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Designing permanent agent runtime model → Blueprint",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Designing permanent agent runtime model",
+      "workerSlot": "architect",
+      "worker": "Blueprint",
+      "startedAt": "2026-02-11T05:50:31.117Z"
+    }
+  },
+  {
+    "id": "task-created-a9cd8648e2cf3-1770789032298",
+    "at": "2026-02-11T05:50:31.117Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: Designing permanent agent runtime model",
+    "meta": {
+      "eventType": "task.created",
+      "task": "Designing permanent agent runtime model",
+      "workerSlot": "architect",
+      "worker": "Blueprint"
+    }
+  },
+  {
+    "id": "task-started-1d5b927cb9842-1770789032298",
+    "at": "2026-02-11T05:50:31.117Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Orchestrating Operator Hub delivery → TARS",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Orchestrating Operator Hub delivery",
+      "workerSlot": "pm",
+      "worker": "TARS",
+      "startedAt": "2026-02-11T05:50:31.117Z"
+    }
+  },
+  {
+    "id": "task-created-90e735717ac5f-1770789032298",
+    "at": "2026-02-11T05:50:31.117Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: Orchestrating Operator Hub delivery",
+    "meta": {
+      "eventType": "task.created",
+      "task": "Orchestrating Operator Hub delivery",
+      "workerSlot": "pm",
+      "worker": "TARS"
+    }
+  },
+  {
+    "id": "bridge-b3e074b8f73b8-1770789030194",
+    "at": "2026-02-11T05:50:30.194Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "task-started-54bc46f3cf302-1770789003697",
+    "at": "2026-02-11T05:50:02.514Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Polishing layout, spacing, and status clarity → Patch",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Polishing layout, spacing, and status clarity",
+      "workerSlot": "dev-2",
+      "worker": "Patch",
+      "startedAt": "2026-02-11T05:50:02.514Z"
+    }
+  },
+  {
+    "id": "task-created-e8a6df13b5922-1770789003697",
+    "at": "2026-02-11T05:50:02.514Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: Polishing layout, spacing, and status clarity",
+    "meta": {
+      "eventType": "task.created",
+      "task": "Polishing layout, spacing, and status clarity",
+      "workerSlot": "dev-2",
+      "worker": "Patch"
+    }
+  },
+  {
+    "id": "task-started-c5fd1762f1e68-1770789003697",
+    "at": "2026-02-11T05:50:02.514Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Implementing Home board and agent UX → Forge",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Implementing Home board and agent UX",
+      "workerSlot": "dev-1",
+      "worker": "Forge",
+      "startedAt": "2026-02-11T05:50:02.514Z"
+    }
+  },
+  {
+    "id": "task-created-a48131e927b32-1770789003697",
+    "at": "2026-02-11T05:50:02.514Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: Implementing Home board and agent UX",
+    "meta": {
+      "eventType": "task.created",
+      "task": "Implementing Home board and agent UX",
+      "workerSlot": "dev-1",
+      "worker": "Forge"
+    }
+  },
+  {
+    "id": "task-started-d004efa08488e-1770789003697",
+    "at": "2026-02-11T05:50:02.514Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Preparing hub verification checks → Sentinel",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Preparing hub verification checks",
+      "workerSlot": "qa",
+      "worker": "Sentinel",
+      "startedAt": "2026-02-11T05:50:02.514Z"
+    }
+  },
+  {
+    "id": "task-created-80162fe79bbd1-1770789003697",
+    "at": "2026-02-11T05:50:02.514Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: Preparing hub verification checks",
+    "meta": {
+      "eventType": "task.created",
+      "task": "Preparing hub verification checks",
+      "workerSlot": "qa",
+      "worker": "Sentinel"
+    }
+  },
+  {
+    "id": "task-started-80508436ff571-1770789003697",
+    "at": "2026-02-11T05:50:02.514Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Designing permanent agent runtime model → Blueprint",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Designing permanent agent runtime model",
+      "workerSlot": "architect",
+      "worker": "Blueprint",
+      "startedAt": "2026-02-11T05:50:02.514Z"
+    }
+  },
+  {
+    "id": "task-created-f38b4c93e9ff7-1770789003697",
+    "at": "2026-02-11T05:50:02.514Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: Designing permanent agent runtime model",
+    "meta": {
+      "eventType": "task.created",
+      "task": "Designing permanent agent runtime model",
+      "workerSlot": "architect",
+      "worker": "Blueprint"
+    }
+  },
+  {
+    "id": "task-started-68a42e8263263-1770789003697",
+    "at": "2026-02-11T05:50:02.514Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Orchestrating Operator Hub delivery → TARS",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Orchestrating Operator Hub delivery",
+      "workerSlot": "pm",
+      "worker": "TARS",
+      "startedAt": "2026-02-11T05:50:02.514Z"
+    }
+  },
+  {
+    "id": "task-created-d2dbc08f4bc68-1770789003697",
+    "at": "2026-02-11T05:50:02.514Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: Orchestrating Operator Hub delivery",
+    "meta": {
+      "eventType": "task.created",
+      "task": "Orchestrating Operator Hub delivery",
+      "workerSlot": "pm",
+      "worker": "TARS"
+    }
+  },
+  {
+    "id": "bridge-fb4e69e9f95cf-1770788998758",
+    "at": "2026-02-11T05:49:58.758Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "task-started-bbb7e3b36ebc7-1770788952809",
+    "at": "2026-02-11T05:49:11.646Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Polishing layout, spacing, and status clarity → Patch",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Polishing layout, spacing, and status clarity",
+      "workerSlot": "dev-2",
+      "worker": "Patch",
+      "startedAt": "2026-02-11T05:49:11.646Z"
+    }
+  },
+  {
+    "id": "task-created-721dfba1e56bf-1770788952809",
+    "at": "2026-02-11T05:49:11.646Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: Polishing layout, spacing, and status clarity",
+    "meta": {
+      "eventType": "task.created",
+      "task": "Polishing layout, spacing, and status clarity",
+      "workerSlot": "dev-2",
+      "worker": "Patch"
+    }
+  },
+  {
+    "id": "task-started-101d7736b16ca-1770788952809",
+    "at": "2026-02-11T05:49:11.646Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Implementing Home board and agent UX → Forge",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Implementing Home board and agent UX",
+      "workerSlot": "dev-1",
+      "worker": "Forge",
+      "startedAt": "2026-02-11T05:49:11.646Z"
+    }
+  },
+  {
+    "id": "task-created-b2f2681be6f5e-1770788952809",
+    "at": "2026-02-11T05:49:11.646Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: Implementing Home board and agent UX",
+    "meta": {
+      "eventType": "task.created",
+      "task": "Implementing Home board and agent UX",
+      "workerSlot": "dev-1",
+      "worker": "Forge"
+    }
+  },
+  {
+    "id": "task-started-39b7ecf3a9b04-1770788952809",
+    "at": "2026-02-11T05:49:11.646Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Preparing hub verification checks → Sentinel",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Preparing hub verification checks",
+      "workerSlot": "qa",
+      "worker": "Sentinel",
+      "startedAt": "2026-02-11T05:49:11.646Z"
+    }
+  },
+  {
+    "id": "task-created-86b6a19237c92-1770788952809",
+    "at": "2026-02-11T05:49:11.646Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: Preparing hub verification checks",
+    "meta": {
+      "eventType": "task.created",
+      "task": "Preparing hub verification checks",
+      "workerSlot": "qa",
+      "worker": "Sentinel"
+    }
+  },
+  {
+    "id": "task-started-c6d5b55230391-1770788952809",
+    "at": "2026-02-11T05:49:11.646Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Designing permanent agent runtime model → Blueprint",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Designing permanent agent runtime model",
+      "workerSlot": "architect",
+      "worker": "Blueprint",
+      "startedAt": "2026-02-11T05:49:11.646Z"
+    }
+  },
+  {
+    "id": "task-created-8978d7b0dd9f9-1770788952809",
+    "at": "2026-02-11T05:49:11.646Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: Designing permanent agent runtime model",
+    "meta": {
+      "eventType": "task.created",
+      "task": "Designing permanent agent runtime model",
+      "workerSlot": "architect",
+      "worker": "Blueprint"
+    }
+  },
+  {
+    "id": "task-started-e6b549ac79ff7-1770788952809",
+    "at": "2026-02-11T05:49:11.646Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Orchestrating Operator Hub delivery → TARS",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Orchestrating Operator Hub delivery",
+      "workerSlot": "pm",
+      "worker": "TARS",
+      "startedAt": "2026-02-11T05:49:11.646Z"
+    }
+  },
+  {
+    "id": "task-created-b7a37967020e6-1770788952809",
+    "at": "2026-02-11T05:49:11.646Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: Orchestrating Operator Hub delivery",
+    "meta": {
+      "eventType": "task.created",
+      "task": "Orchestrating Operator Hub delivery",
+      "workerSlot": "pm",
+      "worker": "TARS"
+    }
+  },
+  {
+    "id": "bridge-872ad71ce4262-1770788951381",
+    "at": "2026-02-11T05:49:11.381Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "task-started-a262ed5abb94c-1770780114106",
+    "at": "2026-02-11T03:21:52.922Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Polishing layout, spacing, and status clarity → Patch",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Polishing layout, spacing, and status clarity",
+      "workerSlot": "dev-2",
+      "worker": "Patch",
+      "startedAt": "2026-02-11T03:21:52.922Z"
+    }
+  },
+  {
+    "id": "task-created-00c02fbf5e25d-1770780114106",
+    "at": "2026-02-11T03:21:52.922Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: Polishing layout, spacing, and status clarity",
+    "meta": {
+      "eventType": "task.created",
+      "task": "Polishing layout, spacing, and status clarity",
+      "workerSlot": "dev-2",
+      "worker": "Patch"
+    }
+  },
+  {
+    "id": "task-started-0fff0f1b6f273-1770780114106",
+    "at": "2026-02-11T03:21:52.922Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Implementing Home board and agent UX → Forge",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Implementing Home board and agent UX",
+      "workerSlot": "dev-1",
+      "worker": "Forge",
+      "startedAt": "2026-02-11T03:21:52.922Z"
+    }
+  },
+  {
+    "id": "task-created-d0905dfdc4684-1770780114106",
+    "at": "2026-02-11T03:21:52.922Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: Implementing Home board and agent UX",
+    "meta": {
+      "eventType": "task.created",
+      "task": "Implementing Home board and agent UX",
+      "workerSlot": "dev-1",
+      "worker": "Forge"
+    }
+  },
+  {
+    "id": "task-started-52d88069329a4-1770780114106",
+    "at": "2026-02-11T03:21:52.922Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Preparing hub verification checks → Sentinel",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Preparing hub verification checks",
+      "workerSlot": "qa",
+      "worker": "Sentinel",
+      "startedAt": "2026-02-11T03:21:52.922Z"
+    }
+  },
+  {
+    "id": "task-created-7caafe9af73d3-1770780114106",
+    "at": "2026-02-11T03:21:52.922Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: Preparing hub verification checks",
+    "meta": {
+      "eventType": "task.created",
+      "task": "Preparing hub verification checks",
+      "workerSlot": "qa",
+      "worker": "Sentinel"
+    }
+  },
+  {
+    "id": "task-started-1aeb00e8e83e3-1770780114106",
+    "at": "2026-02-11T03:21:52.922Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Designing permanent agent runtime model → Blueprint",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Designing permanent agent runtime model",
+      "workerSlot": "architect",
+      "worker": "Blueprint",
+      "startedAt": "2026-02-11T03:21:52.922Z"
+    }
+  },
+  {
+    "id": "task-created-2b3a78078b438-1770780114106",
+    "at": "2026-02-11T03:21:52.922Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: Designing permanent agent runtime model",
+    "meta": {
+      "eventType": "task.created",
+      "task": "Designing permanent agent runtime model",
+      "workerSlot": "architect",
+      "worker": "Blueprint"
+    }
+  },
+  {
+    "id": "task-started-45a550b2c51bb-1770780114106",
+    "at": "2026-02-11T03:21:52.922Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Orchestrating Operator Hub delivery → TARS",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Orchestrating Operator Hub delivery",
+      "workerSlot": "pm",
+      "worker": "TARS",
+      "startedAt": "2026-02-11T03:21:52.922Z"
+    }
+  },
+  {
+    "id": "task-created-6d5a9d1fc06dd-1770780114106",
+    "at": "2026-02-11T03:21:52.922Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: Orchestrating Operator Hub delivery",
+    "meta": {
+      "eventType": "task.created",
+      "task": "Orchestrating Operator Hub delivery",
+      "workerSlot": "pm",
+      "worker": "TARS"
+    }
+  },
+  {
+    "id": "bridge-719d4e0a6f67a-1770779909013",
+    "at": "2026-02-11T03:18:29.013Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "task-started-9777c4ef78aa1-1770771677808",
+    "at": "2026-02-11T01:01:16.638Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Polishing layout, spacing, and status clarity → Patch",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Polishing layout, spacing, and status clarity",
+      "workerSlot": "dev-2",
+      "worker": "Patch",
+      "startedAt": "2026-02-11T01:01:16.638Z"
+    }
+  },
+  {
+    "id": "task-created-40e494e461e44-1770771677808",
+    "at": "2026-02-11T01:01:16.638Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: Polishing layout, spacing, and status clarity",
+    "meta": {
+      "eventType": "task.created",
+      "task": "Polishing layout, spacing, and status clarity",
+      "workerSlot": "dev-2",
+      "worker": "Patch"
+    }
+  },
+  {
+    "id": "task-started-a02f75762718b-1770771677808",
+    "at": "2026-02-11T01:01:16.638Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Implementing Home board and agent UX → Forge",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Implementing Home board and agent UX",
+      "workerSlot": "dev-1",
+      "worker": "Forge",
+      "startedAt": "2026-02-11T01:01:16.638Z"
+    }
+  },
+  {
+    "id": "task-created-92fb0af18c436-1770771677808",
+    "at": "2026-02-11T01:01:16.638Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: Implementing Home board and agent UX",
+    "meta": {
+      "eventType": "task.created",
+      "task": "Implementing Home board and agent UX",
+      "workerSlot": "dev-1",
+      "worker": "Forge"
+    }
+  },
+  {
+    "id": "task-started-89c7fe65120e4-1770771677808",
+    "at": "2026-02-11T01:01:16.638Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Preparing hub verification checks → Sentinel",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Preparing hub verification checks",
+      "workerSlot": "qa",
+      "worker": "Sentinel",
+      "startedAt": "2026-02-11T01:01:16.638Z"
+    }
+  },
+  {
+    "id": "task-created-63faa01bce93a-1770771677808",
+    "at": "2026-02-11T01:01:16.638Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: Preparing hub verification checks",
+    "meta": {
+      "eventType": "task.created",
+      "task": "Preparing hub verification checks",
+      "workerSlot": "qa",
+      "worker": "Sentinel"
+    }
+  },
+  {
+    "id": "task-started-d8b404e3a6961-1770771677808",
+    "at": "2026-02-11T01:01:16.638Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Designing permanent agent runtime model → Blueprint",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Designing permanent agent runtime model",
+      "workerSlot": "architect",
+      "worker": "Blueprint",
+      "startedAt": "2026-02-11T01:01:16.638Z"
+    }
+  },
+  {
+    "id": "task-created-b6a9da136fe08-1770771677808",
+    "at": "2026-02-11T01:01:16.638Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: Designing permanent agent runtime model",
+    "meta": {
+      "eventType": "task.created",
+      "task": "Designing permanent agent runtime model",
+      "workerSlot": "architect",
+      "worker": "Blueprint"
+    }
+  },
+  {
+    "id": "task-started-1fcec16618f5a-1770771677808",
+    "at": "2026-02-11T01:01:16.638Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Orchestrating Operator Hub delivery → TARS",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Orchestrating Operator Hub delivery",
+      "workerSlot": "pm",
+      "worker": "TARS",
+      "startedAt": "2026-02-11T01:01:16.638Z"
+    }
+  },
+  {
+    "id": "task-created-a0d0b4bec38d6-1770771677808",
+    "at": "2026-02-11T01:01:16.638Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: Orchestrating Operator Hub delivery",
+    "meta": {
+      "eventType": "task.created",
+      "task": "Orchestrating Operator Hub delivery",
+      "workerSlot": "pm",
+      "worker": "TARS"
+    }
+  },
+  {
+    "id": "bridge-0c125946f48d4-1770771674299",
+    "at": "2026-02-11T01:01:14.299Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-1fc5afeba1ee3-1770770891053",
+    "at": "2026-02-11T00:48:11.053Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-1565e3d0701a-1770768623685",
+    "at": "2026-02-11T00:10:23.685Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  }
+]

@@ -1,0 +1,29 @@
+{
+  "integrations": {
+    "github": {
+      "token": "",
+      "defaultRepo": "",
+      "autoCreateIssues": false,
+      "autoCloseOnDone": false,
+      "webhookSecret": ""
+    },
+    "telegram": {
+      "botToken": "",
+      "channels": {
+        "task-assigned": "",
+        "task-completed": "",
+        "task-blocked": "",
+        "task-overdue": "",
+        "task-comment": "",
+        "default": ""
+      },
+      "enabled": false
+    },
+    "googleCalendar": {
+      "enabled": false,
+      "calendarId": "primary",
+      "credentials": "path/to/credentials.json",
+      "token": "path/to/token.json"
+    }
+  }
+}

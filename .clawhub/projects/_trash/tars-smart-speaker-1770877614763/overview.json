@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "id": "tars-smart-speaker",
+  "name": "TARS Smart Speaker",
+  "summary": "Build a tabletop, always-on voice device similar to an Alexa Echo, but instead of Alexa it connects to your OpenClaw instance as the intelli…",
+  "status": "active",
+  "tags": [
+    "local-first"
+  ],
+  "owner": "Logan",
+  "links": [],
+  "createdAt": "2026-02-12T06:04:34.364Z",
+  "updatedAt": "2026-02-12T06:12:52.462Z"
+}

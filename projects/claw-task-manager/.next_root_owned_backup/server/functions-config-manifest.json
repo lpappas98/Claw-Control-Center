@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "functions": {
+    "/api/e2e/debug/boards": {},
+    "/api/e2e/token": {},
+    "/api/qa/status": {}
+  }
+}

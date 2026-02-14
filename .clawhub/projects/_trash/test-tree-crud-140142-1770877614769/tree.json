@@ -1,0 +1,55 @@
+[
+  {
+    "id": "feature-signup",
+    "title": "Signup Page",
+    "summary": "User registration flow",
+    "status": "planned",
+    "priority": "p1"
+  },
+  {
+    "id": "feature-api",
+    "title": "REST API",
+    "summary": "Backend API endpoints",
+    "status": "in_progress",
+    "priority": "p0"
+  },
+  {
+    "id": "feature-auth",
+    "title": "Authentication System",
+    "summary": "User authentication and authorization",
+    "status": "planned",
+    "priority": "p0",
+    "tags": [
+      "security",
+      "backend"
+    ],
+    "children": [
+      {
+        "id": "feature-login",
+        "title": "Login Page",
+        "summary": "User login UI with OAuth support",
+        "status": "in_progress",
+        "priority": "p0",
+        "dependsOn": [
+          "feature-api"
+        ],
+        "sources": [
+          {
+            "kind": "requirement",
+            "id": "req-123"
+          },
+          {
+            "kind": "idea",
+            "id": "idea-456"
+          }
+        ]
+      },
+      {
+        "id": "feature-2fa",
+        "title": "Two-Factor Authentication",
+        "status": "planned",
+        "priority": "p1"
+      }
+    ]
+  }
+]

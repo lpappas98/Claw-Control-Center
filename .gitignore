@@ -1,20 +1,24 @@
-# Workspace-level ignore rules
-# This repo is focused on the Operator Hub app under projects/tars-operator-hub.
-# Ignore other local experiments, skills, and generated artifacts.
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
 
-# Local OpenClaw state
-/.clawhub/
+node_modules
+dist
+dist-ssr
+*.local
 
-# Other projects (keep operator hub tracked)
-/projects/*
-!/projects/tars-operator-hub/
-!/projects/tars-operator-hub/**
-
-# Skills directories are copied in locally for development
-/skills/
-
-# Common build artifacts
-**/node_modules/
-**/dist/
-**/.DS_Store
-**/*.log
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

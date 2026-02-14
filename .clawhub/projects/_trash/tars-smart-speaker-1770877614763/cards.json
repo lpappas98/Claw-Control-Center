@@ -1,0 +1,22 @@
+[
+  {
+    "id": "c-7875c1-1770876274469",
+    "title": "Turn tree nodes into detailed feature specs",
+    "featureId": "",
+    "owner": "TARS",
+    "priority": "p2",
+    "column": "todo",
+    "createdAt": "2026-02-12T06:04:34.469Z",
+    "updatedAt": "2026-02-12T06:04:34.469Z"
+  },
+  {
+    "id": "c-5febe0-1770876274461",
+    "title": "Review intake answers + confirm scope",
+    "featureId": "",
+    "owner": "Logan",
+    "priority": "p2",
+    "column": "todo",
+    "createdAt": "2026-02-12T06:04:34.461Z",
+    "updatedAt": "2026-02-12T06:04:34.461Z"
+  }
+]

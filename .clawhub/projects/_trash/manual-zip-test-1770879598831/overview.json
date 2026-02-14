@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "id": "manual-zip-test",
+  "name": "Manual ZIP Test",
+  "summary": "Test manual ZIP upload",
+  "status": "active",
+  "tags": [
+    "Node.js",
+    "JavaScript",
+    "imported"
+  ],
+  "owner": "imported",
+  "links": [],
+  "createdAt": "2026-02-12T06:51:14.884Z",
+  "updatedAt": "2026-02-12T06:51:14.884Z"
+}
