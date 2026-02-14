@@ -124,8 +124,9 @@ export function MissionControl({
   const [creating, setCreating] = useState(false)
 
   // WebSocket for real-time updates
+  const wsUrl = `ws://${window.location.hostname}:8787/ws`
   useWebSocket({
-    url: 'ws://localhost:8787/ws',
+    url: wsUrl,
     onMessage: (msg) => {
       if (msg.type === 'task-updated' || msg.type === 'task-created') {
         persisted.refetch()

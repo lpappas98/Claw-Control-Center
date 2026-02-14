@@ -16,8 +16,8 @@
     "activeTasks": [],
     "metadata": {},
     "createdAt": 1771047212861,
-    "updatedAt": 1771051691252,
-    "lastHeartbeat": 1771051691251
+    "updatedAt": 1771052231670,
+    "lastHeartbeat": 1771052231669
   },
   {
     "id": "dev-1",
@@ -37,8 +37,8 @@
     "activeTasks": [],
     "metadata": {},
     "createdAt": 1771047212866,
-    "updatedAt": 1771051663226,
-    "lastHeartbeat": 1771051663225
+    "updatedAt": 1771052233662,
+    "lastHeartbeat": 1771052233661
   },
   {
     "id": "dev-2",
@@ -58,8 +58,8 @@
     "activeTasks": [],
     "metadata": {},
     "createdAt": 1771047212870,
-    "updatedAt": 1771051665228,
-    "lastHeartbeat": 1771051665228
+    "updatedAt": 1771052235692,
+    "lastHeartbeat": 1771052235692
   },
   {
     "id": "qa",
@@ -79,8 +79,8 @@
     "activeTasks": [],
     "metadata": {},
     "createdAt": 1771047212875,
-    "updatedAt": 1771051667229,
-    "lastHeartbeat": 1771051667228
+    "updatedAt": 1771052237681,
+    "lastHeartbeat": 1771052237681
   },
   {
     "id": "architect",
@@ -100,7 +100,7 @@
     "activeTasks": [],
     "metadata": {},
     "createdAt": 1771047212879,
-    "updatedAt": 1771051669225,
-    "lastHeartbeat": 1771051669225
+    "updatedAt": 1771052209676,
+    "lastHeartbeat": 1771052209675
   }
 ]
