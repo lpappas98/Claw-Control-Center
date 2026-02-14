@@ -4,6 +4,7 @@ import * as api from '../services/api'
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogFooter,
@@ -179,6 +180,9 @@ export function TaskDetailModal({
             ) : (
               <DialogTitle>{task.title}</DialogTitle>
             )}
+            <DialogDescription className="sr-only">
+              Task details and management
+            </DialogDescription>
             {error && <div className="text-red-600 text-sm mt-2">{error}</div>}
           </div>
         </DialogHeader>

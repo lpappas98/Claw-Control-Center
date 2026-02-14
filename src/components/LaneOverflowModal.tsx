@@ -2,6 +2,7 @@ import { useState } from 'react'
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
@@ -35,6 +36,9 @@ export function LaneOverflowModal({
           <DialogTitle className="text-xl font-semibold text-white">
             {laneTitle} • {tasks.length} {tasks.length === 1 ? 'task' : 'tasks'}
           </DialogTitle>
+          <DialogDescription className="sr-only">
+            View all tasks in the {laneTitle} lane
+          </DialogDescription>
         </DialogHeader>
 
         <div className="py-4 space-y-4">
