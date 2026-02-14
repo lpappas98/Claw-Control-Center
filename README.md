@@ -617,6 +617,17 @@ See [API.md](./docs/API.md) for complete API reference with 70+ endpoints.
 
 ## 🛠️ Development
 
+### Design & UI Standards
+
+Follow our comprehensive **[UI/UX Design Guide](./docs/UI_UX_GUIDE.md)** for all UI work:
+- Modal design patterns with proper visual hierarchy
+- Form layout and spacing rules
+- Priority badge color codes (P0=red, P1=orange, P2=yellow, P3=slate)
+- shadcn/ui component usage guidelines
+- Anti-patterns to avoid
+
+All UI components must adhere to these standards for consistency and professionalism.
+
 ### Project Structure
 
 ```
