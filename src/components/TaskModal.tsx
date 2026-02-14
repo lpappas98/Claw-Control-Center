@@ -98,143 +98,174 @@ export function TaskModal({
 
   return (
     <Dialog open={true} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-[#0d1426] border border-[#33406a]">
-        <DialogHeader>
-          <div className="space-y-2">
-            <div className="text-xs text-slate-400">
-              task <code className="bg-[#161b2f] px-2 py-1 rounded text-slate-300 border border-[#33406a]">{task.id}</code>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-[#0a0f1e] border-[#2a3a5a]">
+        <DialogHeader className="border-b border-[#2a3a5a] pb-4">
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <span className={`px-2.5 py-1 text-xs font-bold rounded ${
+                task.priority === 'P0' ? 'bg-red-500/20 text-red-400 border border-red-500/30' :
+                task.priority === 'P1' ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' :
+                task.priority === 'P2' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' :
+                'bg-slate-500/20 text-slate-400 border border-slate-500/30'
+              }`}>
+                {task.priority}
+              </span>
+              <code className="text-xs text-slate-400 bg-[#141927] px-2 py-1 rounded border border-[#2a3a5a]">
+                {task.id}
+              </code>
             </div>
-            <DialogTitle className="text-[#f2f4f8]">{task.title}</DialogTitle>
+            <DialogTitle className="text-xl font-semibold text-white">
+              {task.title}
+            </DialogTitle>
           </div>
         </DialogHeader>
 
         {error && (
-          <div className="bg-red-900/20 border border-red-800/50 rounded p-3 text-sm text-red-300">
-            <strong>Task error:</strong> {error}
+          <div className="bg-red-900/20 border border-red-700/50 rounded-lg p-4 text-sm text-red-300">
+            <strong className="font-semibold">Error:</strong> {error}
           </div>
         )}
 
-        <div className="space-y-4 py-4">
-          <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-6 py-4">
+          {/* Basic Info Section */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-semibold text-slate-300 uppercase tracking-wide">Basic Information</h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-300">Title</label>
+                <Input 
+                  value={draftTitle} 
+                  onChange={(e) => setDraftTitle(e.target.value)}
+                  className="bg-[#161b2f] border-[#3a4a6a] text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-300">Owner</label>
+                <Input
+                  value={draftOwner}
+                  onChange={(e) => setDraftOwner(e.target.value)}
+                  placeholder="Unassigned"
+                  className="bg-[#161b2f] border-[#3a4a6a] text-white placeholder:text-slate-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-300">Status</label>
+                <select
+                  value={draftLane}
+                  onChange={(e) => setDraftLane(e.target.value as BoardLane)}
+                  className="h-10 w-full px-3 py-2 rounded-md border border-[#3a4a6a] bg-[#161b2f] text-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                >
+                  {LANES.map((l) => (
+                    <option value={l} key={l} className="bg-[#161b2f]">
+                      {l.charAt(0).toUpperCase() + l.slice(1)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-300">Priority</label>
+                <select
+                  value={draftPriority}
+                  onChange={(e) => setDraftPriority(e.target.value as Priority)}
+                  className="h-10 w-full px-3 py-2 rounded-md border border-[#3a4a6a] bg-[#161b2f] text-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                >
+                  {PRIORITIES.map((p) => (
+                    <option value={p} key={p} className="bg-[#161b2f]">
+                      {p}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* Details Section */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-semibold text-slate-300 uppercase tracking-wide">Details</h3>
+            
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-300">Title</label>
-              <Input 
-                value={draftTitle} 
-                onChange={(e) => setDraftTitle(e.target.value)}
-                className="bg-[#161b2f] border-[#33406a] text-[#f2f4f8]"
+              <label className="text-sm font-medium text-slate-300">Problem</label>
+              <Textarea
+                value={draftProblem}
+                onChange={(e) => setDraftProblem(e.target.value)}
+                rows={3}
+                placeholder="Why does this task exist?"
+                className="bg-[#161b2f] border-[#3a4a6a] text-white placeholder:text-slate-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 resize-none"
               />
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-300">Lane</label>
-              <select
-                value={draftLane}
-                onChange={(e) => setDraftLane(e.target.value as BoardLane)}
-                className="h-10 w-full px-3 py-2 rounded-md border border-[#33406a] bg-[#161b2f] text-[#f2f4f8] focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-              >
-                {LANES.map((l) => (
-                  <option value={l} key={l}>
-                    {l}
-                  </option>
-                ))}
-              </select>
+              <label className="text-sm font-medium text-slate-300">Scope</label>
+              <Textarea
+                value={draftScope}
+                onChange={(e) => setDraftScope(e.target.value)}
+                rows={3}
+                placeholder="What is in/out of scope?"
+                className="bg-[#161b2f] border-[#3a4a6a] text-white placeholder:text-slate-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 resize-none"
+              />
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-300">Priority</label>
-              <select
-                value={draftPriority}
-                onChange={(e) => setDraftPriority(e.target.value as Priority)}
-                className="h-10 w-full px-3 py-2 rounded-md border border-[#33406a] bg-[#161b2f] text-[#f2f4f8] focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-              >
-                {PRIORITIES.map((p) => (
-                  <option value={p} key={p}>
-                    {p}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-300">Owner</label>
-              <Input
-                value={draftOwner}
-                onChange={(e) => setDraftOwner(e.target.value)}
-                placeholder="optional"
-                className="bg-[#161b2f] border-[#33406a] text-[#f2f4f8] placeholder:text-slate-500"
+              <label className="text-sm font-medium text-slate-300">Acceptance Criteria</label>
+              <Textarea
+                value={draftAcceptanceRaw}
+                onChange={(e) => setDraftAcceptanceRaw(e.target.value)}
+                rows={5}
+                placeholder="One criterion per line"
+                className="bg-[#161b2f] border-[#3a4a6a] text-white placeholder:text-slate-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 resize-none font-mono text-sm"
               />
             </div>
           </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-slate-300">Problem</label>
-            <Textarea
-              value={draftProblem}
-              onChange={(e) => setDraftProblem(e.target.value)}
-              rows={3}
-              placeholder="why does this task exist?"
-              className="bg-[#161b2f] border-[#33406a] text-[#f2f4f8] placeholder:text-slate-500"
-            />
+          {/* Metadata Section */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-semibold text-slate-300 uppercase tracking-wide">Metadata</h3>
+            <div className="bg-[#141927] border border-[#2a3a5a] rounded-lg p-4 text-xs text-slate-400 space-y-1">
+              <div>Created: {fmtWhen(task.createdAt)}</div>
+              <div>Updated: {fmtWhen(task.updatedAt)}</div>
+              <div>History: {task.statusHistory?.length ?? 0} events</div>
+            </div>
           </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-slate-300">Scope</label>
-            <Textarea
-              value={draftScope}
-              onChange={(e) => setDraftScope(e.target.value)}
-              rows={4}
-              placeholder="what is in/out?"
-              className="bg-[#161b2f] border-[#33406a] text-[#f2f4f8] placeholder:text-slate-500"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-slate-300">Acceptance criteria (one per line)</label>
-            <Textarea
-              value={draftAcceptanceRaw}
-              onChange={(e) => setDraftAcceptanceRaw(e.target.value)}
-              rows={6}
-              className="bg-[#161b2f] border-[#33406a] text-[#f2f4f8]"
-            />
-          </div>
-
-          <div className="text-xs text-slate-400 bg-[#161b2f] border border-[#33406a] p-3 rounded">
-            created: {fmtWhen(task.createdAt)} · updated: {fmtWhen(task.updatedAt)} · history: {task.statusHistory?.length ?? 0} events
-          </div>
-
-          <details className="space-y-2" open>
-            <summary className="font-medium text-sm cursor-pointer text-slate-300 hover:text-slate-200">▸ Status history</summary>
-            <div className="space-y-2 mt-2">
-              {(task.statusHistory ?? []).map((h, idx) => (
-                <div key={`${h.at}-${idx}`} className="border border-[#33406a] bg-[#161b2f] rounded p-3 text-sm">
-                  <div className="font-medium text-[#f2f4f8]">
-                    {h.to}
-                    {h.from ? <span className="text-slate-400 font-normal"> (from {h.from})</span> : null}
+          {/* History Section */}
+          {(task.statusHistory?.length ?? 0) > 0 && (
+            <details className="space-y-3">
+              <summary className="text-sm font-semibold text-slate-300 uppercase tracking-wide cursor-pointer hover:text-slate-200">
+                Status History ({task.statusHistory?.length})
+              </summary>
+              <div className="space-y-2 mt-3">
+                {(task.statusHistory ?? []).map((h, idx) => (
+                  <div key={`${h.at}-${idx}`} className="bg-[#141927] border border-[#2a3a5a] rounded-lg p-3 text-sm">
+                    <div className="font-medium text-white">
+                      {h.to}
+                      {h.from && <span className="text-slate-400 font-normal"> ← {h.from}</span>}
+                    </div>
+                    {h.note && <div className="text-slate-400 mt-1 text-xs">{h.note}</div>}
+                    <div className="text-xs text-slate-500 mt-1">{fmtWhen(h.at)}</div>
                   </div>
-                  <div className="text-slate-300 mt-1">{h.note ?? '—'}</div>
-                  <div className="text-xs text-slate-500 mt-1">{fmtWhen(h.at)}</div>
-                </div>
-              ))}
-              {(task.statusHistory?.length ?? 0) === 0 && (
-                <div className="text-slate-500 text-sm">No history recorded.</div>
-              )}
-            </div>
-          </details>
+                ))}
+              </div>
+            </details>
+          )}
         </div>
 
-        <DialogFooter className="border-t border-[#33406a] pt-4">
-          <div className="w-full">
-            <div className="text-xs text-slate-400 mb-3">
-              Saving lane changes will append a history entry.
+        <DialogFooter className="border-t border-[#2a3a5a] pt-4">
+          <div className="w-full flex items-center justify-between">
+            <div className="text-xs text-slate-500">
+              {dirty ? 'Unsaved changes' : 'All changes saved'}
             </div>
-            <div className="flex gap-2 justify-end">
+            <div className="flex gap-2">
               <CopyButton label="Copy JSON" text={JSON.stringify(task, null, 2)} />
               <Button
                 variant="default"
                 onClick={save}
                 disabled={busy || !dirty}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
               >
-                {busy ? 'Saving…' : dirty ? 'Save changes' : 'Saved'}
+                {busy ? 'Saving…' : dirty ? 'Save Changes' : 'Saved'}
               </Button>
             </div>
           </div>

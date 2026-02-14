@@ -30,52 +30,57 @@ export function LaneOverflowModal({
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-[#0d1426] border border-[#33406a]">
-        <DialogHeader>
-          <DialogTitle className="text-[#f2f4f8]">{laneTitle} Tasks ({tasks.length})</DialogTitle>
+      <DialogContent className="max-w-3xl max-h-[85vh] bg-[#0a0f1e] border-[#2a3a5a]">
+        <DialogHeader className="border-b border-[#2a3a5a] pb-4">
+          <DialogTitle className="text-xl font-semibold text-white">
+            {laneTitle} • {tasks.length} {tasks.length === 1 ? 'task' : 'tasks'}
+          </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4 py-4">
+        <div className="py-4 space-y-4">
           <Input
             placeholder="Search tasks..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="bg-[#161b2f] border-[#33406a] text-[#f2f4f8] placeholder:text-slate-500"
+            className="bg-[#161b2f] border-[#3a4a6a] text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
           />
 
-          <div className="space-y-2">
+          <div className="space-y-2 max-h-[55vh] overflow-y-auto pr-2">
             {filtered.length === 0 && (
-              <div className="text-slate-400 text-center py-8">No tasks match your search</div>
+              <div className="text-slate-400 text-center py-12 text-sm">
+                No tasks match your search
+              </div>
             )}
             {filtered.map((task) => (
-              <Button
+              <button
                 key={task.id}
-                variant="ghost"
-                className="w-full justify-start text-left p-4 h-auto bg-[#161b2f] hover:bg-[#1f2740] border border-[#33406a]"
+                className="w-full text-left p-4 rounded-lg bg-[#141927] hover:bg-[#1a2132] border border-[#2a3a5a] hover:border-[#3a4a6a] transition-all group"
                 onClick={() => {
                   onTaskClick(task)
                   onClose()
                 }}
               >
-                <div className="flex flex-col gap-2 w-full">
-                  <div className="flex items-center gap-2">
-                    <span className={`px-2 py-0.5 text-xs font-bold rounded ${
-                      task.priority === 'P0' ? 'bg-red-900/20 text-red-300' :
-                      task.priority === 'P1' ? 'bg-orange-900/20 text-orange-300' :
-                      task.priority === 'P2' ? 'bg-blue-900/20 text-blue-300' :
-                      'bg-slate-900/20 text-slate-300'
-                    }`}>
-                      {task.priority}
-                    </span>
-                    <span className="text-[#f2f4f8] font-semibold flex-1">{task.title}</span>
-                  </div>
-                  {task.owner && (
-                    <div className="text-sm text-slate-400">
-                      Assigned: {task.owner}
+                <div className="flex items-start gap-3">
+                  <span className={`px-2.5 py-1 text-xs font-bold rounded mt-0.5 ${
+                    task.priority === 'P0' ? 'bg-red-500/20 text-red-400 border border-red-500/30' :
+                    task.priority === 'P1' ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' :
+                    task.priority === 'P2' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' :
+                    'bg-slate-500/20 text-slate-400 border border-slate-500/30'
+                  }`}>
+                    {task.priority}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-white font-medium group-hover:text-blue-300 transition-colors">
+                      {task.title}
                     </div>
-                  )}
+                    {task.owner && (
+                      <div className="text-xs text-slate-400 mt-1">
+                        Assigned to {task.owner}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </Button>
+              </button>
             ))}
           </div>
         </div>
