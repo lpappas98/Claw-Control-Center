@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import {
   ArrowLeft,
   AlertCircle,
@@ -328,12 +327,12 @@ export function FeatureDetailPage() {
               <div>
                 <div className="flex items-center gap-3 mb-3">
                   <h1 className="text-3xl font-bold text-gray-900">{feature.title}</h1>
-                  <Badge variant="outline" className={getPriorityColor(feature.priority)}>
+                  <span className={`px-3 py-1 rounded-md text-xs font-semibold ${getPriorityColor(feature.priority)}`}>
                     {feature.priority.toUpperCase()}
-                  </Badge>
-                  <Badge variant="outline" className={getStatusColor(feature.status)}>
+                  </span>
+                  <span className="px-3 py-1 rounded-md text-xs font-semibold border border-gray-300 text-gray-700">
                     {getStatusLabel(feature.status)}
-                  </Badge>
+                  </span>
                 </div>
                 {feature.summary && <p className="text-gray-700 leading-relaxed max-w-2xl">{feature.summary}</p>}
               </div>
@@ -355,9 +354,9 @@ export function FeatureDetailPage() {
                 <div className="flex items-center gap-2">
                   <div className="flex gap-1 flex-wrap">
                     {feature.tags.map((tag) => (
-                      <Badge key={tag} variant="secondary" className="text-xs">
+                      <span key={tag} className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs font-medium">
                         {tag}
-                      </Badge>
+                      </span>
                     ))}
                   </div>
                 </div>
@@ -508,9 +507,9 @@ export function FeatureDetailPage() {
                               {subFeature.tags && subFeature.tags.length > 0 && (
                                 <div className="flex gap-1">
                                   {subFeature.tags.map((tag) => (
-                                    <Badge key={tag} variant="secondary" className="text-xs">
+                                    <span key={tag} className="px-1.5 py-0.5 bg-gray-100 text-gray-700 rounded text-xs">
                                       {tag}
-                                    </Badge>
+                                    </span>
                                   ))}
                                 </div>
                               )}
@@ -518,9 +517,9 @@ export function FeatureDetailPage() {
                           </div>
                           <div className="flex items-center gap-3 text-sm text-gray-600">
                             <span>{subTasksProgress.done}/{subTasksProgress.total}</span>
-                            <Badge variant="outline" className={getPriorityColor(subFeature.priority)}>
+                            <span className={`px-2 py-1 rounded text-xs font-semibold ${getPriorityColor(subFeature.priority)}`}>
                               {subFeature.priority.toUpperCase()}
-                            </Badge>
+                            </span>
                           </div>
                         </button>
 
@@ -564,12 +563,16 @@ export function FeatureDetailPage() {
                                           {task.title}
                                         </td>
                                         <td className="px-3 py-2">
-                                          {task.tag && <Badge variant="secondary">{task.tag}</Badge>}
+                                          {task.tag && (
+                                            <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">
+                                              {task.tag}
+                                            </span>
+                                          )}
                                         </td>
                                         <td className="px-3 py-2">
-                                          <Badge variant="outline" className={getPriorityColor(task.priority)}>
+                                          <span className={`px-2 py-1 rounded text-xs font-semibold ${getPriorityColor(task.priority)}`}>
                                             {task.priority.toUpperCase()}
-                                          </Badge>
+                                          </span>
                                         </td>
                                         <td className="px-3 py-2 text-gray-600 capitalize">
                                           {task.status.replace(/_/g, ' ')}
