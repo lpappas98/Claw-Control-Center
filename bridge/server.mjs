@@ -2083,6 +2083,20 @@ app.post('/api/tasks/:id/complete', async (req, res) => {
     const task = await newTasksStore.update(req.params.id, { lane: 'done' }, 'api')
     if (!task) return res.status(404).send('task not found')
 
+    // Clear currentTask from agent if this task was assigned
+    if (task.assignedTo) {
+      const agent = await agentsStore.get(task.assignedTo)
+      if (agent && agent.currentTask?.id === task.id) {
+        await agentsStore.updateStatus(task.assignedTo, agent.status || 'online', null)
+      }
+      
+      // Remove task from active tasks
+      const activeTasks = (agent?.activeTasks || []).filter(tId => tId !== task.id)
+      if (agent) {
+        await agentsStore.updateActiveTasks(task.assignedTo, activeTasks)
+      }
+    }
+
     // Auto-unblock tasks that depend on this one
     const unblocked = await newTasksStore.handleCompletion(req.params.id)
 

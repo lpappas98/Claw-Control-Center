@@ -122,6 +122,13 @@ export async function autoAssignTask(task, agentsStore, tasksStore, notification
   const activeTasks = [...(agent.activeTasks || []), task.id]
   await agentsStore.updateActiveTasks(agent.id, activeTasks)
 
+  // Update agent's currentTask (for idle/working status)
+  const taskInfo = {
+    id: task.id,
+    title: task.title || 'Untitled task'
+  }
+  await agentsStore.updateStatus(agent.id, 'busy', taskInfo)
+
   // Create notification
   await notificationsStore.create({
     agentId: agent.id,

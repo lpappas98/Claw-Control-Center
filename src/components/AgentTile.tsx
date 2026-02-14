@@ -24,6 +24,7 @@ function getStatusVariant(status: Agent['status']): 'default' | 'secondary' | 'd
 
 export function AgentTile({ agent, currentTask, onClick, isSelected = false }: AgentTileProps) {
   const statusVariant = getStatusVariant(agent.status)
+  const statusLabel = getStatusLabel(agent.status)
 
   return (
     <Card
@@ -31,7 +32,7 @@ export function AgentTile({ agent, currentTask, onClick, isSelected = false }: A
       className={`p-4 cursor-pointer transition-all hover:shadow-md ${
         isSelected ? 'ring-2 ring-blue-500' : ''
       }`}
-      title={`Agent: ${agent.name} (${agent.status})`}
+      title={`Agent: ${agent.name} (${statusLabel})`}
     >
       {/* Avatar */}
       <div className="text-4xl mb-3 text-center">
@@ -47,7 +48,7 @@ export function AgentTile({ agent, currentTask, onClick, isSelected = false }: A
       {/* Status badge */}
       <div className="mb-3">
         <Badge variant={statusVariant}>
-          {agent.status}
+          {statusLabel}
         </Badge>
       </div>
 

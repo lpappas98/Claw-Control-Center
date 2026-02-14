@@ -7,7 +7,7 @@
         {
           "id": "ac1",
           "text": "Dashboard loads within 2 seconds",
-          "done": false
+          "done": true
         },
         {
           "id": "ac2",

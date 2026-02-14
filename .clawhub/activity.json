@@ -1,5 +1,12 @@
 [
   {
+    "id": "bridge-3e860d061636a-1771071203029",
+    "at": "2026-02-14T12:13:23.029Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8789"
+  },
+  {
     "id": "task-started-390261ac21a0e-1771069256887",
     "at": "2026-02-14T11:40:56.886Z",
     "level": "info",
@@ -5518,20 +5525,6 @@
       "task": "Polishing layout, spacing, and status clarity",
       "workerSlot": "dev-2",
       "worker": "Patch"
-    }
-  },
-  {
-    "id": "task-started-0fff0f1b6f273-1770780114106",
-    "at": "2026-02-11T03:21:52.922Z",
-    "level": "info",
-    "source": "tasks",
-    "message": "task assigned: Implementing Home board and agent UX → Forge",
-    "meta": {
-      "eventType": "task.assigned",
-      "task": "Implementing Home board and agent UX",
-      "workerSlot": "dev-1",
-      "worker": "Forge",
-      "startedAt": "2026-02-11T03:21:52.922Z"
     }
   }
 ]
