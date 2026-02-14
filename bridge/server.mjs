@@ -2480,7 +2480,7 @@ process.on('SIGTERM', async () => {
   process.exit(0)
 })
 
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   pushActivity({
     id: newId('bridge'),
     at: new Date().toISOString(),
@@ -2488,5 +2488,5 @@ app.listen(PORT, () => {
     source: 'operator-hub',
     message: `bridge started on :${PORT}`,
   })
-  logger.info(`Operator Hub bridge listening on http://localhost:${PORT}`)
+  logger.info(`Operator Hub bridge listening on http://0.0.0.0:${PORT}`)
 })
