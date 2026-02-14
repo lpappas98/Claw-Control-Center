@@ -49,7 +49,11 @@ function agentProfile(slot: string, fallback?: string) {
   return { name: fallback ?? slot, role: 'Agent', emoji: '🤖' }
 }
 
-function homeStatus(status: string) {
+function homeStatus(status: string, hasTask?: boolean) {
+  // If worker has an actual task, it's working. Otherwise it's idle/sleeping.
+  if (hasTask === true) return 'working'
+  if (hasTask === false) return 'idle'
+  // Fallback to status field
   return status === 'active' ? 'working' : 'sleeping'
 }
 
@@ -162,12 +166,13 @@ export function MissionControl({
 
     const pinned = PINNED_SLOTS.map((def) => {
       const w = bySlot.get(def.slot)
+      const hasTask = w ? typeof w.task === 'object' && w.task !== null : undefined
       return {
         id: def.slot,
         name: def.name,
         emoji: def.emoji,
         role: def.role,
-        status: w ? homeStatus(w.status) : 'sleeping',
+        status: w ? homeStatus(w.status, hasTask) : 'sleeping',
         rawStatus: w?.status ?? 'offline',
         online: !!w && w.status !== 'offline',
         task: w?.task ?? (w ? 'No active task' : 'Waiting for next task'),
@@ -180,12 +185,13 @@ export function MissionControl({
       .filter((w) => !pinnedSet.has(w.slot))
       .map((w) => {
         const profile = agentProfile(w.slot, w.label)
+        const hasTask = typeof w.task === 'object' && w.task !== null
         return {
           id: w.slot,
           name: profile.name,
           emoji: profile.emoji,
           role: profile.role,
-          status: homeStatus(w.status),
+          status: homeStatus(w.status, hasTask),
           rawStatus: w.status,
           online: w.status !== 'offline',
           task: w.task ?? 'No active task',
