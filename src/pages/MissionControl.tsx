@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { Adapter } from '../adapters/adapter'
-import type { AdapterConfig } from '../lib/adapterState'
 import { usePoll } from '../lib/usePoll'
 import { Badge } from '../components/Badge'
 import { TaskModal } from '../components/TaskModal'
@@ -84,11 +83,8 @@ function activityActor(e: ActivityEvent): string | null {
 
 export function MissionControl({
   adapter,
-  cfg,
 }: {
   adapter: Adapter
-  cfg: AdapterConfig
-  onCfg: (cfg: AdapterConfig) => void
 }) {
   const liveFn = useCallback(async (): Promise<LiveSnapshot> => {
     if (adapter.getLiveSnapshot) return adapter.getLiveSnapshot()
@@ -240,11 +236,9 @@ export function MissionControl({
         {live.error && (
           <div className="callout warn">
             <strong>Live snapshot error:</strong> {live.error.message}
-            {cfg.kind === 'bridge' && (
-              <div className="muted" style={{ marginTop: 6 }}>
-                Bridge URL is {cfg.baseUrl}. If viewing from another device, use this host IP (not localhost).
-              </div>
-            )}
+            <div className="muted" style={{ marginTop: 6 }}>
+              Bridge URL: http://{window.location.hostname}:8787. If viewing from another device, use the server's IP (not localhost).
+            </div>
           </div>
         )}
 

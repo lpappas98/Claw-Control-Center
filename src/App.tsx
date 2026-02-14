@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import './App.css'
 import { MissionControl } from './pages/MissionControl'
 import { Projects } from './pages/Projects'
@@ -10,7 +10,7 @@ import { AgentsPage } from './pages/AgentsPage'
 import { RecurringTasksPage } from './pages/RecurringTasksPage'
 import { IntegrationsPage } from './pages/IntegrationsPage'
 import { SystemStatusPage } from './pages/SystemStatusPage'
-import { loadAdapterConfig, saveAdapterConfig, toAdapter, type AdapterConfig } from './lib/adapterState'
+import { loadAdapterConfig, toAdapter } from './lib/adapterState'
 
 type NavTab = 'Mission Control' | 'Projects' | 'Activity' | 'Kanban' | 'Agents' | 'Recurring' | 'Integrations' | 'System Status' | 'Rules' | 'Config' | 'Docs'
 
@@ -38,15 +38,10 @@ function saveNavTab(tab: NavTab) {
 
 export default function App() {
   const [tab, setTab] = useState<NavTab>(() => loadNavTab())
-  const [cfg, setCfg] = useState<AdapterConfig>(() => loadAdapterConfig())
   const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null)
 
+  const cfg = useMemo(() => loadAdapterConfig(), [])
   const adapter = useMemo(() => toAdapter(cfg), [cfg])
-
-  const updateCfg = useCallback((next: AdapterConfig) => {
-    setCfg(next)
-    saveAdapterConfig(next)
-  }, [])
 
   return (
     <div className="app-shell">
@@ -71,26 +66,9 @@ export default function App() {
             </button>
           ))}
         </nav>
-
-        <div className="top-actions">
-          <div className="adapter-pill" title="Data source adapter">
-            <span className="muted">Adapter:</span> <strong>{adapter.name}</strong>
-          </div>
-          <button
-            className="btn ghost"
-            onClick={() => {
-              if (cfg.kind === 'bridge') updateCfg({ kind: 'mock' })
-              else updateCfg({ kind: 'bridge', baseUrl: 'http://localhost:8787' })
-            }}
-            type="button"
-            title="Toggle between mock data and local bridge"
-          >
-            Toggle
-          </button>
-        </div>
       </header>
 
-      {tab === 'Mission Control' && <MissionControl adapter={adapter} cfg={cfg} onCfg={updateCfg} />}
+      {tab === 'Mission Control' && <MissionControl adapter={adapter} />}
       {tab === 'Projects' && <Projects adapter={adapter} />}
       {tab === 'Activity' && <Activity adapter={adapter} />}
       {tab === 'Kanban' && <KanbanPage selectedAgentId={selectedAgentId} />}
