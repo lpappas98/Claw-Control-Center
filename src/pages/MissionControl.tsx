@@ -9,7 +9,7 @@ import { TaskModal } from '../components/TaskModal'
 import { LaneOverflowModal } from '../components/LaneOverflowModal'
 import type { ActivityEvent, BoardLane, LiveSnapshot, Priority, SystemStatus, Task, WorkerHeartbeat } from '../types'
 
-const MAX_TASKS_PER_LANE = 7
+const MAX_TASKS_PER_LANE = 5
 
 type HomeTask = {
   id: string
@@ -32,7 +32,7 @@ function fmtAgo(iso?: string) {
 }
 
 function inferPriority(title?: string): Priority {
-  const m = (title ?? '').match(/\b(P[0-3])\b/i)
+  const m = String(title ?? '').match(/\b(P[0-3])\b/i)
   const v = m?.[1]?.toUpperCase()
   if (v === 'P0' || v === 'P1' || v === 'P2' || v === 'P3') return v
   return 'P2'
@@ -195,7 +195,7 @@ export function MissionControl({
 
   const tasks = useMemo<HomeTask[]>(() => {
     const persistedTasks = persisted.data ?? []
-    const byTitle = new Map(persistedTasks.map((t) => [t.title.trim(), t]))
+    const byTitle = new Map(persistedTasks.map((t) => [String(t.title ?? '').trim(), t]))
 
     const usedPersistedIds = new Set<string>()
 
@@ -204,7 +204,7 @@ export function MissionControl({
       .map((w, idx) => {
         const profile = agentProfile(w.slot, w.label)
         const title = w.task ?? 'Untitled task'
-        const matched = byTitle.get(title.trim())
+        const matched = byTitle.get(String(title).trim())
         if (matched) usedPersistedIds.add(matched.id)
         return {
           id: matched?.id ?? `${w.slot}-${idx}`,
@@ -256,213 +256,441 @@ export function MissionControl({
 
   const blockedTasks = tasks.filter((t) => t.lane === 'blocked')
 
+  const workingAgents = useMemo(() => agents.filter(a => a.status === 'working'), [agents])
+  const idleAgents = useMemo(() => agents.filter(a => a.status !== 'working'), [agents])
+  const useCompactMode = workingAgents.length >= 4
+  
+  const totalTasks = tasks.length
+  const totalP0 = tasks.filter(t => t.priority === 'P0').length
+  const blockedCount = blockedTasks.length
+
+  const priorityColors = {
+    P0: { dot: '#f87171', border: '#ef4444', text: '#fca5a5' },
+    P1: { dot: '#fbbf24', border: '#f59e0b', text: '#fde68a' },
+    P2: { dot: '#facc15', border: '#eab308', text: '#fef08a' },
+    P3: { dot: '#64748b', border: '#475569', text: '#94a3b8' },
+  }
+
+  const columnAccents = {
+    proposed: '#64748b',
+    queued: '#3b82f6',
+    development: '#8b5cf6',
+    review: '#f59e0b',
+    done: '#10b981',
+  }
+
   return (
-    <main className="main-grid">
-      <section className="panel span-4 agent-top-panel">
-        {live.error && (
-          <Alert variant="destructive">
-            <strong>Live snapshot error:</strong> {live.error.message}
-            <div className="muted" style={{ marginTop: 6 }}>
-              Bridge URL: http://{window.location.hostname}:8787. If viewing from another device, use the server's IP (not localhost).
-            </div>
-          </Alert>
-        )}
+    <main className="main-grid" style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '16px 20px' }}>
+      {live.error && (
+        <Alert variant="destructive">
+          <strong>Live snapshot error:</strong> {live.error.message}
+          <div className="muted" style={{ marginTop: 6 }}>
+            Bridge URL: http://{window.location.hostname}:8787. If viewing from another device, use the server's IP (not localhost).
+          </div>
+        </Alert>
+      )}
 
-        <div className="agent-strip compact">
-          {agents.map((agent) => (
-            <article className="agent-card" key={agent.id}>
-              <div className="agent-head">
-                <div>
-                  <div className="agent-name">
-                    {agent.emoji} {agent.name}
+      {/* Agent Strip - Adaptive layout */}
+      <div style={{ display: 'flex', gap: '10px', alignItems: 'stretch' }}>
+        <div style={{ flex: 1, minWidth: 0, display: 'flex', gap: '10px', alignItems: 'stretch', flexWrap: useCompactMode ? 'wrap' : 'nowrap', overflowX: 'auto' }}>
+          {useCompactMode ? (
+            // Compact mode: all agents equal-width
+            agents.map((agent) => (
+              <div
+                key={agent.id}
+                style={{
+                  flex: useCompactMode ? 1 : undefined,
+                  minWidth: useCompactMode ? 0 : '300px',
+                  flexShrink: 0,
+                  background: agent.status === 'working' 
+                    ? 'linear-gradient(135deg, rgba(16,185,129,0.06) 0%, rgba(15,23,42,0.5) 100%)'
+                    : 'rgba(30,41,59,0.4)',
+                  border: agent.status === 'working'
+                    ? '1px solid rgba(16,185,129,0.18)'
+                    : '1px solid rgba(51,65,85,0.35)',
+                  borderRadius: '12px',
+                  padding: '10px 14px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                }}
+              >
+                <span style={{ fontSize: '18px', flexShrink: 0 }}>{agent.emoji}</span>
+                <div style={{ minWidth: 0, flex: 1 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}>
+                    <span style={{ fontSize: '12px', fontWeight: 600, color: '#f1f5f9' }}>{agent.name}</span>
+                    <span style={{ fontSize: '10px', color: '#475569' }}>{agent.role}</span>
+                    <div style={{
+                      marginLeft: 'auto',
+                      width: '6px',
+                      height: '6px',
+                      borderRadius: '50%',
+                      flexShrink: 0,
+                      background: agent.status === 'working' ? '#34d399' : '#475569',
+                      boxShadow: agent.status === 'working' ? '0 0 6px rgba(52,211,153,0.5)' : 'none',
+                    }} />
                   </div>
-                  <div className="agent-role muted">{agent.role}</div>
+                  {agent.status === 'working' ? (
+                    <p style={{ fontSize: '11px', color: 'rgba(110,231,183,0.6)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {typeof agent.task === 'object' && agent.task?.title ? agent.task.title : agent.task}
+                    </p>
+                  ) : (
+                    <p style={{ fontSize: '11px', color: '#334155', margin: 0 }}>Idle · {fmtAgo(agent.lastBeatAt)}</p>
+                  )}
                 </div>
-                <Badge kind={agent.rawStatus} />
               </div>
-              <div className="agent-online-row">
-                <span className={`status-dot ${agent.online ? 'online' : 'offline'}`} />
-                <span className={agent.online ? 'status-text-online' : 'status-text-offline'}>{agent.online ? 'Online' : 'Offline'}</span>
-                <span className="muted">· {agent.status === 'working' ? '⚡ Working' : '💤 Sleeping'}</span>
-              </div>
-              <div className="muted">{agent.task}</div>
-              <div className="muted">heartbeat: {fmtAgo(agent.lastBeatAt)}</div>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section className="panel span-3 taskboard-panel">
-        <div className="panel-header">
-          <div>
-            <h3>Task Board</h3>
-          </div>
-          <div className="right stack-h">
-            <div className="muted" style={{ fontSize: 12, textAlign: 'right' }}>
-              {persisted.refreshing
-                ? 'refreshing…'
-                : persisted.lastSuccessAt
-                  ? `last ok: ${new Date(persisted.lastSuccessAt).toLocaleTimeString()}`
-                  : ''}
-            </div>
-            <Button
-              variant="default"
-              type="button"
-              disabled={creating}
-              onClick={async () => {
-                const title = prompt('New task title')
-                if (!title || !title.trim()) return
-                setCreating(true)
-                try {
-                  const next = await adapter.createTask({ title: title.trim() })
-                  setOpenTask(next)
-                } finally {
-                  setCreating(false)
-                }
-              }}
-              title="Create a persisted task and open details"
-            >
-              {creating ? 'Creating…' : 'New task'}
-            </Button>
-          </div>
-        </div>
-
-        <div className="blocked-row">
-          <div className="blocked-row-title">Blocked</div>
-          <div className="blocked-row-cards">
-            {blockedTasks.length === 0 && <div className="muted">No blocked tasks</div>}
-            {blockedTasks.map((task) => {
-              const canOpen = !!task.details
-              const inner = (
-                <>
-                  <div className={`priority-tag ${task.priority.toLowerCase()}`}>{task.priority}</div>
-                  <div className="home-task-title">{task.title}</div>
-                  <div className={`worker-chip ${task.agent ? 'assigned' : 'unassigned'}`}>
-                    {task.agent ? `${task.agentEmoji ?? '🤖'} ${task.agent}` : 'Unassigned'}
-                  </div>
-                </>
-              )
-
-              return canOpen ? (
-                <Button
-                  key={task.id}
-                  type="button"
-                  className="home-task blocked clickable"
-                  onClick={() => setOpenTask(task.details ?? null)}
-                  title="Open task details"
+            ))
+          ) : (
+            <>
+              {/* Expanded mode: large cards for working agents */}
+              {workingAgents.map((agent) => (
+                <div
+                  key={agent.id}
+                  style={{
+                    width: '300px',
+                    flexShrink: 0,
+                    background: 'linear-gradient(135deg, rgba(16,185,129,0.07) 0%, rgba(15,23,42,0.5) 100%)',
+                    border: '1px solid rgba(16,185,129,0.18)',
+                    borderRadius: '12px',
+                    padding: '12px 16px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                  }}
                 >
-                  {inner}
-                </Button>
-              ) : (
-                <div key={task.id} className="home-task blocked">
-                  {inner}
+                  <span style={{ fontSize: '20px', flexShrink: 0 }}>{agent.emoji}</span>
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '3px' }}>
+                      <span style={{ fontSize: '13px', fontWeight: 600, color: '#f1f5f9' }}>{agent.name}</span>
+                      <span style={{ fontSize: '11px', color: '#64748b' }}>{agent.role}</span>
+                      <div style={{ marginLeft: 'auto', width: '6px', height: '6px', borderRadius: '50%', background: '#34d399', boxShadow: '0 0 6px rgba(52,211,153,0.5)' }} />
+                    </div>
+                    <p style={{ fontSize: '12px', color: 'rgba(110,231,183,0.65)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {typeof agent.task === 'object' && agent.task?.title ? agent.task.title : agent.task}
+                    </p>
+                  </div>
+                </div>
+              ))}
+              {/* Idle cluster */}
+              {idleAgents.length > 0 && (
+                <div style={{
+                  background: 'rgba(30,41,59,0.4)',
+                  border: '1px solid rgba(51,65,85,0.35)',
+                  borderRadius: '12px',
+                  padding: '12px 16px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '14px',
+                  flexShrink: 0,
+                }}>
+                  <div style={{ display: 'flex', gap: '6px' }}>
+                    {idleAgents.map(a => (
+                      <div
+                        key={a.id}
+                        title={`${a.name} · ${a.role}`}
+                        style={{
+                          width: '34px',
+                          height: '34px',
+                          borderRadius: '50%',
+                          background: 'rgba(51,65,85,0.5)',
+                          border: '1px solid rgba(71,85,105,0.4)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '15px',
+                          cursor: 'default',
+                        }}
+                      >
+                        {a.emoji}
+                      </div>
+                    ))}
+                  </div>
+                  <span style={{ fontSize: '12px', color: '#64748b', whiteSpace: 'nowrap' }}>
+                    <span style={{ color: '#cbd5e1', fontWeight: 500 }}>{idleAgents.length}</span> idle
+                  </span>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* Board + Activity */}
+      <div style={{ display: 'flex', gap: '14px', alignItems: 'flex-start' }}>
+        {/* Task Board */}
+        <div style={{
+          flex: 1,
+          minWidth: 0,
+          background: 'rgba(15,23,42,0.45)',
+          border: '1px solid rgba(30,41,59,0.55)',
+          borderRadius: '14px',
+          overflow: 'hidden',
+          display: 'flex',
+          flexDirection: 'column',
+        }}>
+          {/* Board header */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '12px 20px',
+            borderBottom: '1px solid rgba(30,41,59,0.55)',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+              <span style={{ fontSize: '14px', fontWeight: 600, color: '#f1f5f9' }}>Task Board</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '12px', color: '#64748b' }}>
+                <span>{totalTasks} tasks</span>
+                <span style={{ color: '#1e293b' }}>·</span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#f87171', display: 'inline-block' }} />
+                  <span style={{ color: '#fca5a5' }}>{totalP0} critical</span>
+                </span>
+                <span style={{ color: '#1e293b' }}>·</span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#ef4444', display: 'inline-block' }} />
+                  <span style={{ color: '#fca5a5' }}>{blockedCount} blocked</span>
+                </span>
+              </div>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <span style={{ fontSize: '11px', color: '#334155' }}>{new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</span>
+              <Button
+                variant="default"
+                type="button"
+                disabled={creating}
+                onClick={async () => {
+                  const title = prompt('New task title')
+                  if (!title || !title.trim()) return
+                  setCreating(true)
+                  try {
+                    const next = await adapter.createTask({ title: title.trim() })
+                    setOpenTask(next)
+                  } finally {
+                    setCreating(false)
+                  }
+                }}
+                title="Create a persisted task and open details"
+                style={{ fontSize: '12px', padding: '6px 14px' }}
+              >
+                {creating ? 'Creating…' : '+ New task'}
+              </Button>
+            </div>
+          </div>
+
+          {/* Columns */}
+          <div style={{ display: 'flex', gap: '10px', padding: '14px 16px', overflowX: 'auto', flex: 1 }}>
+            {boardColumns.map((lane) => {
+              const laneTasks = tasks.filter((t) => t.lane === lane.key)
+              const visibleTasks = laneTasks.slice(0, MAX_TASKS_PER_LANE)
+              const overflowCount = laneTasks.length - MAX_TASKS_PER_LANE
+              const accent = columnAccents[lane.key as keyof typeof columnAccents] || '#64748b'
+              const p0Count = laneTasks.filter(t => t.priority === 'P0').length
+
+              return (
+                <div key={lane.key} style={{ minWidth: '185px', flex: 1, display: 'flex', flexDirection: 'column' }}>
+                  {/* Column header */}
+                  <div style={{ padding: '8px 10px 8px', borderBottom: `2px solid ${accent}35`, marginBottom: '8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ fontSize: '11px', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                          {lane.title}
+                        </span>
+                        <span style={{
+                          fontSize: '10px',
+                          fontWeight: 600,
+                          color: '#64748b',
+                          background: 'rgba(30,41,59,0.7)',
+                          padding: '2px 8px',
+                          borderRadius: '10px',
+                        }}>
+                          {laneTasks.length}
+                        </span>
+                      </div>
+                      {p0Count > 0 && lane.key !== 'done' && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+                          <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#f87171' }} />
+                          <span style={{ fontSize: '10px', color: '#fca5a5', fontWeight: 500 }}>{p0Count}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Task cards */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    {laneTasks.length === 0 && (
+                      <div style={{ color: '#64748b', fontSize: '12px', padding: '16px 8px', textAlign: 'center' }}>
+                        No tasks
+                      </div>
+                    )}
+                    {visibleTasks.map((task) => {
+                      const canOpen = !!task.details
+                      const colors = priorityColors[task.priority as keyof typeof priorityColors] || priorityColors.P3
+                      const Inner = (
+                        <div style={{
+                          background: 'rgba(30,41,59,0.45)',
+                          border: `1px solid rgba(51,65,85,0.35)`,
+                          borderLeft: `3px solid ${colors.border}`,
+                          borderRadius: '8px',
+                          padding: '10px 12px',
+                          cursor: canOpen ? 'pointer' : 'default',
+                          transition: 'background 0.15s',
+                        }}>
+                          <p style={{
+                            fontSize: '12.5px',
+                            lineHeight: 1.45,
+                            color: '#e2e8f0',
+                            margin: 0,
+                            display: '-webkit-box',
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical' as const,
+                            overflow: 'hidden',
+                          }}>
+                            {task.title}
+                          </p>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '7px', flexWrap: 'wrap' }}>
+                            <span style={{
+                              fontSize: '10px',
+                              fontWeight: 700,
+                              color: colors.text,
+                            }}>
+                              {task.priority}
+                            </span>
+                            {task.agent && (
+                              <span style={{ fontSize: '10px', color: '#60a5fa' }}>
+                                → {task.agent}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      )
+
+                      return canOpen ? (
+                        <button
+                          key={task.id}
+                          type="button"
+                          onClick={() => setOpenTask(task.details ?? null)}
+                          title="Open task details"
+                          style={{
+                            background: 'transparent',
+                            border: 'none',
+                            padding: 0,
+                            cursor: 'pointer',
+                            textAlign: 'left',
+                            fontFamily: 'inherit',
+                          }}
+                        >
+                          {Inner}
+                        </button>
+                      ) : (
+                        <div key={task.id}>{Inner}</div>
+                      )
+                    })}
+                    {overflowCount > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => setOverflowLane({ lane: lane.key, tasks: laneTasks })}
+                        title={`View all ${laneTasks.length} tasks`}
+                        style={{
+                          fontSize: '12px',
+                          fontWeight: 500,
+                          color: '#94a3b8',
+                          background: 'transparent',
+                          border: '1px dashed rgba(71,85,105,0.4)',
+                          borderRadius: '8px',
+                          padding: '8px 0',
+                          cursor: 'pointer',
+                          textAlign: 'center',
+                          fontFamily: 'inherit',
+                          transition: 'all 0.15s',
+                        }}
+                      >
+                        +{overflowCount} more
+                      </button>
+                    )}
+                  </div>
                 </div>
               )
             })}
           </div>
         </div>
 
-        <div className="home-board single-row">
-          {boardColumns.map((lane) => {
-            const laneTasks = tasks.filter((t) => t.lane === lane.key)
-            const visibleTasks = laneTasks.slice(0, MAX_TASKS_PER_LANE)
-            const overflowCount = laneTasks.length - MAX_TASKS_PER_LANE
-            const hasOverflow = overflowCount > 0
+        {/* Activity Sidebar */}
+        <div style={{
+          width: '270px',
+          flexShrink: 0,
+          background: 'rgba(15,23,42,0.45)',
+          border: '1px solid rgba(30,41,59,0.55)',
+          borderRadius: '14px',
+          overflow: 'hidden',
+          display: 'flex',
+          flexDirection: 'column',
+          maxHeight: 'calc(100vh - 150px)',
+        }}>
+          <div style={{
+            padding: '12px 16px',
+            borderBottom: '1px solid rgba(30,41,59,0.55)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}>
+            <span style={{ fontSize: '11px', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+              Activity
+            </span>
+            <span style={{ fontSize: '11px', color: '#334155' }}>
+              {(activity.data?.length ?? 0)} events
+            </span>
+          </div>
 
-            return (
-              <div className="lane-group" key={lane.key}>
-                <div className="home-lane-heading">{lane.title}</div>
-                <div className="home-lane narrow">
-                  <div className="stack">
-                    {laneTasks.length === 0 && <div className="home-task empty">No tasks</div>}
-                    {visibleTasks.map((task) => {
-                      const canOpen = !!task.details
-                      const inner = (
-                        <>
-                          <div className={`priority-tag ${task.priority.toLowerCase()}`}>{task.priority}</div>
-                          <div className="home-task-title">{task.title}</div>
-                          <div className={`worker-chip ${task.agent ? 'assigned' : 'unassigned'}`}>
-                            {task.agent ? `${task.agentEmoji ?? '🤖'} ${task.agent}` : 'Unassigned'}
-                          </div>
-                        </>
-                      )
+          {activity.error && (
+            <Alert variant="destructive" style={{ margin: '8px' }}>
+              <strong>Activity error:</strong> {activity.error.message}
+            </Alert>
+          )}
 
-                      return canOpen ? (
-                        <Button
-                          key={task.id}
-                          type="button"
-                          className="home-task clickable"
-                          onClick={() => setOpenTask(task.details ?? null)}
-                          title="Open task details"
-                        >
-                          {inner}
-                        </Button>
-                      ) : (
-                        <div className="home-task" key={task.id}>
-                          {inner}
-                        </div>
-                      )
-                    })}
-                    {hasOverflow && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        className="home-task clickable"
-                        onClick={() => setOverflowLane({ lane: lane.key, tasks: laneTasks })}
-                        title={`View all ${laneTasks.length} tasks`}
-                        style={{
-                          borderStyle: 'dashed',
-                          opacity: 0.7,
-                          fontWeight: 600,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          minHeight: '60px'
-                        }}
-                      >
-                        <div style={{ textAlign: 'center' }}>
-                          <div style={{ fontSize: '1.2rem' }}>+{overflowCount}</div>
-                          <div style={{ fontSize: '0.75rem', opacity: 0.8 }}>more tasks</div>
-                        </div>
-                      </Button>
-                    )}
+          <div style={{ flex: 1, overflowY: 'auto' }}>
+            {(activity.data ?? []).slice(0, 80).map((item) => {
+              const actor = activityActor(item)
+              const corr = item.meta && typeof item.meta.correlationId === 'string' ? String(item.meta.correlationId) : null
+              const iconMap: Record<string, string> = { info: 'ℹ', warn: '⚠', success: '✓', error: '✕' }
+              const colorMap: Record<string, string> = { info: '#64748b', warn: '#fbbf24', success: '#34d399', error: '#f87171' }
+              const icon = iconMap[item.level] || 'ℹ'
+              const color = colorMap[item.level] || '#64748b'
+
+              return (
+                <div
+                  key={item.id}
+                  style={{
+                    display: 'flex',
+                    gap: '10px',
+                    padding: '10px 16px',
+                    borderLeft: item.level === 'warn' ? '2px solid rgba(245,158,11,0.35)' : '2px solid transparent',
+                    background: item.level === 'warn' ? 'rgba(245,158,11,0.04)' : 'transparent',
+                  }}
+                >
+                  <span style={{ color, fontSize: '12px', flexShrink: 0, marginTop: '1px' }}>{icon}</span>
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <p style={{
+                      fontSize: '12px',
+                      lineHeight: 1.5,
+                      margin: 0,
+                      wordBreak: 'break-word',
+                      color: item.level === 'warn' ? '#fde68a' : '#cbd5e1',
+                    }}>
+                      {item.message}
+                    </p>
+                    <span style={{ fontSize: '11px', color: '#475569' }}>{fmtAgo(item.at)}</span>
                   </div>
                 </div>
+              )
+            })}
+            {!activity.loading && (activity.data?.length ?? 0) === 0 && (
+              <div style={{ color: '#64748b', fontSize: '12px', padding: '16px', textAlign: 'center' }}>
+                No activity yet
               </div>
-            )
-          })}
+            )}
+          </div>
         </div>
-      </section>
-
-      <section className="panel span-1 activity-panel">
-        <div className="panel-header">
-          <h3>Activity Feed</h3>
-        </div>
-
-        {activity.error && (
-          <Alert variant="destructive">
-            <strong>Activity error:</strong> {activity.error.message}
-          </Alert>
-        )}
-
-        <div className="stack activity-scroll">
-          {(activity.data ?? []).slice(0, 80).map((item) => {
-            const actor = activityActor(item)
-            const corr = item.meta && typeof item.meta.correlationId === 'string' ? String(item.meta.correlationId) : null
-            return (
-              <article className={`feed-item clean ${item.level}`} key={item.id}>
-                <div className="feed-head clean" style={{ gap: 8 }}>
-                  {actor && <span className="feed-actor">{actor}</span>}
-                  {corr && <span className="pill">{corr}</span>}
-                  <span className="muted right">{fmtAgo(item.at)}</span>
-                </div>
-                <div className="feed-msg">{item.message}</div>
-              </article>
-            )
-          })}
-          {!activity.loading && (activity.data?.length ?? 0) === 0 && <div className="muted">No activity yet.</div>}
-        </div>
-      </section>
+      </div>
 
       {openTask && (
         <TaskModal

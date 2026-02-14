@@ -1,59 +1,35 @@
 # HEARTBEAT.md - Sentinel (QA Engineer)
 
-## 1. Register with Bridge (First Run Only)
+## Role
+QA Engineer - Testing, verification, bug reporting
 
-If not already registered, run this once:
+## Task Checking Workflow
 
+### 1. Check for assigned tasks
 ```bash
-curl -X POST http://localhost:8787/api/agents \
-  -H "Content-Type: application/json" \
-  -d '{
-    "id": "qa",
-    "name": "Sentinel",
-    "emoji": "🛡️",
-    "roles": ["qa", "testing", "review", "validation", "e2e"],
-    "model": "ollama/llama3.1:8b@http://192.168.1.21:11434",
-    "workspace": "/home/openclaw/.openclaw/workspace"
-  }'
+curl -s http://192.168.1.51:8787/api/tasks?lane=queued&owner=qa
 ```
 
-## 2. Check for Assigned Tasks
+### 2. Task Priority
+Pick highest priority first:
+- P0 (Critical) - immediate attention
+- P1 (High) - today
+- P2 (Medium) - this week  
+- P3 (Low) - backlog
 
-```bash
-curl -s "http://localhost:8787/api/tasks?assignedTo=qa&status=assigned"
-```
+### 3. Execute Task
+When you find a task:
+1. Move to development: `PUT /api/tasks/{id}` with `{"lane": "development"}`
+2. Execute the work described in the task
+3. On completion: Move to done (or blocked if issues found)
 
-**If you have tasks:**
-- Work on the highest priority task
-- Update status as you progress
-- Mark complete when done
+### 4. No Tasks
+If no tasks assigned to you, reply: `HEARTBEAT_OK`
 
-**If no tasks:**
-- Reply exactly: `HEARTBEAT_OK`
+## API Endpoints
+- Get tasks: `GET /api/tasks?lane=queued&owner=qa`
+- Update task: `PUT /api/tasks/{id}`
+- Bridge: `http://192.168.1.51:8787`
 
-## 3. Task Workflow
-
-### Start Task
-```bash
-curl -X PUT http://localhost:8787/api/tasks/TASK_ID \
-  -H "Content-Type: application/json" \
-  -d '{"lane": "development"}'
-```
-
-### Update Progress
-Add notes in the task about what you're working on.
-
-### Complete Task
-```bash
-curl -X PUT http://localhost:8787/api/tasks/TASK_ID \
-  -H "Content-Type: application/json" \
-  -d '{"lane": "review"}'
-```
-
-## Priority
-
-Work on tasks in this order:
-1. **P0** (Critical) - Drop everything
-2. **P1** (High) - Do today
-3. **P2** (Medium) - This week
-4. **P3** (Low) - When you can
+## Specialization
+Testing: Browser verification, screenshot analysis, bug reports, acceptance criteria validation

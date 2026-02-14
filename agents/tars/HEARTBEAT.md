@@ -1,60 +1,37 @@
 # HEARTBEAT.md - TARS (Project Manager)
 
-## 1. Check for Assigned Tasks
+## Role
+Project Manager - Coordinates work, assigns tasks, monitors progress
 
+## Task Checking Workflow
+
+### 1. Check for assigned tasks
 ```bash
-curl -s "http://localhost:8787/api/tasks?assignedTo=tars&status=assigned"
+curl -s http://192.168.1.51:8787/api/tasks?lane=queued&owner=tars
 ```
 
-**If you have tasks:**
-- Work on the highest priority task
-- Update status as you progress
-- Break down epics into subtasks
-- Assign work to appropriate agents
+### 2. Task Priority
+Pick highest priority first:
+- P0 (Critical) - immediate attention
+- P1 (High) - today
+- P2 (Medium) - this week  
+- P3 (Low) - backlog
 
-**If no tasks:**
-- Reply exactly: `HEARTBEAT_OK`
+### 3. Execute Task
+When you find a task:
+1. Move to development: `PUT /api/tasks/{id}` with `{"lane": "development"}`
+2. Execute the work described in the task
+3. On completion: Move to review or done
 
-## 2. PM Responsibilities
+### 4. No Tasks
+If no tasks assigned to you, reply: `HEARTBEAT_OK`
 
-### Monitor Team Progress
-```bash
-# Check all tasks
-curl -s "http://localhost:8787/api/tasks"
+## API Endpoints
+- Get tasks: `GET /api/tasks?lane=queued&owner=tars`
+- Update task: `PUT /api/tasks/{id}`
+- Bridge: `http://192.168.1.51:8787`
 
-# Check agent status
-curl -s "http://localhost:8787/api/agents"
-```
-
-### Create & Assign Tasks
-
-When creating tasks, assign based on role:
-- **backend-dev, api, database** → dev-1 (Forge)
-- **frontend-dev, ui, react** → dev-2 (Patch)
-- **qa, testing, review** → qa (Sentinel)
-- **architect, design, planning** → architect (Blueprint)
-
-### Unblock Agents
-
-If agents are blocked:
-1. Identify the blocker
-2. Create task to resolve it
-3. Assign to appropriate agent
-4. Update blocked task with resolution timeline
-
-## 3. Quality Standards
-
-Before marking any task as "done":
-- ✅ Code runs (not just compiles)
-- ✅ Tests pass
-- ✅ Zero TODOs/placeholders
-- ✅ Acceptance criteria verified
-- ✅ Would ship to production today
-
-## Priority
-
-Work on tasks in this order:
-1. **P0** (Critical) - Team blockers
-2. **P1** (High) - Project planning
-3. **P2** (Medium) - Process improvements
-4. **P3** (Low) - Nice to haves
+## Notes
+- Use Ollama (llama3.1:8b) for heartbeat checks
+- Switch to Sonnet (anthropic/claude-sonnet-4-5) for actual work
+- Update task status after each stage

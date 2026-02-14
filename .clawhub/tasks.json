@@ -1,5 +1,309 @@
 [
   {
+    "id": "task-474a86df1401e-1771057723644",
+    "title": "Redesign Mission Control page with improved agent cards and task board",
+    "lane": "queued",
+    "priority": "P0",
+    "owner": "dev-2",
+    "problem": "Current Mission Control layout is cluttered and hard to scan. Agent status unclear, task board cramped, no clear visual hierarchy",
+    "scope": "Implement redesigned Mission Control page following the design from file_107. Features: adaptive agent cards (expanded for active, compact cluster for idle), improved kanban columns with P0 indicators, activity feed sidebar, better spacing and visual hierarchy",
+    "acceptanceCriteria": [
+      "Agent cards adapt based on activity: expanded cards for working agents (show task), compact cluster for idle agents",
+      "When 4+ agents working: switch to compact mode for all (equal-width cards)",
+      "Kanban columns: proper spacing, max 5 visible tasks + overflow button, P0 count badges",
+      "Column accent colors: proposed=slate, queued=blue, development=purple, review=orange, done=green",
+      "Activity feed sidebar (270px): info/warn/success icons, timestamps, event grouping",
+      "Task cards: left border colored by priority (P0=red, P1=orange, P2=yellow, P3=slate)",
+      "Tag badges with colors (Epic=violet, UI=sky, Backend=purple, QA=emerald, etc)",
+      "Header stats: total tasks, P0 count, blocked count",
+      "Reference: /home/openclaw/.openclaw/media/inbound/file_107 for exact implementation",
+      "Test with different agent states (all idle, mix, all busy)",
+      "Take screenshot showing new Mission Control layout"
+    ],
+    "createdAt": "2026-02-14T08:28:43.644Z",
+    "updatedAt": "2026-02-14T08:28:43.644Z",
+    "statusHistory": [
+      {
+        "at": "2026-02-14T08:28:43.644Z",
+        "to": "queued",
+        "note": "created"
+      }
+    ]
+  },
+  {
+    "id": "task-454d2a9718497-1771056177712",
+    "title": "Add idle/working status distinction for agents in UI",
+    "lane": "blocked",
+    "priority": "P1",
+    "owner": "dev-2",
+    "problem": "Agents show as online even when idle. No way to tell if an agent is actively working on a task vs just heartbeating",
+    "scope": "Update agent status to show idle (no active task) vs working (has active task). Update heartbeat script to track current task, update bridge API response, update MissionControl UI to display status appropriately",
+    "acceptanceCriteria": [
+      "Agent heartbeat includes currentTask field (taskId or null)",
+      "Bridge /api/workers returns status: idle (no task) or working (has task)",
+      "MissionControl agent tiles show idle status differently than working",
+      "Color coding: idle=gray/neutral, working=blue/active, offline=red (only when truly offline)",
+      "Agent tile shows current task title when working",
+      "Status updates within 30 seconds of task pickup/completion",
+      "Test: assign task to agent, verify status changes from idle → working",
+      "Test: complete task, verify status changes back to idle"
+    ],
+    "createdAt": "2026-02-14T08:02:57.712Z",
+    "updatedAt": "2026-02-14T08:24:49.809Z",
+    "statusHistory": [
+      {
+        "at": "2026-02-14T08:24:49.809Z",
+        "from": "development",
+        "to": "blocked",
+        "note": "updated"
+      },
+      {
+        "at": "2026-02-14T08:24:48.735Z",
+        "from": "queued",
+        "to": "development",
+        "note": "updated"
+      },
+      {
+        "at": "2026-02-14T08:02:57.712Z",
+        "to": "queued",
+        "note": "created"
+      }
+    ]
+  },
+  {
+    "id": "task-78451384ee3db-1771056041156",
+    "title": "Add UI/UX design guide to project documentation",
+    "lane": "queued",
+    "priority": "P1",
+    "owner": "architect",
+    "problem": "No documented UI/UX standards for the project. Agents and contributors need clear guidelines for modal design, form layout, visual hierarchy, spacing, and shadcn/ui usage",
+    "scope": "Create docs/UI_UX_GUIDE.md with comprehensive design rules from Logan's guide. Include modal design patterns, form layout rules, visual hierarchy, spacing standards, shadcn/ui usage, and anti-patterns to avoid",
+    "acceptanceCriteria": [
+      "Create docs/UI_UX_GUIDE.md",
+      "Copy content from /home/openclaw/.openclaw/media/inbound/file_104",
+      "Add examples section referencing the redesigned TaskModal and TaskListModal",
+      "Include color codes for priority badges (P0=red, P1=orange, P2=yellow, P3=slate)",
+      "Link from main README.md under Development section",
+      "Commit to feature branch with message: Add UI/UX design guide for consistent component styling"
+    ],
+    "createdAt": "2026-02-14T08:00:41.156Z",
+    "updatedAt": "2026-02-14T08:00:41.156Z",
+    "statusHistory": [
+      {
+        "at": "2026-02-14T08:00:41.156Z",
+        "to": "queued",
+        "note": "created"
+      }
+    ]
+  },
+  {
+    "id": "task-76841ad6cd267-1771056030147",
+    "title": "Implement redesigned task search/list modal with better UX",
+    "lane": "blocked",
+    "priority": "P0",
+    "owner": "dev-2",
+    "problem": "Current task search modal (screenshot from Logan) has unreadable dark text on dark background, no visual hierarchy, cramped list, no metadata visible, full-screen modal instead of focused overlay",
+    "scope": "Create new TaskListModal component (or refactor existing search UI) following UI/UX guide. Implement: compact modal (max-w-xl), search + sort controls, priority summary bar, scannable task list with priority dots, type badges, owner avatars, hover states, proper contrast",
+    "acceptanceCriteria": [
+      "Modal: max-w-xl, rounded-2xl, not full-screen",
+      "Header: icon + title (e.g. Review) + count + close button",
+      "Search bar with icon + sort dropdown (Priority/Type/Name)",
+      "Priority summary bar showing count per priority (P0/P1/P2/P3) with colored dots",
+      "Task list: priority dot (2px, colored) + type badge + ID + title + owner avatar/unassigned dot",
+      "Hover state: bg-slate-800/50, selected state: bg-blue-600/10 with left border",
+      "Owner: avatar with initials OR dashed circle with dot for unassigned",
+      "Priority dots: P0=red, P1=orange, P2=yellow, P3=slate",
+      "Type badges with colors (UI=sky, QA=emerald, Backend=purple, etc)",
+      "Footer: task count + Close button",
+      "Backdrop: bg-black/60 backdrop-blur-sm",
+      "Scrollable list with thin scrollbar",
+      "Reference: /home/openclaw/.openclaw/media/inbound/file_106 for exact styling",
+      "High contrast text (text-slate-200) on dark backgrounds",
+      "Test with existing task data, verify readability",
+      "Take screenshot showing new list modal"
+    ],
+    "createdAt": "2026-02-14T08:00:30.147Z",
+    "updatedAt": "2026-02-14T08:25:19.871Z",
+    "statusHistory": [
+      {
+        "at": "2026-02-14T08:25:19.871Z",
+        "from": "development",
+        "to": "blocked",
+        "note": "updated"
+      },
+      {
+        "at": "2026-02-14T08:25:18.760Z",
+        "from": "queued",
+        "to": "development",
+        "note": "updated"
+      },
+      {
+        "at": "2026-02-14T08:00:30.147Z",
+        "to": "queued",
+        "note": "created"
+      }
+    ]
+  },
+  {
+    "id": "task-ccb64a8dbb329-1771056013768",
+    "title": "Implement redesigned TaskModal component following UI/UX guide",
+    "lane": "development",
+    "priority": "P0",
+    "owner": "dev-2",
+    "problem": "Current TaskModal has poor UX: all-caps section headers (BASIC INFORMATION, DETAILS, METADATA), cramped spacing, no visual hierarchy, metadata too prominent, no tabs for organization",
+    "scope": "Replace src/components/TaskModal.tsx with redesigned version following UI/UX guide. Use shadcn Dialog, Tabs, Badge components. Implement: header with badge+inline-editable title, Details+History tabs, grid layout for fields, subtle dividers, de-emphasized metadata, proper spacing (space-y-5), footer with actions",
+    "acceptanceCriteria": [
+      "Header: type badge (Epic/Task) + ID + inline-editable title + close button",
+      "Tabs: Details and History (like the example component)",
+      "Details tab: grid layout for Status/Priority/Owner fields",
+      "Problem, Scope, Acceptance Criteria fields with proper labels",
+      "Subtle border-t dividers between sections (not bold headers)",
+      "Metadata (created/updated/history count) at bottom as de-emphasized text",
+      "Footer: Copy JSON button (left) + Cancel + Save Changes (right)",
+      "Backdrop: bg-black/60 backdrop-blur-sm with fadeIn animation",
+      "Modal: slideUp animation on open",
+      "Reference: /home/openclaw/.openclaw/media/inbound/file_105 for exact styling",
+      "Test by opening existing tasks in Mission Control",
+      "Take screenshot showing new modal design"
+    ],
+    "createdAt": "2026-02-14T08:00:13.768Z",
+    "updatedAt": "2026-02-14T08:26:48.867Z",
+    "statusHistory": [
+      {
+        "at": "2026-02-14T08:26:48.867Z",
+        "from": "queued",
+        "to": "development",
+        "note": "updated"
+      },
+      {
+        "at": "2026-02-14T08:00:13.768Z",
+        "to": "queued",
+        "note": "created"
+      }
+    ]
+  },
+  {
+    "id": "task-4aca4c222ce62-1771055667969",
+    "title": "Document agent workflow and task system integration for fresh installs",
+    "lane": "review",
+    "priority": "P1",
+    "owner": "architect",
+    "problem": "No clear documentation on how task creation, assignment, and agent pickup works. New OpenClaw instances wont know how to set this up.",
+    "scope": "Create comprehensive guide covering: task creation via API, owner assignment, agent query params, heartbeat system, and end-to-end workflow",
+    "acceptanceCriteria": [
+      "New doc: docs/TASK_WORKFLOW.md covering complete lifecycle",
+      "Explain task schema (id, title, lane, priority, owner, problem, scope, acceptanceCriteria)",
+      "Explain lane values (queued → development → review → done, blocked)",
+      "Explain owner field maps to agent IDs (pm, dev-1, dev-2, qa, architect)",
+      "Document task creation via POST /api/tasks with examples",
+      "Document how agents query: GET /api/tasks?lane=queued&owner={agentId}",
+      "Document heartbeat interval (30s) and task pickup flow",
+      "Add troubleshooting section (agents not picking up tasks, heartbeat stopped, etc)",
+      "Link from main README.md"
+    ],
+    "createdAt": "2026-02-14T07:54:27.969Z",
+    "updatedAt": "2026-02-14T09:19:11.155Z",
+    "statusHistory": [
+      {
+        "at": "2026-02-14T09:19:11.155Z",
+        "from": "queued",
+        "to": "review",
+        "note": "updated"
+      },
+      {
+        "at": "2026-02-14T07:54:27.969Z",
+        "to": "queued",
+        "note": "created"
+      }
+    ]
+  },
+  {
+    "id": "task-8843a6c91b716-1771055658360",
+    "title": "Update agent heartbeat script to use correct task query params",
+    "lane": "queued",
+    "priority": "P0",
+    "owner": "dev-2",
+    "problem": "Agent heartbeat script queries GET /api/tasks?status=assigned&assignee={id} but tasks use lane (not status) and owner (not assignee)",
+    "scope": "Update scripts/agent-heartbeat.mjs checkForTasks() function to query lane=queued&owner={agent.id}",
+    "acceptanceCriteria": [
+      "Change query from ?status=assigned&assignee={id} to ?lane=queued&owner={id}",
+      "Restart agents after fix",
+      "Verify agents now pick up queued tasks assigned to them",
+      "Test with a manual task assigned to each agent type (pm, dev-1, dev-2, qa, architect)",
+      "Agents should claim tasks within 30 seconds of creation",
+      "Update AGENT_SETUP.md with correct query pattern for documentation"
+    ],
+    "createdAt": "2026-02-14T07:54:18.360Z",
+    "updatedAt": "2026-02-14T07:54:18.360Z",
+    "statusHistory": [
+      {
+        "at": "2026-02-14T07:54:18.360Z",
+        "to": "queued",
+        "note": "created"
+      }
+    ]
+  },
+  {
+    "id": "task-d39fb430d2641-1771055650817",
+    "title": "Add query parameter filtering to GET /api/tasks endpoint",
+    "lane": "done",
+    "priority": "P0",
+    "owner": "dev-1",
+    "problem": "Agent heartbeat script cant filter tasks because GET /api/tasks doesnt parse query parameters (status, assignee, lane, owner). Returns all tasks regardless of filters.",
+    "scope": "Update bridge/server.mjs GET /api/tasks to support filtering by lane and owner query params",
+    "acceptanceCriteria": [
+      "GET /api/tasks?lane=queued returns only tasks with lane=queued",
+      "GET /api/tasks?owner=dev-2 returns only tasks with owner=dev-2",
+      "GET /api/tasks?lane=queued&owner=qa returns queued tasks owned by qa",
+      "No params returns all tasks (backward compatible)",
+      "Test with curl to verify filtering works",
+      "Agents can now query their assigned tasks correctly"
+    ],
+    "createdAt": "2026-02-14T07:54:10.817Z",
+    "updatedAt": "2026-02-14T09:17:58.374Z",
+    "statusHistory": [
+      {
+        "at": "2026-02-14T09:17:58.374Z",
+        "from": "queued",
+        "to": "done",
+        "note": "updated"
+      },
+      {
+        "at": "2026-02-14T07:54:10.817Z",
+        "to": "queued",
+        "note": "created"
+      }
+    ]
+  },
+  {
+    "id": "task-3f51dc1ffb461-1771055568869",
+    "title": "Redesign Mission Control task board for better UX (wider columns, scannable info)",
+    "lane": "queued",
+    "priority": "P0",
+    "owner": "dev-2",
+    "problem": "Task board is cramped and information-poor compared to modern task UIs like Linear/Asana. All titles truncated, no useful metadata visible, \"Unassigned\" repeated everywhere as noise.",
+    "scope": "Refactor MissionControl Kanban layout: wider columns (3 max visible, horizontal scroll), richer task cards (assignee avatars, due dates if available, subtask progress), remove \"Unassigned\" clutter, better priority badges, fix agent status colors (dont show red for normal offline state)",
+    "acceptanceCriteria": [
+      "Kanban shows max 3 columns in viewport, horizontal scroll for more",
+      "Each column min 280px wide (like Linear)",
+      "Task cards show: title (no truncation), priority (clear visual), assignee with avatar if assigned, due date if set",
+      "Remove \"Unassigned\" text - just show no avatar if unassigned",
+      "Priority badges more scannable (P0 red, P1 orange, P2 blue with better contrast)",
+      "Agent tiles: offline should be gray/neutral, not red (red only for errors)",
+      "Take screenshot after changes and verify it looks professional",
+      "Compare side-by-side with Linear.app for reference"
+    ],
+    "createdAt": "2026-02-14T07:52:48.869Z",
+    "updatedAt": "2026-02-14T07:52:48.869Z",
+    "statusHistory": [
+      {
+        "at": "2026-02-14T07:52:48.869Z",
+        "to": "queued",
+        "note": "created"
+      }
+    ]
+  },
+  {
     "id": "task-f4a73fd134c82-1771054452804",
     "title": "Document QA verification standards based on overflow fix lesson",
     "lane": "queued",
@@ -56,231 +360,6 @@
     ]
   },
   {
-    "id": "task-27a231773fa02-1771040618474",
-    "title": "Load Test Task 15",
-    "lane": "queued",
-    "priority": "P2",
-    "createdAt": "2026-02-14T03:43:38.474Z",
-    "updatedAt": "2026-02-14T03:43:38.474Z",
-    "statusHistory": [
-      {
-        "at": "2026-02-14T03:43:38.474Z",
-        "to": "queued",
-        "note": "created"
-      }
-    ]
-  },
-  {
-    "id": "task-cf0d72a9eb8a8-1771040618474",
-    "title": "Load Test Task 14",
-    "lane": "queued",
-    "priority": "P2",
-    "createdAt": "2026-02-14T03:43:38.474Z",
-    "updatedAt": "2026-02-14T03:43:38.474Z",
-    "statusHistory": [
-      {
-        "at": "2026-02-14T03:43:38.474Z",
-        "to": "queued",
-        "note": "created"
-      }
-    ]
-  },
-  {
-    "id": "task-5330dde420c67-1771040618474",
-    "title": "Load Test Task 13",
-    "lane": "queued",
-    "priority": "P2",
-    "createdAt": "2026-02-14T03:43:38.474Z",
-    "updatedAt": "2026-02-14T03:43:38.474Z",
-    "statusHistory": [
-      {
-        "at": "2026-02-14T03:43:38.474Z",
-        "to": "queued",
-        "note": "created"
-      }
-    ]
-  },
-  {
-    "id": "task-c8c827e44d0ff-1771040618473",
-    "title": "Load Test Task 12",
-    "lane": "queued",
-    "priority": "P2",
-    "createdAt": "2026-02-14T03:43:38.473Z",
-    "updatedAt": "2026-02-14T03:43:38.473Z",
-    "statusHistory": [
-      {
-        "at": "2026-02-14T03:43:38.473Z",
-        "to": "queued",
-        "note": "created"
-      }
-    ]
-  },
-  {
-    "id": "task-69e8c99fc32c8-1771040618473",
-    "title": "Load Test Task 11",
-    "lane": "queued",
-    "priority": "P2",
-    "createdAt": "2026-02-14T03:43:38.473Z",
-    "updatedAt": "2026-02-14T03:43:38.473Z",
-    "statusHistory": [
-      {
-        "at": "2026-02-14T03:43:38.473Z",
-        "to": "queued",
-        "note": "created"
-      }
-    ]
-  },
-  {
-    "id": "task-530674e8709c5-1771040618473",
-    "title": "Load Test Task 10",
-    "lane": "queued",
-    "priority": "P2",
-    "createdAt": "2026-02-14T03:43:38.473Z",
-    "updatedAt": "2026-02-14T03:43:38.473Z",
-    "statusHistory": [
-      {
-        "at": "2026-02-14T03:43:38.473Z",
-        "to": "queued",
-        "note": "created"
-      }
-    ]
-  },
-  {
-    "id": "task-f50f782092c1a-1771040618472",
-    "title": "Load Test Task 9",
-    "lane": "queued",
-    "priority": "P2",
-    "createdAt": "2026-02-14T03:43:38.472Z",
-    "updatedAt": "2026-02-14T03:43:38.472Z",
-    "statusHistory": [
-      {
-        "at": "2026-02-14T03:43:38.472Z",
-        "to": "queued",
-        "note": "created"
-      }
-    ]
-  },
-  {
-    "id": "task-d2315146bce1c-1771040618472",
-    "title": "Load Test Task 8",
-    "lane": "queued",
-    "priority": "P2",
-    "createdAt": "2026-02-14T03:43:38.472Z",
-    "updatedAt": "2026-02-14T03:43:38.472Z",
-    "statusHistory": [
-      {
-        "at": "2026-02-14T03:43:38.472Z",
-        "to": "queued",
-        "note": "created"
-      }
-    ]
-  },
-  {
-    "id": "task-37773b24e40ed-1771040618471",
-    "title": "Load Test Task 7",
-    "lane": "queued",
-    "priority": "P2",
-    "createdAt": "2026-02-14T03:43:38.471Z",
-    "updatedAt": "2026-02-14T03:43:38.471Z",
-    "statusHistory": [
-      {
-        "at": "2026-02-14T03:43:38.471Z",
-        "to": "queued",
-        "note": "created"
-      }
-    ]
-  },
-  {
-    "id": "task-461822396af23-1771040618471",
-    "title": "Load Test Task 6",
-    "lane": "queued",
-    "priority": "P2",
-    "createdAt": "2026-02-14T03:43:38.471Z",
-    "updatedAt": "2026-02-14T03:43:38.471Z",
-    "statusHistory": [
-      {
-        "at": "2026-02-14T03:43:38.471Z",
-        "to": "queued",
-        "note": "created"
-      }
-    ]
-  },
-  {
-    "id": "task-e31d4ce444537-1771040618470",
-    "title": "Load Test Task 5",
-    "lane": "queued",
-    "priority": "P2",
-    "createdAt": "2026-02-14T03:43:38.470Z",
-    "updatedAt": "2026-02-14T03:43:38.470Z",
-    "statusHistory": [
-      {
-        "at": "2026-02-14T03:43:38.470Z",
-        "to": "queued",
-        "note": "created"
-      }
-    ]
-  },
-  {
-    "id": "task-b9b03aac8d612-1771040618470",
-    "title": "Load Test Task 4",
-    "lane": "queued",
-    "priority": "P2",
-    "createdAt": "2026-02-14T03:43:38.470Z",
-    "updatedAt": "2026-02-14T03:43:38.470Z",
-    "statusHistory": [
-      {
-        "at": "2026-02-14T03:43:38.470Z",
-        "to": "queued",
-        "note": "created"
-      }
-    ]
-  },
-  {
-    "id": "task-288f174682911-1771040618470",
-    "title": "Load Test Task 3",
-    "lane": "queued",
-    "priority": "P2",
-    "createdAt": "2026-02-14T03:43:38.470Z",
-    "updatedAt": "2026-02-14T03:43:38.470Z",
-    "statusHistory": [
-      {
-        "at": "2026-02-14T03:43:38.470Z",
-        "to": "queued",
-        "note": "created"
-      }
-    ]
-  },
-  {
-    "id": "task-c779ea8f4129b-1771040618469",
-    "title": "Load Test Task 2",
-    "lane": "queued",
-    "priority": "P2",
-    "createdAt": "2026-02-14T03:43:38.469Z",
-    "updatedAt": "2026-02-14T03:43:38.469Z",
-    "statusHistory": [
-      {
-        "at": "2026-02-14T03:43:38.469Z",
-        "to": "queued",
-        "note": "created"
-      }
-    ]
-  },
-  {
-    "id": "task-4cb7f0954a247-1771040618469",
-    "title": "Load Test Task 1",
-    "lane": "queued",
-    "priority": "P2",
-    "createdAt": "2026-02-14T03:43:38.469Z",
-    "updatedAt": "2026-02-14T03:43:38.469Z",
-    "statusHistory": [
-      {
-        "at": "2026-02-14T03:43:38.469Z",
-        "to": "queued",
-        "note": "created"
-      }
-    ]
-  },
-  {
     "id": "task-cc6eceba41d9a-1771040618467",
     "title": "Recurring Task",
     "lane": "queued",
@@ -290,21 +369,6 @@
     "statusHistory": [
       {
         "at": "2026-02-14T03:43:38.467Z",
-        "to": "queued",
-        "note": "created"
-      }
-    ]
-  },
-  {
-    "id": "task-ca7c2f2f8d19a-1771040618465",
-    "title": "Workflow Test Task",
-    "lane": "queued",
-    "priority": "P2",
-    "createdAt": "2026-02-14T03:43:38.465Z",
-    "updatedAt": "2026-02-14T03:43:38.468Z",
-    "statusHistory": [
-      {
-        "at": "2026-02-14T03:43:38.465Z",
         "to": "queued",
         "note": "created"
       }
@@ -536,21 +600,6 @@
     ]
   },
   {
-    "id": "task-2a49a0a6e7f2b-1771026041590",
-    "title": "Legacy task example",
-    "lane": "queued",
-    "priority": "P2",
-    "createdAt": "2026-02-13T23:40:41.590Z",
-    "updatedAt": "2026-02-13T23:40:41.590Z",
-    "statusHistory": [
-      {
-        "at": "2026-02-13T23:40:41.590Z",
-        "to": "queued",
-        "note": "created"
-      }
-    ]
-  },
-  {
     "id": "task-c6c0eb83860da-1771025965114",
     "title": "Legacy task",
     "lane": "queued",
@@ -575,52 +624,6 @@
     "statusHistory": [
       {
         "at": "2026-02-13T23:38:46.823Z",
-        "to": "queued",
-        "note": "created"
-      }
-    ]
-  },
-  {
-    "id": "task-ebf3db19894f3-1770878021847",
-    "title": "QA: Test import flow end-to-end",
-    "lane": "done",
-    "priority": "P0",
-    "owner": "qa",
-    "problem": "Verify complete import feature works with real projects",
-    "scope": "Test GitHub import, file upload, AI analysis quality, error handling",
-    "acceptanceCriteria": [
-      "Test with real public GitHub repo (e.g., simple React app)",
-      "Verify features extracted make sense",
-      "Test with uploaded .zip file",
-      "Test error cases (invalid URL, private repo, non-project files)",
-      "Verify recommendations are relevant",
-      "Check performance (< 30s for small projects)",
-      "Document test results and any issues"
-    ],
-    "parentId": "epic-import-project-1770877949",
-    "createdAt": "2026-02-12T06:33:41.847Z",
-    "updatedAt": "2026-02-12T07:02:52.692Z",
-    "statusHistory": [
-      {
-        "at": "2026-02-12T07:02:52.692Z",
-        "from": "review",
-        "to": "done",
-        "note": "updated"
-      },
-      {
-        "at": "2026-02-12T06:34:27.580Z",
-        "from": "development",
-        "to": "review",
-        "note": "updated"
-      },
-      {
-        "at": "2026-02-12T06:33:53.671Z",
-        "from": "queued",
-        "to": "development",
-        "note": "updated"
-      },
-      {
-        "at": "2026-02-12T06:33:41.847Z",
         "to": "queued",
         "note": "created"
       }
@@ -855,51 +858,6 @@
     ]
   },
   {
-    "id": "task-f791e316cdb51-1770878021842",
-    "title": "Backend: Implement file upload and extraction",
-    "lane": "done",
-    "priority": "P0",
-    "owner": "dev-2",
-    "problem": "Need to handle uploaded files/folders from browser",
-    "scope": "Add file upload endpoint, extract to temp directory, validate structure",
-    "acceptanceCriteria": [
-      "Accept multipart/form-data file upload",
-      "Support .zip extraction",
-      "Support folder structure from FormData",
-      "Validate its a project (has package.json, README, or code)",
-      "Max size limits (100MB?)",
-      "Clean up temp files after analysis"
-    ],
-    "parentId": "epic-import-project-1770877949",
-    "createdAt": "2026-02-12T06:33:41.842Z",
-    "updatedAt": "2026-02-12T07:02:52.672Z",
-    "statusHistory": [
-      {
-        "at": "2026-02-12T07:02:52.672Z",
-        "from": "review",
-        "to": "done",
-        "note": "updated"
-      },
-      {
-        "at": "2026-02-12T06:36:27.018Z",
-        "from": "development",
-        "to": "review",
-        "note": "updated"
-      },
-      {
-        "at": "2026-02-12T06:35:53.182Z",
-        "from": "queued",
-        "to": "development",
-        "note": "updated"
-      },
-      {
-        "at": "2026-02-12T06:33:41.842Z",
-        "to": "queued",
-        "note": "created"
-      }
-    ]
-  },
-  {
     "id": "task-90d9a5dc90bd1-1770878021841",
     "title": "Backend: Implement GitHub clone handler",
     "lane": "done",
@@ -1023,22 +981,6 @@
     ]
   },
   {
-    "id": "task-714a07cf5477-1770874651713",
-    "title": "Test Subtask with Parent",
-    "lane": "queued",
-    "priority": "P1",
-    "parentId": "epic-test-001",
-    "createdAt": "2026-02-12T05:37:31.713Z",
-    "updatedAt": "2026-02-12T05:37:31.713Z",
-    "statusHistory": [
-      {
-        "at": "2026-02-12T05:37:31.713Z",
-        "to": "queued",
-        "note": "created"
-      }
-    ]
-  },
-  {
     "id": "task-57d89fadb466b-1770874578510",
     "title": "Subtask 5: Auth Implementation",
     "lane": "queued",
@@ -1124,52 +1066,6 @@
       {
         "at": "2026-02-12T05:36:14.216Z",
         "to": "development",
-        "note": "created"
-      }
-    ]
-  },
-  {
-    "id": "task-af8d0dcd01836-1770873563500",
-    "title": "QA: Test conversational questioning flow end-to-end",
-    "lane": "done",
-    "priority": "P0",
-    "owner": "qa",
-    "problem": "Verify conversational questioning works as designed",
-    "scope": "Test full flow with real project ideas",
-    "acceptanceCriteria": [
-      "Questions adapt based on previous answers (no repetition)",
-      "Skip button works correctly",
-      "What do you think? provides relevant suggestions",
-      "Progress indicator accurate",
-      "Conversation completes after 5-8 strategic questions",
-      "State saved for later continuation",
-      "Test with 3+ different project types (software, ops, hybrid)",
-      "Document example conversation flows"
-    ],
-    "createdAt": "2026-02-12T05:19:23.500Z",
-    "updatedAt": "2026-02-12T05:47:33.011Z",
-    "statusHistory": [
-      {
-        "at": "2026-02-12T05:47:33.011Z",
-        "from": "review",
-        "to": "done",
-        "note": "updated"
-      },
-      {
-        "at": "2026-02-12T05:25:55.568Z",
-        "from": "development",
-        "to": "review",
-        "note": "updated"
-      },
-      {
-        "at": "2026-02-12T05:25:21.740Z",
-        "from": "queued",
-        "to": "development",
-        "note": "updated"
-      },
-      {
-        "at": "2026-02-12T05:19:23.500Z",
-        "to": "queued",
         "note": "created"
       }
     ]
@@ -1429,44 +1325,6 @@
     ]
   },
   {
-    "id": "task-f78610d20e27e-1770873478607",
-    "title": "QA: Test epic subtask viewing flow end-to-end",
-    "lane": "review",
-    "priority": "P1",
-    "owner": "qa",
-    "problem": "Need to verify epic subtask feature works correctly",
-    "scope": "Test all epic subtask interactions across views",
-    "acceptanceCriteria": [
-      "Badge shows correct count for epics with subtasks",
-      "Clicking epic opens drawer with subtask list",
-      "Subtasks display correct status/owner/priority",
-      "Clicking subtask navigates to detail view",
-      "No badge shown for non-epic or childless tasks",
-      "Works in Mission Control and Projects views"
-    ],
-    "createdAt": "2026-02-12T05:17:58.607Z",
-    "updatedAt": "2026-02-12T05:31:56.372Z",
-    "statusHistory": [
-      {
-        "at": "2026-02-12T05:26:55.615Z",
-        "from": "development",
-        "to": "review",
-        "note": "updated"
-      },
-      {
-        "at": "2026-02-12T05:26:21.743Z",
-        "from": "queued",
-        "to": "development",
-        "note": "updated"
-      },
-      {
-        "at": "2026-02-12T05:17:58.607Z",
-        "to": "queued",
-        "note": "created"
-      }
-    ]
-  },
-  {
     "id": "task-015f579efe858-1770873469181",
     "title": "UI: Create epic subtask drawer/modal component",
     "lane": "review",
@@ -1603,84 +1461,6 @@
       },
       {
         "at": "2026-02-12T05:17:35.691Z",
-        "to": "queued",
-        "note": "created"
-      }
-    ]
-  },
-  {
-    "id": "task-04a0247604ee1-1770869584637",
-    "title": "QA: Test AI-powered requirements gathering flow end-to-end",
-    "lane": "review",
-    "priority": "P0",
-    "owner": "qa",
-    "problem": "Verify complete product owner flow works with real OpenClaw integration",
-    "scope": "Test project creation, AI question generation, answering, feature-level questions",
-    "acceptanceCriteria": [
-      "Create project with real idea",
-      "AI generates relevant 8-10 questions (not hardcoded)",
-      "Questions make sense for the idea provided",
-      "Answer questions and proceed",
-      "Feature-level questions generate correctly",
-      "No errors, timeouts handled gracefully",
-      "Document any issues found",
-      "Performance acceptable (< 15s for generation)"
-    ],
-    "createdAt": "2026-02-12T04:13:04.637Z",
-    "updatedAt": "2026-02-12T04:14:04.683Z",
-    "statusHistory": [
-      {
-        "at": "2026-02-12T04:14:04.683Z",
-        "from": "development",
-        "to": "review",
-        "note": "updated"
-      },
-      {
-        "at": "2026-02-12T04:13:30.833Z",
-        "from": "queued",
-        "to": "development",
-        "note": "updated"
-      },
-      {
-        "at": "2026-02-12T04:13:04.637Z",
-        "to": "queued",
-        "note": "created"
-      }
-    ]
-  },
-  {
-    "id": "task-738f5dc50f025-1770869572633",
-    "title": "UI: Add loading states for AI question generation",
-    "lane": "review",
-    "priority": "P1",
-    "owner": "dev-1",
-    "problem": "AI generation takes 5-15 seconds, need loading UX while waiting",
-    "scope": "Update Projects.tsx to show loading spinners, progress, disable Analyze button during generation",
-    "acceptanceCriteria": [
-      "Loading spinner shown when Analyze clicked",
-      "Disable Analyze button during generation",
-      "Show progress message (Analyzing your idea...)",
-      "Handle errors gracefully (show error message)",
-      "Questions appear when generation completes",
-      "Same for feature-level generation"
-    ],
-    "createdAt": "2026-02-12T04:12:52.633Z",
-    "updatedAt": "2026-02-12T04:14:33.626Z",
-    "statusHistory": [
-      {
-        "at": "2026-02-12T04:14:33.626Z",
-        "from": "development",
-        "to": "review",
-        "note": "updated"
-      },
-      {
-        "at": "2026-02-12T04:13:59.840Z",
-        "from": "queued",
-        "to": "development",
-        "note": "updated"
-      },
-      {
-        "at": "2026-02-12T04:12:52.633Z",
         "to": "queued",
         "note": "created"
       }
@@ -1868,246 +1648,6 @@
     ]
   },
   {
-    "id": "task-f97cde47dc30b-1770868079301",
-    "title": "Test: Verify worker is real - create verification file",
-    "lane": "review",
-    "priority": "P0",
-    "owner": "dev-1",
-    "problem": "Need to prove workers are functional, not fake",
-    "scope": "Create a file at /tmp/worker-proof-$(date +%s).txt with worker identity and timestamp",
-    "acceptanceCriteria": [
-      "File created with worker slot name",
-      "Timestamp included",
-      "Task completes successfully"
-    ],
-    "createdAt": "2026-02-12T03:47:59.301Z",
-    "updatedAt": "2026-02-12T03:49:02.868Z",
-    "statusHistory": [
-      {
-        "at": "2026-02-12T03:49:02.868Z",
-        "from": "development",
-        "to": "review",
-        "note": "updated"
-      },
-      {
-        "at": "2026-02-12T03:48:29.117Z",
-        "from": "queued",
-        "to": "development",
-        "note": "updated"
-      },
-      {
-        "at": "2026-02-12T03:47:59.301Z",
-        "to": "queued",
-        "note": "created"
-      }
-    ]
-  },
-  {
-    "id": "task-cb1cd5ebf7765-1770867401754",
-    "title": "FINAL TEST: Deadlock fix complete verification",
-    "lane": "review",
-    "priority": "P0",
-    "owner": "pm",
-    "problem": "Verify complete fix with proper task update",
-    "scope": "Create /tmp/final-test-$(date +%s).txt with content \"Deadlock fixed! No more hangs.\" and report completion",
-    "acceptanceCriteria": [
-      "File created",
-      "Task moves to review",
-      "No hanging"
-    ],
-    "createdAt": "2026-02-12T03:36:41.754Z",
-    "updatedAt": "2026-02-12T03:37:45.256Z",
-    "statusHistory": [
-      {
-        "at": "2026-02-12T03:37:23.950Z",
-        "from": "development",
-        "to": "review",
-        "note": "updated"
-      },
-      {
-        "at": "2026-02-12T03:36:50.209Z",
-        "from": "queued",
-        "to": "development",
-        "note": "updated"
-      },
-      {
-        "at": "2026-02-12T03:36:41.754Z",
-        "to": "queued",
-        "note": "created"
-      }
-    ]
-  },
-  {
-    "id": "task-118e7e8a10feb-1770867302738",
-    "title": "E2E Test: qa concurrent test",
-    "lane": "review",
-    "priority": "P1",
-    "owner": "qa",
-    "problem": "Test qa can handle tasks concurrently",
-    "scope": "Echo \"qa test complete\" and create /tmp/qa-test-$(date +%s).txt",
-    "acceptanceCriteria": [
-      "File created",
-      "Completes without hanging"
-    ],
-    "createdAt": "2026-02-12T03:35:02.738Z",
-    "updatedAt": "2026-02-12T03:36:10.157Z",
-    "statusHistory": [
-      {
-        "at": "2026-02-12T03:36:10.157Z",
-        "from": "development",
-        "to": "review",
-        "note": "updated"
-      },
-      {
-        "at": "2026-02-12T03:35:06.773Z",
-        "from": "queued",
-        "to": "development",
-        "note": "updated"
-      },
-      {
-        "at": "2026-02-12T03:35:02.738Z",
-        "to": "queued",
-        "note": "created"
-      }
-    ]
-  },
-  {
-    "id": "task-2f690f396f751-1770867302224",
-    "title": "E2E Test: dev-2 concurrent test",
-    "lane": "review",
-    "priority": "P1",
-    "owner": "dev-2",
-    "problem": "Test dev-2 can handle tasks concurrently",
-    "scope": "Echo \"dev-2 test complete\" and create /tmp/dev-2-test-$(date +%s).txt",
-    "acceptanceCriteria": [
-      "File created",
-      "Completes without hanging"
-    ],
-    "createdAt": "2026-02-12T03:35:02.224Z",
-    "updatedAt": "2026-02-12T03:35:50.991Z",
-    "statusHistory": [
-      {
-        "at": "2026-02-12T03:35:50.991Z",
-        "from": "development",
-        "to": "review",
-        "note": "updated"
-      },
-      {
-        "at": "2026-02-12T03:35:06.275Z",
-        "from": "queued",
-        "to": "development",
-        "note": "updated"
-      },
-      {
-        "at": "2026-02-12T03:35:02.224Z",
-        "to": "queued",
-        "note": "created"
-      }
-    ]
-  },
-  {
-    "id": "task-7bef24a4f422c-1770867301708",
-    "title": "E2E Test: dev-1 concurrent test",
-    "lane": "review",
-    "priority": "P1",
-    "owner": "dev-1",
-    "problem": "Test dev-1 can handle tasks concurrently",
-    "scope": "Echo \"dev-1 test complete\" and create /tmp/dev-1-test-$(date +%s).txt",
-    "acceptanceCriteria": [
-      "File created",
-      "Completes without hanging"
-    ],
-    "createdAt": "2026-02-12T03:35:01.708Z",
-    "updatedAt": "2026-02-12T03:36:23.225Z",
-    "statusHistory": [
-      {
-        "at": "2026-02-12T03:36:23.225Z",
-        "from": "development",
-        "to": "review",
-        "note": "updated"
-      },
-      {
-        "at": "2026-02-12T03:35:14.935Z",
-        "from": "queued",
-        "to": "development",
-        "note": "updated"
-      },
-      {
-        "at": "2026-02-12T03:35:01.708Z",
-        "to": "queued",
-        "note": "created"
-      }
-    ]
-  },
-  {
-    "id": "task-c831c8e7a8c78-1770867301192",
-    "title": "E2E Test: architect concurrent test",
-    "lane": "review",
-    "priority": "P1",
-    "owner": "architect",
-    "problem": "Test architect can handle tasks concurrently",
-    "scope": "Echo \"architect test complete\" and create /tmp/architect-test-$(date +%s).txt",
-    "acceptanceCriteria": [
-      "File created",
-      "Completes without hanging"
-    ],
-    "createdAt": "2026-02-12T03:35:01.192Z",
-    "updatedAt": "2026-02-12T03:35:26.355Z",
-    "statusHistory": [
-      {
-        "at": "2026-02-12T03:35:26.355Z",
-        "from": "development",
-        "to": "review",
-        "note": "updated"
-      },
-      {
-        "at": "2026-02-12T03:35:05.272Z",
-        "from": "queued",
-        "to": "development",
-        "note": "updated"
-      },
-      {
-        "at": "2026-02-12T03:35:01.192Z",
-        "to": "queued",
-        "note": "created"
-      }
-    ]
-  },
-  {
-    "id": "task-e1a4e9d85bf4c-1770867300677",
-    "title": "E2E Test: pm concurrent test",
-    "lane": "review",
-    "priority": "P1",
-    "owner": "pm",
-    "problem": "Test pm can handle tasks concurrently",
-    "scope": "Echo \"pm test complete\" and create /tmp/pm-test-$(date +%s).txt",
-    "acceptanceCriteria": [
-      "File created",
-      "Completes without hanging"
-    ],
-    "createdAt": "2026-02-12T03:35:00.677Z",
-    "updatedAt": "2026-02-12T03:35:32.724Z",
-    "statusHistory": [
-      {
-        "at": "2026-02-12T03:35:32.724Z",
-        "from": "development",
-        "to": "review",
-        "note": "updated"
-      },
-      {
-        "at": "2026-02-12T03:35:04.770Z",
-        "from": "queued",
-        "to": "development",
-        "note": "updated"
-      },
-      {
-        "at": "2026-02-12T03:35:00.677Z",
-        "to": "queued",
-        "note": "created"
-      }
-    ]
-  },
-  {
     "id": "task-5a411f36af1b1-1770867298196",
     "title": "Fix: Worker heartbeat format mismatch - convert to array",
     "lane": "review",
@@ -2138,40 +1678,6 @@
       },
       {
         "at": "2026-02-12T03:34:58.196Z",
-        "to": "queued",
-        "note": "created"
-      }
-    ]
-  },
-  {
-    "id": "task-57c80a5901f6c-1770867230475",
-    "title": "Test: Deadlock fix verification",
-    "lane": "review",
-    "priority": "P0",
-    "owner": "dev-2",
-    "problem": "Verify that worker can spawn and monitor sessions without hanging",
-    "scope": "Create a simple file /tmp/worker-test-$(date +%s).txt with the text \"Worker test successful\" and report back",
-    "acceptanceCriteria": [
-      "File created",
-      "Task completes in <30 seconds"
-    ],
-    "createdAt": "2026-02-12T03:33:50.475Z",
-    "updatedAt": "2026-02-12T03:34:26.190Z",
-    "statusHistory": [
-      {
-        "at": "2026-02-12T03:34:26.190Z",
-        "from": "development",
-        "to": "review",
-        "note": "updated"
-      },
-      {
-        "at": "2026-02-12T03:33:55.159Z",
-        "from": "queued",
-        "to": "development",
-        "note": "updated"
-      },
-      {
-        "at": "2026-02-12T03:33:50.475Z",
         "to": "queued",
         "note": "created"
       }
@@ -2216,227 +1722,6 @@
       },
       {
         "at": "2026-02-12T03:31:02.838Z",
-        "to": "queued",
-        "note": "created"
-      }
-    ]
-  },
-  {
-    "id": "task-ed9634c73f673-1770866579819",
-    "title": "E2E Test: qa identity verification",
-    "lane": "review",
-    "priority": "P2",
-    "owner": "qa",
-    "problem": "Verify worker service can execute simple tasks",
-    "scope": "Create test file at bridge/docs/e2e-test-qa.txt with your name and timestamp",
-    "acceptanceCriteria": [
-      "File bridge/docs/e2e-test-qa.txt exists",
-      "File contains worker name and timestamp",
-      "Task moves to review on completion"
-    ],
-    "createdAt": "2026-02-12T03:22:59.819Z",
-    "updatedAt": "2026-02-12T03:24:07.174Z",
-    "statusHistory": [
-      {
-        "at": "2026-02-12T03:24:07.174Z",
-        "from": "development",
-        "to": "review",
-        "note": "updated"
-      },
-      {
-        "at": "2026-02-12T03:23:09.042Z",
-        "from": "queued",
-        "to": "development",
-        "note": "updated"
-      },
-      {
-        "at": "2026-02-12T03:22:59.819Z",
-        "to": "queued",
-        "note": "created"
-      }
-    ]
-  },
-  {
-    "id": "task-444901a64b834-1770866579810",
-    "title": "E2E Test: dev-2 identity verification",
-    "lane": "review",
-    "priority": "P2",
-    "owner": "dev-2",
-    "problem": "Verify worker service can execute simple tasks",
-    "scope": "Create test file at bridge/docs/e2e-test-dev-2.txt with your name and timestamp",
-    "acceptanceCriteria": [
-      "File bridge/docs/e2e-test-dev-2.txt exists",
-      "File contains worker name and timestamp",
-      "Task moves to review on completion"
-    ],
-    "createdAt": "2026-02-12T03:22:59.810Z",
-    "updatedAt": "2026-02-12T03:25:34.023Z",
-    "statusHistory": [
-      {
-        "at": "2026-02-12T03:25:34.023Z",
-        "from": "development",
-        "to": "review",
-        "note": "updated"
-      },
-      {
-        "at": "2026-02-12T03:23:08.548Z",
-        "from": "queued",
-        "to": "development",
-        "note": "updated"
-      },
-      {
-        "at": "2026-02-12T03:22:59.810Z",
-        "to": "queued",
-        "note": "created"
-      }
-    ]
-  },
-  {
-    "id": "task-ca40c1ede88b2-1770866579800",
-    "title": "E2E Test: dev-1 identity verification",
-    "lane": "review",
-    "priority": "P2",
-    "owner": "dev-1",
-    "problem": "Verify worker service can execute simple tasks",
-    "scope": "Create test file at bridge/docs/e2e-test-dev-1.txt with your name and timestamp",
-    "acceptanceCriteria": [
-      "File bridge/docs/e2e-test-dev-1.txt exists",
-      "File contains worker name and timestamp",
-      "Task moves to review on completion"
-    ],
-    "createdAt": "2026-02-12T03:22:59.800Z",
-    "updatedAt": "2026-02-12T03:23:40.938Z",
-    "statusHistory": [
-      {
-        "at": "2026-02-12T03:23:40.938Z",
-        "from": "development",
-        "to": "review",
-        "note": "updated"
-      },
-      {
-        "at": "2026-02-12T03:23:08.030Z",
-        "from": "queued",
-        "to": "development",
-        "note": "updated"
-      },
-      {
-        "at": "2026-02-12T03:22:59.800Z",
-        "to": "queued",
-        "note": "created"
-      }
-    ]
-  },
-  {
-    "id": "task-5d2c4a6d373a-1770866579789",
-    "title": "E2E Test: architect identity verification",
-    "lane": "review",
-    "priority": "P2",
-    "owner": "architect",
-    "problem": "Verify worker service can execute simple tasks",
-    "scope": "Create test file at bridge/docs/e2e-test-architect.txt with your name and timestamp",
-    "acceptanceCriteria": [
-      "File bridge/docs/e2e-test-architect.txt exists",
-      "File contains worker name and timestamp",
-      "Task moves to review on completion"
-    ],
-    "createdAt": "2026-02-12T03:22:59.789Z",
-    "updatedAt": "2026-02-12T03:24:18.972Z",
-    "statusHistory": [
-      {
-        "at": "2026-02-12T03:24:18.972Z",
-        "from": "development",
-        "to": "review",
-        "note": "updated"
-      },
-      {
-        "at": "2026-02-12T03:23:07.532Z",
-        "from": "queued",
-        "to": "development",
-        "note": "updated"
-      },
-      {
-        "at": "2026-02-12T03:22:59.789Z",
-        "to": "queued",
-        "note": "created"
-      }
-    ]
-  },
-  {
-    "id": "task-6198d05e8f9ce-1770866579779",
-    "title": "E2E Test: pm identity verification",
-    "lane": "review",
-    "priority": "P2",
-    "owner": "pm",
-    "problem": "Verify worker service can execute simple tasks",
-    "scope": "Create test file at bridge/docs/e2e-test-pm.txt with your name and timestamp",
-    "acceptanceCriteria": [
-      "File bridge/docs/e2e-test-pm.txt exists",
-      "File contains worker name and timestamp",
-      "Task moves to review on completion"
-    ],
-    "createdAt": "2026-02-12T03:22:59.779Z",
-    "updatedAt": "2026-02-12T03:23:36.764Z",
-    "statusHistory": [
-      {
-        "at": "2026-02-12T03:23:36.764Z",
-        "from": "development",
-        "to": "review",
-        "note": "updated"
-      },
-      {
-        "at": "2026-02-12T03:23:07.038Z",
-        "from": "queued",
-        "to": "development",
-        "note": "updated"
-      },
-      {
-        "at": "2026-02-12T03:22:59.779Z",
-        "to": "queued",
-        "note": "created"
-      }
-    ]
-  },
-  {
-    "id": "task-860c1abf99903-1770865625000",
-    "title": "QA: End-to-end test of worker services",
-    "lane": "done",
-    "priority": "P0",
-    "owner": "qa",
-    "problem": "Verify worker services pick up tasks, execute them, and update status correctly",
-    "scope": "Create test tasks, verify workers pick them up, check heartbeats, validate completion",
-    "acceptanceCriteria": [
-      "Create test tasks for each worker type",
-      "Verify workers pick up tasks within 30s",
-      "Heartbeats show working status + task title",
-      "Sessions spawn and complete successfully",
-      "Task status updates to review on completion",
-      "Workers return to idle after completion",
-      "No crashed workers, clean logs",
-      "Document test results"
-    ],
-    "createdAt": "2026-02-12T03:07:05.000Z",
-    "updatedAt": "2026-02-12T03:28:44.471Z",
-    "statusHistory": [
-      {
-        "at": "2026-02-12T03:28:44.471Z",
-        "from": "review",
-        "to": "done",
-        "note": "updated"
-      },
-      {
-        "at": "2026-02-12T03:27:44.860Z",
-        "from": "development",
-        "to": "review",
-        "note": "updated"
-      },
-      {
-        "at": "2026-02-12T03:20:19.041Z",
-        "from": "queued",
-        "to": "development",
-        "note": "updated"
-      },
-      {
-        "at": "2026-02-12T03:07:05.000Z",
         "to": "queued",
         "note": "created"
       }
@@ -3168,24 +2453,6 @@
     "statusHistory": [
       {
         "at": "2026-02-11T09:05:27.692Z",
-        "to": "review",
-        "note": "created"
-      }
-    ]
-  },
-  {
-    "id": "task-b838e01a5ee04-1770798803803",
-    "title": "QA: E2E test script for PM Projects API",
-    "lane": "review",
-    "priority": "P1",
-    "owner": "qa",
-    "problem": "Need automated tests for Projects API",
-    "scope": "12 tests covering CRUD, tree, cards, intake, export",
-    "createdAt": "2026-02-11T08:33:23.803Z",
-    "updatedAt": "2026-02-11T08:33:23.803Z",
-    "statusHistory": [
-      {
-        "at": "2026-02-11T08:33:23.803Z",
         "to": "review",
         "note": "created"
       }

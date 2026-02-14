@@ -240,6 +240,7 @@ function fmtDuration(ms) {
 function getTaskTitle(task) {
   if (typeof task === 'string') return task.trim()
   if (task === undefined || task === null) return ''
+  if (typeof task === 'object' && task.title) return String(task.title).trim()
   return String(task).trim()
 }
 
@@ -552,11 +553,14 @@ app.get('/api/live', async (_req, res) => {
   const agents = await agentsStore.getAll()
   const workers = agents.map(agent => {
     const lastBeatIso = agent.lastHeartbeat ? new Date(agent.lastHeartbeat).toISOString() : undefined
+    const taskTitle = agent.currentTask && typeof agent.currentTask === 'object' 
+      ? agent.currentTask.title 
+      : agent.currentTask
     return {
       slot: agent.id,
       label: agent.name,
       status: agent.status === 'online' ? 'active' : agent.status === 'busy' ? 'active' : 'offline',
-      task: agent.currentTask || undefined,
+      task: taskTitle || undefined,
       lastBeatAt: lastBeatIso,
       beats: lastBeatIso ? [{ at: lastBeatIso }] : []
     }
@@ -832,8 +836,30 @@ app.post('/api/rules/:id/toggle', async (req, res) => {
 })
 
 // ---- Tasks (operator board seed) ----
-app.get('/api/tasks', async (_req, res) => {
-  const sorted = tasks.slice().sort((a, b) => (b.updatedAt ?? '').localeCompare(a.updatedAt ?? ''))
+app.get('/api/tasks', async (req, res) => {
+  let filtered = tasks.slice()
+  
+  // Filter by lane if provided
+  if (req.query.lane) {
+    filtered = filtered.filter(t => t.lane === req.query.lane)
+  }
+  
+  // Filter by owner if provided
+  if (req.query.owner) {
+    filtered = filtered.filter(t => t.owner === req.query.owner)
+  }
+  
+  // Filter by status (legacy support - map to lane)
+  if (req.query.status) {
+    filtered = filtered.filter(t => t.lane === req.query.status)
+  }
+  
+  // Filter by assignee (legacy support - map to owner)
+  if (req.query.assignee) {
+    filtered = filtered.filter(t => t.owner === req.query.assignee)
+  }
+  
+  const sorted = filtered.sort((a, b) => (b.updatedAt ?? '').localeCompare(a.updatedAt ?? ''))
   res.json(sorted)
 })
 
@@ -1433,6 +1459,12 @@ app.post('/api/agents/register', async (req, res) => {
     const id = typeof body.id === 'string' ? body.id.trim() : ''
     if (!id) return res.status(400).send('id required')
 
+    // Normalize currentTask: extract title if object, otherwise use as-is
+    let currentTask = body.currentTask || null
+    if (currentTask && typeof currentTask === 'object' && currentTask.title) {
+      currentTask = currentTask.title
+    }
+
     const agent = await agentsStore.upsert({
       id,
       name: body.name || id,
@@ -1443,7 +1475,7 @@ app.post('/api/agents/register', async (req, res) => {
       status: body.status || 'offline',
       instanceId: body.instanceId || '',
       tailscaleIP: body.tailscaleIP || '',
-      currentTask: body.currentTask || null,
+      currentTask,
       activeTasks: Array.isArray(body.activeTasks) ? body.activeTasks : [],
       metadata: body.metadata || {}
     })
@@ -1510,7 +1542,11 @@ app.put('/api/agents/:id/status', async (req, res) => {
   try {
     const body = req.body ?? {}
     const status = typeof body.status === 'string' ? body.status : 'offline'
-    const currentTask = body.currentTask || null
+    // Normalize currentTask: extract title if object, otherwise use as-is
+    let currentTask = body.currentTask || null
+    if (currentTask && typeof currentTask === 'object' && currentTask.title) {
+      currentTask = currentTask.title
+    }
 
     const agent = await agentsStore.updateStatus(req.params.id, status, currentTask)
     if (!agent) return res.status(404).send('agent not found')

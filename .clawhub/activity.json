@@ -1,5 +1,271 @@
 [
   {
+    "id": "task-started-610a4181b527a-1771060111653",
+    "at": "2026-02-14T09:08:30.191Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Implement redesigned TaskModal component following UI/UX guide → Patch",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Implement redesigned TaskModal component following UI/UX guide",
+      "workerSlot": "dev-2",
+      "worker": "Patch",
+      "startedAt": "2026-02-14T09:08:30.191Z"
+    }
+  },
+  {
+    "id": "task-created-2daa2671748da-1771060111653",
+    "at": "2026-02-14T09:08:30.191Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: Implement redesigned TaskModal component following UI/UX guide",
+    "meta": {
+      "eventType": "task.created",
+      "task": "Implement redesigned TaskModal component following UI/UX guide",
+      "workerSlot": "dev-2",
+      "worker": "Patch"
+    }
+  },
+  {
+    "id": "bridge-8c7aa4c60e09a-1771060108711",
+    "at": "2026-02-14T09:08:28.711Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "task-started-911a7cb121af8-1771059811443",
+    "at": "2026-02-14T09:03:30.215Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Implement redesigned TaskModal component following UI/UX guide → Patch",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Implement redesigned TaskModal component following UI/UX guide",
+      "workerSlot": "dev-2",
+      "worker": "Patch",
+      "startedAt": "2026-02-14T09:03:30.215Z"
+    }
+  },
+  {
+    "id": "task-created-58ebaf4698d64-1771059811443",
+    "at": "2026-02-14T09:03:30.215Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: Implement redesigned TaskModal component following UI/UX guide",
+    "meta": {
+      "eventType": "task.created",
+      "task": "Implement redesigned TaskModal component following UI/UX guide",
+      "workerSlot": "dev-2",
+      "worker": "Patch"
+    }
+  },
+  {
+    "id": "bridge-916160e1cf28-1771059802286",
+    "at": "2026-02-14T09:03:22.286Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "task-started-3162810047cf8-1771059788319",
+    "at": "2026-02-14T09:03:07.033Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Implement redesigned TaskModal component following UI/UX guide → Patch",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Implement redesigned TaskModal component following UI/UX guide",
+      "workerSlot": "dev-2",
+      "worker": "Patch",
+      "startedAt": "2026-02-14T09:03:07.033Z"
+    }
+  },
+  {
+    "id": "task-created-204a97cc4e767-1771059788319",
+    "at": "2026-02-14T09:03:07.033Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: Implement redesigned TaskModal component following UI/UX guide",
+    "meta": {
+      "eventType": "task.created",
+      "task": "Implement redesigned TaskModal component following UI/UX guide",
+      "workerSlot": "dev-2",
+      "worker": "Patch"
+    }
+  },
+  {
+    "id": "bridge-910ba9a1127ef-1771059750045",
+    "at": "2026-02-14T09:02:30.045Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "task-started-d1c2fa706c54e-1771059652612",
+    "at": "2026-02-14T09:00:51.390Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Implement redesigned TaskModal component following UI/UX guide → Patch",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Implement redesigned TaskModal component following UI/UX guide",
+      "workerSlot": "dev-2",
+      "worker": "Patch",
+      "startedAt": "2026-02-14T09:00:51.390Z"
+    }
+  },
+  {
+    "id": "task-created-5ea1ef2f0a5ee-1771059652612",
+    "at": "2026-02-14T09:00:51.390Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: Implement redesigned TaskModal component following UI/UX guide",
+    "meta": {
+      "eventType": "task.created",
+      "task": "Implement redesigned TaskModal component following UI/UX guide",
+      "workerSlot": "dev-2",
+      "worker": "Patch"
+    }
+  },
+  {
+    "id": "bridge-b7554bc4bff2f-1771059638132",
+    "at": "2026-02-14T09:00:38.132Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "task-started-446734e34b70e-1771059597517",
+    "at": "2026-02-14T08:59:56.282Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Implement redesigned TaskModal component following UI/UX guide → Patch",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Implement redesigned TaskModal component following UI/UX guide",
+      "workerSlot": "dev-2",
+      "worker": "Patch",
+      "startedAt": "2026-02-14T08:59:56.282Z"
+    }
+  },
+  {
+    "id": "task-created-5fcda499946be-1771059597516",
+    "at": "2026-02-14T08:59:56.282Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: Implement redesigned TaskModal component following UI/UX guide",
+    "meta": {
+      "eventType": "task.created",
+      "task": "Implement redesigned TaskModal component following UI/UX guide",
+      "workerSlot": "dev-2",
+      "worker": "Patch"
+    }
+  },
+  {
+    "id": "bridge-6a0f32fb17b83-1771059582570",
+    "at": "2026-02-14T08:59:42.570Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-8d9cd38386aa9-1771059570898",
+    "at": "2026-02-14T08:59:30.898Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "task-started-d0f6634a0a7d-1771059368951",
+    "at": "2026-02-14T08:56:07.659Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Implement redesigned TaskModal component following UI/UX guide → Patch",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Implement redesigned TaskModal component following UI/UX guide",
+      "workerSlot": "dev-2",
+      "worker": "Patch",
+      "startedAt": "2026-02-14T08:56:07.659Z"
+    }
+  },
+  {
+    "id": "task-created-7bb511241ba86-1771059368951",
+    "at": "2026-02-14T08:56:07.659Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: Implement redesigned TaskModal component following UI/UX guide",
+    "meta": {
+      "eventType": "task.created",
+      "task": "Implement redesigned TaskModal component following UI/UX guide",
+      "workerSlot": "dev-2",
+      "worker": "Patch"
+    }
+  },
+  {
+    "id": "bridge-0e46760e4577a-1771059355038",
+    "at": "2026-02-14T08:55:55.038Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "task-started-1798c134e4a25-1771059079180",
+    "at": "2026-02-14T08:51:17.966Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task assigned: Implement redesigned TaskModal component following UI/UX guide → Patch",
+    "meta": {
+      "eventType": "task.assigned",
+      "task": "Implement redesigned TaskModal component following UI/UX guide",
+      "workerSlot": "dev-2",
+      "worker": "Patch",
+      "startedAt": "2026-02-14T08:51:17.966Z"
+    }
+  },
+  {
+    "id": "task-created-fcf8fe7f5103e-1771059079180",
+    "at": "2026-02-14T08:51:17.966Z",
+    "level": "info",
+    "source": "tasks",
+    "message": "task created: Implement redesigned TaskModal component following UI/UX guide",
+    "meta": {
+      "eventType": "task.created",
+      "task": "Implement redesigned TaskModal component following UI/UX guide",
+      "workerSlot": "dev-2",
+      "worker": "Patch"
+    }
+  },
+  {
+    "id": "bridge-711228aa1791b-1771059071049",
+    "at": "2026-02-14T08:51:11.049Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "gateway-2eb9bba883689-1771058707630",
+    "at": "2026-02-14T08:45:07.630Z",
+    "level": "warn",
+    "source": "bridge",
+    "message": "gateway: down → warn (probe ok (runtime unknown))"
+  },
+  {
+    "id": "bridge-63d91f9c42d81-1771057604867",
+    "at": "2026-02-14T08:26:44.867Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
+    "id": "bridge-d154cda442738-1771055772171",
+    "at": "2026-02-14T07:56:12.171Z",
+    "level": "info",
+    "source": "operator-hub",
+    "message": "bridge started on :8787"
+  },
+  {
     "id": "bridge-c40b58acefcaa-1771054277966",
     "at": "2026-02-14T07:31:17.966Z",
     "level": "info",

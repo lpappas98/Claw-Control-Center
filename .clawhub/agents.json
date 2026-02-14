@@ -16,8 +16,8 @@
     "activeTasks": [],
     "metadata": {},
     "createdAt": 1771047212861,
-    "updatedAt": 1771053432631,
-    "lastHeartbeat": 1771053432630
+    "updatedAt": 1771057208219,
+    "lastHeartbeat": 1771057208219
   },
   {
     "id": "dev-1",
@@ -37,8 +37,8 @@
     "activeTasks": [],
     "metadata": {},
     "createdAt": 1771047212866,
-    "updatedAt": 1771053434586,
-    "lastHeartbeat": 1771053434586
+    "updatedAt": 1771057210220,
+    "lastHeartbeat": 1771057210220
   },
   {
     "id": "dev-2",
@@ -52,14 +52,14 @@
     "model": "anthropic/claude-haiku-4-5",
     "workspace": "/home/openclaw/.openclaw/workspace/agents/patch",
     "status": "online",
-    "instanceId": "openclaw-bozeman1",
+    "instanceId": "local",
     "tailscaleIP": "",
-    "currentTask": null,
+    "currentTask": "Implement redesigned TaskModal component following UI/UX guide",
     "activeTasks": [],
     "metadata": {},
     "createdAt": 1771047212870,
-    "updatedAt": 1771053436593,
-    "lastHeartbeat": 1771053436593
+    "updatedAt": 1771057638877,
+    "lastHeartbeat": 1771057638876
   },
   {
     "id": "qa",
@@ -79,8 +79,8 @@
     "activeTasks": [],
     "metadata": {},
     "createdAt": 1771047212875,
-    "updatedAt": 1771053438497,
-    "lastHeartbeat": 1771053438497
+    "updatedAt": 1771057214230,
+    "lastHeartbeat": 1771057214230
   },
   {
     "id": "architect",
@@ -100,7 +100,7 @@
     "activeTasks": [],
     "metadata": {},
     "createdAt": 1771047212879,
-    "updatedAt": 1771053440557,
-    "lastHeartbeat": 1771053440556
+    "updatedAt": 1771057216219,
+    "lastHeartbeat": 1771057216219
   }
 ]

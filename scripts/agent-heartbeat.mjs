@@ -1,13 +1,14 @@
 #!/usr/bin/env node
 
 /**
- * Agent Heartbeat Runner
- * Runs in each agent's workspace, polls for tasks, sends status updates
+ * Agent Heartbeat Runner with Task Execution
+ * Runs in each agent's workspace, polls for tasks, executes them, sends status updates
  */
 
 import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { spawn } from 'child_process';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -15,6 +16,11 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const BRIDGE_URL = process.env.BRIDGE_URL || 'http://localhost:8787';
 const HEARTBEAT_INTERVAL_MS = 30 * 1000; // 30 seconds
 const WORKSPACE_DIR = process.env.AGENT_WORKSPACE || process.cwd();
+const SESSION_CHECK_INTERVAL_MS = 5 * 1000; // 5 seconds
+
+// Agent state
+let currentTask = null;
+let currentSessionKey = null;
 
 // Read agent identity
 async function loadAgentIdentity() {
@@ -32,7 +38,7 @@ async function loadAgentIdentity() {
       id: agentIdMatch?.[1]?.trim() || 'unknown',
       name: nameMatch?.[1]?.trim() || 'Unknown Agent',
       role: roleMatch?.[1]?.trim() || 'unknown',
-      model: modelMatch?.[1]?.trim() || 'ollama/llama3.1:8b@http://192.168.1.21:11434',
+      model: modelMatch?.[1]?.trim() || 'anthropic/claude-haiku-4-5',
       workspace: WORKSPACE_DIR
     };
   } catch (error) {
@@ -42,7 +48,7 @@ async function loadAgentIdentity() {
 }
 
 // Send heartbeat to bridge
-async function sendHeartbeat(agent) {
+async function sendHeartbeat(agent, taskInfo = null) {
   try {
     const response = await fetch(`${BRIDGE_URL}/api/agents/${agent.id}/heartbeat`, {
       method: 'POST',
@@ -50,7 +56,8 @@ async function sendHeartbeat(agent) {
       body: JSON.stringify({
         instanceId: process.env.INSTANCE_ID || 'local',
         tailscaleIP: process.env.TAILSCALE_IP || '',
-        status: 'online'
+        status: 'online',
+        currentTask: taskInfo
       })
     });
     
@@ -72,7 +79,7 @@ async function sendHeartbeat(agent) {
 async function checkForTasks(agent) {
   try {
     const response = await fetch(
-      `${BRIDGE_URL}/api/tasks?status=assigned&assignee=${agent.id}`
+      `${BRIDGE_URL}/api/tasks?lane=queued&owner=${agent.id}`
     );
     
     if (!response.ok) {
@@ -85,6 +92,195 @@ async function checkForTasks(agent) {
   } catch (error) {
     console.error('Task check error:', error.message);
     return [];
+  }
+}
+
+// Claim a task (move to development)
+async function claimTask(taskId) {
+  try {
+    const response = await fetch(`${BRIDGE_URL}/api/tasks/${taskId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        lane: 'development',
+        statusHistory: [{
+          at: new Date().toISOString(),
+          to: 'development',
+          note: 'claimed by agent'
+        }]
+      })
+    });
+    
+    if (!response.ok) {
+      console.error(`Task claim failed: ${response.status}`);
+      return false;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Task claim error:', error.message);
+    return false;
+  }
+}
+
+// Update task status
+async function updateTaskStatus(taskId, lane, note) {
+  try {
+    const response = await fetch(`${BRIDGE_URL}/api/tasks/${taskId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        lane,
+        updatedAt: new Date().toISOString(),
+        statusHistory: [{
+          at: new Date().toISOString(),
+          to: lane,
+          note
+        }]
+      })
+    });
+    
+    if (!response.ok) {
+      console.error(`Task update failed: ${response.status}`);
+      return false;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Task update error:', error.message);
+    return false;
+  }
+}
+
+// Spawn OpenClaw session to execute task
+async function spawnTaskSession(agent, task) {
+  return new Promise((resolve, reject) => {
+    // Build task brief for agent
+    const taskBrief = buildTaskBrief(task);
+    
+    console.log(`\n=== Spawning session for task ${task.id} ===`);
+    console.log(`Task: ${task.title}`);
+    console.log(`Model: ${agent.model}`);
+    
+    // Spawn openclaw agent session with the task as a message
+    // Use --local mode with agent's model configured in gateway
+    const proc = spawn('openclaw', [
+      'agent',
+      '--message', taskBrief,
+      '--json',
+      '--local',
+      '--thinking', 'low',
+      '--session-id', `agent-${agent.id}-${task.id}`
+    ], {
+      stdio: ['ignore', 'pipe', 'pipe'],
+      detached: false
+    });
+    
+    let stdout = '';
+    let stderr = '';
+    let sessionKey = null;
+    
+    proc.stdout.on('data', (data) => {
+      const output = data.toString();
+      stdout += output;
+      
+      // Extract session key from output
+      const keyMatch = output.match(/Session:\s+([a-z0-9-]+)/i);
+      if (keyMatch) {
+        sessionKey = keyMatch[1];
+        console.log(`Session started: ${sessionKey}`);
+      }
+      
+      process.stdout.write(output);
+    });
+    
+    proc.stderr.on('data', (data) => {
+      stderr += data.toString();
+      process.stderr.write(data);
+    });
+    
+    proc.on('close', (code) => {
+      console.log(`\n=== Session ended (exit code: ${code}) ===`);
+      
+      if (code === 0) {
+        resolve({ success: true, sessionKey, stdout, stderr });
+      } else {
+        resolve({ success: false, sessionKey, stdout, stderr, exitCode: code });
+      }
+    });
+    
+    proc.on('error', (error) => {
+      console.error('Spawn error:', error);
+      reject(error);
+    });
+  });
+}
+
+// Build task brief for agent session
+function buildTaskBrief(task) {
+  let brief = `# Task: ${task.title}\n\n`;
+  brief += `**Task ID:** ${task.id}\n`;
+  brief += `**Priority:** ${task.priority}\n\n`;
+  
+  if (task.problem) {
+    brief += `## Problem\n${task.problem}\n\n`;
+  }
+  
+  if (task.scope) {
+    brief += `## Scope\n${task.scope}\n\n`;
+  }
+  
+  if (task.acceptanceCriteria && task.acceptanceCriteria.length > 0) {
+    brief += `## Acceptance Criteria\n`;
+    task.acceptanceCriteria.forEach((criterion, i) => {
+      brief += `${i + 1}. ${criterion}\n`;
+    });
+    brief += '\n';
+  }
+  
+  brief += `## Instructions\n`;
+  brief += `Complete this task according to the scope and acceptance criteria above.\n`;
+  brief += `When done, update your work log and move the task to review status.\n`;
+  
+  return brief;
+}
+
+// Execute a task
+async function executeTask(agent, task) {
+  console.log(`\n>>> Executing task: ${task.title}`);
+  await logActivity(`Starting task: ${task.id} - ${task.title}`);
+  
+  // Claim the task
+  const claimed = await claimTask(task.id);
+  if (!claimed) {
+    console.error('Failed to claim task');
+    return;
+  }
+  
+  currentTask = task;
+  await sendHeartbeat(agent, { id: task.id, title: task.title });
+  
+  try {
+    // Spawn session to do the work
+    const result = await spawnTaskSession(agent, task);
+    
+    if (result.success) {
+      console.log('✅ Task completed successfully');
+      await updateTaskStatus(task.id, 'review', 'completed by agent');
+      await logActivity(`Completed task: ${task.id}`);
+    } else {
+      console.log('❌ Task failed');
+      await updateTaskStatus(task.id, 'blocked', `failed with exit code ${result.exitCode}`);
+      await logActivity(`Failed task: ${task.id} (exit code: ${result.exitCode})`);
+    }
+  } catch (error) {
+    console.error('Task execution error:', error);
+    await updateTaskStatus(task.id, 'blocked', `error: ${error.message}`);
+    await logActivity(`Error executing task: ${task.id} - ${error.message}`);
+  } finally {
+    currentTask = null;
+    currentSessionKey = null;
+    await sendHeartbeat(agent, null);
   }
 }
 
@@ -117,7 +313,14 @@ async function runHeartbeat() {
   
   // Check for tasks every interval
   setInterval(async () => {
-    const success = await sendHeartbeat(agent);
+    // Don't check for new tasks if already working
+    if (currentTask) {
+      console.log(`Already working on task: ${currentTask.title}`);
+      await sendHeartbeat(agent, { id: currentTask.id, title: currentTask.title });
+      return;
+    }
+    
+    const success = await sendHeartbeat(agent, null);
     
     if (success) {
       const tasks = await checkForTasks(agent);
@@ -125,9 +328,21 @@ async function runHeartbeat() {
       if (tasks.length > 0) {
         console.log(`Found ${tasks.length} assigned task(s):`);
         tasks.forEach(task => {
-          console.log(`  - [${task.id}] ${task.title}`);
+          console.log(`  - [${task.priority}] ${task.id}: ${task.title}`);
         });
         await logActivity(`Found ${tasks.length} assigned task(s)`);
+        
+        // Pick highest priority task
+        const sortedTasks = tasks.sort((a, b) => {
+          const priorityOrder = { P0: 0, P1: 1, P2: 2, P3: 3 };
+          return (priorityOrder[a.priority] || 99) - (priorityOrder[b.priority] || 99);
+        });
+        
+        const nextTask = sortedTasks[0];
+        console.log(`\n→ Picking task: [${nextTask.priority}] ${nextTask.title}`);
+        
+        // Execute the task (async, but setInterval will wait)
+        await executeTask(agent, nextTask);
       } else {
         console.log('No assigned tasks');
       }
