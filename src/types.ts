@@ -116,6 +116,7 @@ export type Task = {
   lane: BoardLane
   priority: Priority
   owner?: string
+  tag?: 'Epic' | 'UI' | 'Backend' | 'QA' | 'Arch' | 'Frontend' | 'Docs'
   problem?: string
   scope?: string
   acceptanceCriteria?: string[]
@@ -130,6 +131,7 @@ export type TaskCreate = {
   lane?: BoardLane
   priority?: Priority
   owner?: string
+  tag?: 'Epic' | 'UI' | 'Backend' | 'QA' | 'Arch' | 'Frontend' | 'Docs'
   problem?: string
   scope?: string
   acceptanceCriteria?: string[]
@@ -141,6 +143,7 @@ export type TaskUpdate = {
   lane?: BoardLane
   priority?: Priority
   owner?: string
+  tag?: 'Epic' | 'UI' | 'Backend' | 'QA' | 'Arch' | 'Frontend' | 'Docs'
   problem?: string
   scope?: string
   acceptanceCriteria?: string[]

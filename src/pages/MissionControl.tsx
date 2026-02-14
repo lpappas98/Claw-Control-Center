@@ -18,6 +18,7 @@ type HomeTask = {
   priority: Priority
   agent?: string
   agentEmoji?: string
+  tag?: Task['tag']
   details?: Task
   detailsMatch?: 'id' | 'title'
 }
@@ -211,6 +212,7 @@ export function MissionControl({
           title: matched?.title ?? title,
           priority: matched?.priority ?? inferPriority(title),
           lane: taskLaneFromWorker(w),
+          tag: matched?.tag,
           agent: profile.name,
           agentEmoji: profile.emoji,
           details: matched,
@@ -227,6 +229,7 @@ export function MissionControl({
           title: t.title,
           priority: t.priority,
           lane,
+          tag: t.tag,
           details: t,
           detailsMatch: 'id',
         }
@@ -269,6 +272,16 @@ export function MissionControl({
     P1: { dot: '#fbbf24', border: '#f59e0b', text: '#fde68a' },
     P2: { dot: '#facc15', border: '#eab308', text: '#fef08a' },
     P3: { dot: '#64748b', border: '#475569', text: '#94a3b8' },
+  }
+
+  const tagColors: Record<string, { bg: string; text: string }> = {
+    Epic: { bg: 'rgba(139,92,246,0.15)', text: '#c4b5fd' },
+    UI: { bg: 'rgba(14,165,233,0.15)', text: '#7dd3fc' },
+    Backend: { bg: 'rgba(168,85,247,0.15)', text: '#d8b4fe' },
+    QA: { bg: 'rgba(16,185,129,0.15)', text: '#6ee7b7' },
+    Arch: { bg: 'rgba(245,158,11,0.15)', text: '#fcd34d' },
+    Frontend: { bg: 'rgba(6,182,212,0.15)', text: '#67e8f9' },
+    Docs: { bg: 'rgba(100,116,139,0.15)', text: '#94a3b8' },
   }
 
   const columnAccents = {
@@ -548,6 +561,19 @@ export function MissionControl({
                             {task.title}
                           </p>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '7px', flexWrap: 'wrap' }}>
+                            {task.tag && (
+                              <span style={{
+                                fontSize: '10px',
+                                fontWeight: 600,
+                                padding: '2px 7px',
+                                borderRadius: '4px',
+                                background: tagColors[task.tag]?.bg || 'rgba(100,116,139,0.15)',
+                                color: tagColors[task.tag]?.text || '#94a3b8',
+                                letterSpacing: '0.01em',
+                              }}>
+                                {task.tag}
+                              </span>
+                            )}
                             <span style={{
                               fontSize: '10px',
                               fontWeight: 700,

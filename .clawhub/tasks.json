@@ -159,7 +159,7 @@
   {
     "id": "task-ccb64a8dbb329-1771056013768",
     "title": "Implement redesigned TaskModal component following UI/UX guide",
-    "lane": "development",
+    "lane": "review",
     "priority": "P0",
     "owner": "dev-2",
     "problem": "Current TaskModal has poor UX: all-caps section headers (BASIC INFORMATION, DETAILS, METADATA), cramped spacing, no visual hierarchy, metadata too prominent, no tabs for organization",
@@ -179,8 +179,14 @@
       "Take screenshot showing new modal design"
     ],
     "createdAt": "2026-02-14T08:00:13.768Z",
-    "updatedAt": "2026-02-14T08:26:48.867Z",
+    "updatedAt": "2026-02-14T11:20:45.514Z",
     "statusHistory": [
+      {
+        "at": "2026-02-14T11:20:45.514Z",
+        "from": "development",
+        "to": "review",
+        "note": "updated"
+      },
       {
         "at": "2026-02-14T08:26:48.867Z",
         "from": "queued",
