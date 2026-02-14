@@ -1,6 +1,35 @@
 {
   "schemaVersion": 1,
   "features": {
+    "feat-8": {
+      "acceptanceCriteria": [
+        { "text": "Support email/password login", "done": true },
+        { "text": "Support Google OAuth integration", "done": true },
+        { "text": "Support Apple Sign-In", "done": false },
+        { "text": "Support Facebook login", "done": false },
+        { "text": "SMS verification working end-to-end", "done": false }
+      ],
+      "aiContext": {
+        "reasoning": "Multiple authentication options reduce friction for new users. Supporting OAuth providers significantly improves conversion rates. SMS verification adds an extra layer of security for users who prefer phone-based authentication.",
+        "confidence": 88,
+        "generatedAt": "2026-02-14T11:45:00Z",
+        "model": "TARS"
+      },
+      "tasks": [
+        { "id": "task-auth-1", "title": "Setup Firebase auth", "status": "done", "priority": "p0", "tag": "backend", "assignee": "DevOps", "done": true },
+        { "id": "task-auth-2", "title": "Implement email/password flow", "status": "done", "priority": "p0", "tag": "backend", "assignee": "Alice", "done": true }
+      ]
+    },
+    "feat-8-1": {
+      "acceptanceCriteria": [
+        { "text": "Email field validation", "done": true },
+        { "text": "Password strength requirements", "done": false },
+        { "text": "Password confirmation match", "done": false }
+      ],
+      "tasks": [
+        { "id": "task-email-1", "title": "Create login form UI", "status": "done", "priority": "p0", "tag": "frontend", "assignee": "Bob", "done": true }
+      ]
+    },
     "feat-1": {
       "acceptanceCriteria": [
         { "text": "Display current weather information", "done": true },
