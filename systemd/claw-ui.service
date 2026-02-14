@@ -1,0 +1,61 @@
+[Unit]
+Description=Claw Control Center UI Server
+Documentation=https://github.com/openclaw/claw-control-center
+After=network-online.target claw-bridge.service
+Wants=network-online.target
+
+[Service]
+Type=notify
+User=www-data
+WorkingDirectory=/opt/claw/ui
+
+# Environment variables
+EnvironmentFile=/etc/claw/ui.env
+Environment="NODE_ENV=production"
+
+# Start command (nginx -g "daemon off;" for systemd compatibility)
+ExecStart=/usr/sbin/nginx -c /etc/claw/nginx.conf -g "daemon off;"
+
+# Reload config without restarting
+ExecReload=/usr/sbin/nginx -s reload
+
+# Restart policy
+Restart=on-failure
+RestartSec=10s
+StartLimitInterval=60s
+StartLimitBurst=3
+
+# Process management
+KillMode=mixed
+KillSignal=SIGTERM
+TimeoutStopSec=30
+
+# Security
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/var/log/nginx /var/cache/nginx /var/run/nginx
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictRealtime=yes
+RestrictNamespaces=yes
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+SystemCallFilter=~@privileged
+
+# Resource limits
+LimitNOFILE=65536
+LimitNPROC=2048
+MemoryLimit=512M
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=claw-ui
+DefaultStandardOutput=journal
+DefaultStandardError=journal
+
+[Install]
+WantedBy=multi-user.target

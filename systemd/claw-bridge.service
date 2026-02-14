@@ -1,0 +1,61 @@
+[Unit]
+Description=Claw Control Center Bridge Server
+Documentation=https://github.com/openclaw/claw-control-center
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=claw
+WorkingDirectory=/opt/claw/bridge
+
+# Environment variables
+EnvironmentFile=/etc/claw/bridge.env
+Environment="NODE_ENV=production"
+Environment="PORT=8787"
+Environment="LOG_LEVEL=info"
+Environment="DATA_DIR=/var/lib/claw/.clawhub"
+
+# Start command
+ExecStart=/usr/bin/node /opt/claw/bridge/server.mjs
+
+# Restart policy
+Restart=on-failure
+RestartSec=10s
+StartLimitInterval=60s
+StartLimitBurst=3
+
+# Process management
+KillMode=mixed
+KillSignal=SIGTERM
+TimeoutStopSec=30
+
+# Security
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/var/lib/claw/.clawhub /var/log/claw
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictRealtime=yes
+RestrictNamespaces=yes
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+SystemCallFilter=~@privileged
+
+# Resource limits
+LimitNOFILE=65536
+LimitNPROC=4096
+MemoryLimit=1G
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=claw-bridge
+DefaultStandardOutput=journal
+DefaultStandardError=journal
+
+[Install]
+WantedBy=multi-user.target

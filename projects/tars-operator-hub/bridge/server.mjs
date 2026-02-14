@@ -52,12 +52,46 @@ import { getRoutineExecutor } from './routineExecutor.mjs'
 import { getCalendarIntegration } from './calendarIntegration.mjs'
 import { GitHubIntegration } from './githubIntegration.mjs'
 import { sendTelegramNotification, sendTestNotification, formatTaskNotification, loadTelegramConfig } from './telegramIntegration.mjs'
+import logger from './logger.mjs'
+import { createHealthChecker } from './healthChecks.mjs'
 
 const execFileAsync = promisify(execFile)
+const healthChecker = createHealthChecker()
 
 const app = express()
 app.use(cors())
 app.use(express.json({ limit: '5mb' }))
+
+// Middleware for request logging
+app.use((req, res, next) => {
+  const startTime = Date.now()
+  const originalSend = res.send
+  
+  res.send = function (data) {
+    const duration = Date.now() - startTime
+    logger.debug(`${req.method} ${req.path}`, {
+      status: res.statusCode,
+      duration: duration,
+      size: Buffer.byteLength(data),
+    })
+    return originalSend.call(this, data)
+  }
+  next()
+})
+
+// Error tracking middleware
+app.use((err, req, res, next) => {
+  if (err) {
+    healthChecker.recordError()
+    logger.error('Request error', {
+      method: req.method,
+      path: req.path,
+      error: err.message,
+      stack: err.stack,
+    })
+  }
+  next(err)
+})
 
 const PORT = Number(process.env.PORT ?? 8787)
 const WORKSPACE = process.env.OPENCLAW_WORKSPACE ?? path.join(os.homedir(), '.openclaw', 'workspace')
@@ -816,6 +850,14 @@ app.post('/api/tasks', async (req, res) => {
 
   tasks = [next, ...tasks].slice(0, 500)
   scheduleTasksSave()
+  
+  logger.info('Task created', {
+    taskId: next.id,
+    title: next.title,
+    priority: next.priority,
+    lane: next.lane,
+  })
+  
   res.json(next)
 })
 
@@ -2024,7 +2066,7 @@ app.post('/api/github/webhook', async (req, res) => {
 
     // Validate webhook signature
     if (!github.validateWebhookSignature(rawBody, signature)) {
-      console.warn('Invalid GitHub webhook signature')
+      logger.warn('Invalid GitHub webhook signature')
       return res.status(401).send('unauthorized')
     }
 
@@ -2065,7 +2107,7 @@ app.post('/api/github/webhook', async (req, res) => {
           }
         }
       } catch (err) {
-        console.error(`Failed to update task ${taskId}:`, err.message)
+        logger.error(`Failed to update task ${taskId}`, { error: err.message, stack: err.stack })
       }
     }
 
@@ -2080,7 +2122,7 @@ app.post('/api/github/webhook', async (req, res) => {
       tasks: updated.map(t => ({ id: t.id, lane: t.lane })),
     })
   } catch (err) {
-    console.error('Webhook error:', err.message)
+    logger.error('Webhook error', { error: err.message, stack: err.stack })
     res.status(400).send(err?.message ?? 'webhook processing failed')
   }
 })
@@ -2221,7 +2263,7 @@ app.post('/api/integrations/telegram/test', async (req, res) => {
       })
     }
   } catch (err) {
-    console.error('[Telegram] Test error:', err.message)
+    logger.error('[Telegram] Test error', { error: err.message, stack: err.stack })
     res.status(500).json({
       success: false,
       error: err.message
@@ -2290,7 +2332,7 @@ app.post('/api/integrations/telegram/notify', async (req, res) => {
       })
     }
   } catch (err) {
-    console.error('[Telegram] Notification error:', err.message)
+    logger.error('[Telegram] Notification error', { error: err.message, stack: err.stack })
     res.status(500).json({
       success: false,
       error: err.message
@@ -2298,6 +2340,41 @@ app.post('/api/integrations/telegram/notify', async (req, res) => {
   }
 })
 
+// Health endpoints for monitoring
+app.get('/health', (_req, res) => {
+  const tasks = loadTasks()
+  const agents = getAgentsStore().load()
+  
+  healthChecker.updateTaskStats(tasks)
+  healthChecker.updateAgentStats(agents)
+  
+  const integrations = {
+    github: !!gitHubConfig?.token,
+    telegram: !!process.env.TELEGRAM_BOT_TOKEN,
+    calendar: !!process.env.GOOGLE_CALENDAR_PRIVATE_KEY,
+  }
+  
+  const status = healthChecker.getDetailedStatus(WORKSPACE, integrations)
+  res.json(status)
+})
+
+app.get('/health/ready', (_req, res) => {
+  const readiness = healthChecker.getReadinessStatus(WORKSPACE)
+  
+  if (readiness.ready) {
+    res.status(200).json({ ready: true })
+  } else {
+    logger.warn('Readiness check failed', { checks: readiness.checks })
+    res.status(503).json({ ready: false, details: readiness.checks })
+  }
+})
+
+app.get('/health/live', (_req, res) => {
+  const liveness = healthChecker.getLivenessStatus()
+  res.json(liveness)
+})
+
+// Keep old endpoint for backward compatibility
 app.get('/healthz', (_req, res) => res.send('ok'))
 
 async function flushActivityOnExit() {
@@ -2344,5 +2421,5 @@ app.listen(PORT, () => {
     source: 'operator-hub',
     message: `bridge started on :${PORT}`,
   })
-  console.log(`Operator Hub bridge listening on http://localhost:${PORT}`)
+  logger.info(`Operator Hub bridge listening on http://localhost:${PORT}`)
 })

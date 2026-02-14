@@ -1,0 +1,128 @@
+version: '3.8'
+
+services:
+  # Claw Bridge API Server
+  bridge:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.bridge
+    container_name: claw-bridge
+    ports:
+      - "${BRIDGE_PORT:-8787}:8787"
+    environment:
+      - NODE_ENV=${NODE_ENV:-production}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - BRIDGE_URL=${BRIDGE_URL:-http://localhost:8787}
+      - UI_URL=${UI_URL:-http://localhost:3000}
+      - PORT=8787
+      # Optional integrations
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN:-}
+      - GITHUB_TOKEN=${GITHUB_TOKEN:-}
+      - GITHUB_WEBHOOK_SECRET=${GITHUB_WEBHOOK_SECRET:-}
+      - SLACK_WEBHOOK_URL=${SLACK_WEBHOOK_URL:-}
+      - GOOGLE_CALENDAR_CREDENTIALS=${GOOGLE_CALENDAR_CREDENTIALS:-}
+    volumes:
+      # Persistent data storage
+      - clawhub_data:/data/.clawhub
+      - ./logs:/app/logs
+    networks:
+      - claw-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8787/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    depends_on:
+      - redis
+    # Optional: limit resources
+    # deploy:
+    #   resources:
+    #     limits:
+    #       cpus: '1'
+    #       memory: 1G
+    #     reservations:
+    #       cpus: '0.5'
+    #       memory: 512M
+
+  # Claw UI (React/Vite + Nginx)
+  ui:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.ui
+    container_name: claw-ui
+    ports:
+      - "${UI_PORT:-3000}:3000"
+    environment:
+      - NODE_ENV=${NODE_ENV:-production}
+    networks:
+      - claw-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    depends_on:
+      - bridge
+    # Optional: limit resources
+    # deploy:
+    #   resources:
+    #     limits:
+    #       cpus: '0.5'
+    #       memory: 512M
+    #     reservations:
+    #       cpus: '0.25'
+    #       memory: 256M
+
+  # Redis (optional, for caching/sessions)
+  redis:
+    image: redis:7-alpine
+    container_name: claw-redis
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    networks:
+      - claw-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    # Optional: limit resources
+    # deploy:
+    #   resources:
+    #     limits:
+    #       cpus: '0.5'
+    #       memory: 256M
+
+  # Optional: Reverse proxy (nginx) for production
+  # Uncomment to use this instead of exposing services directly
+  # proxy:
+  #   image: nginx:alpine
+  #   container_name: claw-proxy
+  #   ports:
+  #     - "${PROXY_PORT:-80}:80"
+  #     - "${PROXY_HTTPS_PORT:-443}:443"
+  #   volumes:
+  #     - ./docker/nginx-proxy.conf:/etc/nginx/conf.d/default.conf:ro
+  #     - ./certs:/etc/nginx/certs:ro
+  #   networks:
+  #     - claw-net
+  #   restart: unless-stopped
+  #   depends_on:
+  #     - bridge
+  #     - ui
+
+volumes:
+  clawhub_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  claw-net:
+    driver: bridge
