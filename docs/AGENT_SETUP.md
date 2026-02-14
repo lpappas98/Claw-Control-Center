@@ -679,6 +679,293 @@ npm run bridge 2>&1 | tee bridge.log
 
 ---
 
+## Time Tracking (Phase 4)
+
+### Overview
+
+Track time spent on tasks for accurate project planning and billing.
+
+### Start/Stop Timer
+
+```bash
+# Start working on task
+claw task:start task-123
+
+# Stop working and log time
+claw task:stop task-123
+
+# Stop with specific hours
+claw task:stop task-123 4 "Implemented auth endpoints"
+```
+
+### Manual Time Logging
+
+```bash
+# Log time retroactively
+claw task:log-time task-123 2 "Morning implementation"
+claw task:log-time task-123 2 "Afternoon debugging"
+
+# Check total
+claw task:view task-123
+# Shows: Logged: 4 hours / 8 hours estimated
+```
+
+### View Time Entries
+
+```bash
+curl http://localhost:8787/api/tasks/task-123 | jq '.timeEntries'
+
+# Response:
+# [
+#   {"entryId": "time-1", "hours": 2, "note": "Morning work", "at": 1707813620000},
+#   {"entryId": "time-2", "hours": 2, "note": "Afternoon work", "at": 1707813700000}
+# ]
+```
+
+### Burndown Reports
+
+```bash
+# Per project
+curl http://localhost:8787/api/projects/proj-1/burndown | jq .
+
+# Per agent
+curl http://localhost:8787/api/agents/dev-1/burndown | jq .
+```
+
+---
+
+## Task Templates (Phase 4)
+
+### Overview
+
+Reusable task templates for common workflows (e.g., "New Feature", "Bug Fix").
+
+### Using a Template
+
+```bash
+# List available templates
+curl http://localhost:8787/api/templates | jq '.[] | {id, name}'
+
+# Create tasks from template
+curl -X POST http://localhost:8787/api/tasks/from-template \
+  -H "Content-Type: application/json" \
+  -d '{
+    "templateId": "new-feature",
+    "projectId": "proj-1",
+    "overrides": {
+      "title": "Build user profiles feature"
+    }
+  }' | jq .
+
+# Response: Creates multiple related tasks
+# [
+#   {"id": "task-1", "title": "Design user profiles UI", "role": "designer"},
+#   {"id": "task-2", "title": "Build profile API", "role": "backend-dev", "dependsOn": ["task-1"]},
+#   {"id": "task-3", "title": "Implement profile page", "role": "frontend-dev", "dependsOn": ["task-2"]},
+#   {"id": "task-4", "title": "Add tests", "role": "qa"},
+#   {"id": "task-5", "title": "Update docs", "role": "content"}
+# ]
+```
+
+### Common Templates
+
+**new-feature**: Design → Backend → Frontend → Tests → Docs  
+**bug-fix**: Reproduce → Fix → Tests → Deploy  
+**release**: QA → Staging → Production → Monitor  
+**documentation**: Write → Review → Publish  
+
+---
+
+## Recurring Tasks / Routines (Phase 4)
+
+### Overview
+
+Automatically create recurring tasks based on schedule (daily, weekly, monthly).
+
+### Create a Routine
+
+```bash
+# Setup daily standup
+curl -X POST http://localhost:8787/api/routines \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Daily Standup",
+    "schedule": "0 9 * * 1-5",
+    "taskTemplate": {
+      "title": "Team Standup",
+      "description": "Daily sync with the team",
+      "assignedTo": "pm",
+      "estimatedHours": 0.5
+    },
+    "enabled": true
+  }' | jq .
+
+# Response:
+# {
+#   "id": "routine-1",
+#   "name": "Daily Standup",
+#   "schedule": "0 9 * * 1-5",
+#   "nextRun": 1707900000000,
+#   "createdAt": 1707813620000
+# }
+```
+
+### Schedule Format (Cron)
+
+```
+Minute Hour Day Month DayOfWeek
+  0-59  0-23 1-31  1-12   0-6 (0=Sun, 6=Sat)
+
+Examples:
+0 9 * * 1-5         # 9 AM Mon-Fri
+0 0 * * 0           # Midnight every Sunday
+*/30 * * * *        # Every 30 minutes
+0 0 1 * *           # 1st day of month at midnight
+0 9,14 * * *        # 9 AM and 2 PM daily
+```
+
+### List Routines
+
+```bash
+curl http://localhost:8787/api/routines | jq '.[] | {name, schedule, nextRun}'
+```
+
+### Disable/Enable Routine
+
+```bash
+# Disable
+curl -X PUT http://localhost:8787/api/routines/routine-1 \
+  -H "Content-Type: application/json" \
+  -d '{"enabled": false}'
+
+# Enable
+curl -X PUT http://localhost:8787/api/routines/routine-1 \
+  -H "Content-Type: application/json" \
+  -d '{"enabled": true}'
+```
+
+---
+
+## Integration Setup (Phase 5)
+
+### GitHub Integration
+
+Link tasks to GitHub issues and PRs:
+
+```bash
+# Configure GitHub
+curl -X POST http://localhost:8787/api/integrations/github/configure \
+  -H "Content-Type: application/json" \
+  -d '{
+    "token": "ghp_your_token",
+    "repo": "org/repo",
+    "autoLink": true,
+    "autoClose": true
+  }'
+
+# When you open a GitHub issue, it auto-syncs to Claw
+# When you merge a PR, the task auto-closes
+```
+
+**See:** [docs/INTEGRATIONS.md#github](INTEGRATIONS.md#github)
+
+### Telegram Notifications
+
+Get task notifications on Telegram:
+
+```bash
+# Create bot: Talk to @BotFather
+# Get token: (from @BotFather)
+# Get chat ID: (forward msg from @userinfobot)
+
+curl -X POST http://localhost:8787/api/integrations/telegram/configure \
+  -H "Content-Type: application/json" \
+  -d '{
+    "botToken": "123456:ABC...",
+    "chatId": "-1001234567890",
+    "enabled": true
+  }'
+
+# Now receive notifications:
+# 🎯 New Task Assigned: Implement auth (P0)
+# ⛔ Task Blocked: Waiting for API spec
+# 🎉 Task Completed: Your task is done!
+```
+
+**See:** [docs/INTEGRATIONS.md#telegram](INTEGRATIONS.md#telegram)
+
+### Google Calendar Sync
+
+Sync task deadlines to your calendar:
+
+```bash
+# Download credentials.json from Google Cloud Console
+# (See docs/INTEGRATIONS.md for detailed setup)
+
+curl -X POST http://localhost:8787/api/integrations/calendar/configure \
+  -H "Content-Type: application/json" \
+  -d '{
+    "credentialsPath": "/path/to/credentials.json",
+    "calendarId": "primary",
+    "enabled": true
+  }'
+
+# Sync tasks with deadlines
+curl -X POST http://localhost:8787/api/integrations/calendar/sync
+
+# Block time on calendar for a task
+curl -X POST http://localhost:8787/api/integrations/calendar/block-time \
+  -H "Content-Type: application/json" \
+  -d '{"taskId": "task-123", "hours": 4, "date": "2026-02-15"}'
+```
+
+**See:** [docs/INTEGRATIONS.md#google-calendar](INTEGRATIONS.md#google-calendar)
+
+---
+
+## Advanced Features (Phase 5)
+
+### Task Dependencies
+
+Block tasks on other tasks:
+
+```bash
+# Task A depends on Task B
+curl -X PUT http://localhost:8787/api/tasks/task-123/dependencies \
+  -H "Content-Type: application/json" \
+  -d '{
+    "dependsOn": ["task-100"],
+    "blocks": ["task-200"]
+  }'
+
+# When task-100 is done, task-123 is auto-notified
+# Task-200 remains blocked until task-123 is done
+```
+
+### Multi-Instance Agents
+
+Run agents on multiple machines:
+
+```bash
+# Machine 1 - Register agent
+node scripts/register-agent.mjs \
+  --agent macbook-dev \
+  --roles backend-dev \
+  --bridge http://bridge-ip:8787
+
+# Machine 2 - Register agent
+node scripts/register-agent.mjs \
+  --agent server-dev \
+  --roles backend-dev \
+  --bridge http://bridge-ip:8787
+
+# All agents report to same bridge
+# Tasks auto-balance across machines
+# See: docs/MULTI_INSTANCE.md for full setup
+```
+
+---
+
 ## Best Practices
 
 1. **Register agents early** - Don't wait for tasks to appear

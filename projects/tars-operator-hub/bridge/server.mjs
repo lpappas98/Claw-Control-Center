@@ -2341,31 +2341,40 @@ app.post('/api/integrations/telegram/notify', async (req, res) => {
 })
 
 // Health endpoints for monitoring
-app.get('/health', (_req, res) => {
-  const tasks = loadTasks()
-  const agents = getAgentsStore().load()
-  
-  healthChecker.updateTaskStats(tasks)
-  healthChecker.updateAgentStats(agents)
-  
-  const integrations = {
-    github: !!gitHubConfig?.token,
-    telegram: !!process.env.TELEGRAM_BOT_TOKEN,
-    calendar: !!process.env.GOOGLE_CALENDAR_PRIVATE_KEY,
+app.get('/health', async (_req, res) => {
+  try {
+    const agents = await agentsStore.getAll()
+    
+    healthChecker.updateTaskStats(tasks)
+    healthChecker.updateAgentStats(agents || [])
+    
+    const integrations = {
+      github: !!gitHubConfig?.token,
+      telegram: !!process.env.TELEGRAM_BOT_TOKEN,
+      calendar: !!process.env.GOOGLE_CALENDAR_PRIVATE_KEY,
+    }
+    
+    const status = healthChecker.getDetailedStatus(WORKSPACE, integrations)
+    res.json(status)
+  } catch (err) {
+    logger.error('Health check error', { error: err.message, stack: err.stack })
+    res.status(500).json({ status: 'error', message: err.message })
   }
-  
-  const status = healthChecker.getDetailedStatus(WORKSPACE, integrations)
-  res.json(status)
 })
 
-app.get('/health/ready', (_req, res) => {
-  const readiness = healthChecker.getReadinessStatus(WORKSPACE)
-  
-  if (readiness.ready) {
-    res.status(200).json({ ready: true })
-  } else {
-    logger.warn('Readiness check failed', { checks: readiness.checks })
-    res.status(503).json({ ready: false, details: readiness.checks })
+app.get('/health/ready', async (_req, res) => {
+  try {
+    const readiness = healthChecker.getReadinessStatus(WORKSPACE)
+    
+    if (readiness.ready) {
+      res.status(200).json({ ready: true })
+    } else {
+      logger.warn('Readiness check failed', { checks: readiness.checks })
+      res.status(503).json({ ready: false, details: readiness.checks })
+    }
+  } catch (err) {
+    logger.error('Readiness check error', { error: err.message })
+    res.status(503).json({ ready: false, error: err.message })
   }
 })
 

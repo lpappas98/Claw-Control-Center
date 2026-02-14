@@ -485,22 +485,174 @@ sudo systemctl start claw-bridge.service claw-ui.service
 
 ---
 
+## Structured Logging
+
+The bridge uses Winston for structured, machine-readable logging. All logs are output in JSON format to enable integration with monitoring systems.
+
+### Log Configuration
+
+Configure logging via environment variables:
+
+```bash
+# Set log level (default: info)
+LOG_LEVEL=debug    # verbose debugging
+LOG_LEVEL=info     # general information
+LOG_LEVEL=warn     # warnings and errors
+LOG_LEVEL=error    # errors only
+
+# Example .env file
+NODE_ENV=production
+LOG_LEVEL=info
+```
+
+### Log Output
+
+Logs are stored in:
+- **JSON logs:** `~/.openclaw/workspace/logs/operator-hub.log` (all logs)
+- **Error logs:** `~/.openclaw/workspace/logs/operator-hub-error.log` (errors only)
+- **Console:** Colored output for development
+
+### Log Format
+
+Each log entry includes:
+- **timestamp**: ISO 8601 format
+- **level**: debug/info/warn/error
+- **message**: Human-readable message
+- **service**: "operator-hub"
+- **metadata**: Additional context (taskId, agentId, error, etc.)
+
+Example:
+
+```json
+{
+  "level": "info",
+  "message": "Task created",
+  "timestamp": "2026-02-14 12:34:56",
+  "service": "operator-hub",
+  "taskId": "task-123",
+  "title": "Fix login bug",
+  "priority": "P0"
+}
+```
+
+### Querying Logs
+
+Using jq for log analysis:
+
+```bash
+# View all logs (pretty printed)
+tail -f ~/.openclaw/workspace/logs/operator-hub.log | jq '.'
+
+# Filter for errors
+cat ~/.openclaw/workspace/logs/operator-hub.log | jq 'select(.level=="error")'
+
+# Find specific task activity
+cat ~/.openclaw/workspace/logs/operator-hub.log | jq 'select(.taskId=="task-123")'
+
+# Count errors by message
+cat ~/.openclaw/workspace/logs/operator-hub.log | jq -s 'group_by(.message) | map({message: .[0].message, count: length})'
+```
+
+### Log Aggregation (Docker Compose)
+
+For Docker deployments, logs are available via:
+
+```bash
+# Bridge logs
+docker-compose logs bridge
+
+# Follow logs in real-time
+docker-compose logs -f bridge
+
+# Limit to recent logs
+docker-compose logs --tail=100 bridge
+
+# Logs from specific date range (requires docker logs with timestamps)
+docker-compose logs bridge --timestamps
+```
+
+For production, consider sending logs to an external service:
+
+```bash
+# ELK Stack integration (example)
+# Configure docker-compose.yml to send logs to logstash
+# Then Kibana can search and visualize
+
+# DataDog integration
+# Use DataDog agent to collect container logs
+```
+
+### Log Retention
+
+By default, logs are retained indefinitely. Implement log rotation for production:
+
+```bash
+# Add to crontab (remove logs older than 30 days)
+0 2 * * * find ~/.openclaw/workspace/logs -name "*.log" -mtime +30 -delete
+```
+
+For Docker deployments, configure log rotation in docker-compose.yml:
+
+```yaml
+services:
+  bridge:
+    image: claw-bridge:latest
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+```
+
+---
+
 ## Monitoring & Health Checks
 
 ### Health Check Endpoints
 
-Both services provide health check endpoints:
+The bridge provides three health check endpoints:
+
+#### 1. `/health` - Full System Status
+
+Returns comprehensive health information including task stats, agent status, memory usage, and integration status:
 
 ```bash
-# Bridge health
-curl http://localhost:8787/health
-
-# UI health
-curl http://localhost:3000/health
-
-# Expected response:
-# {"status": "ok", "timestamp": "2024-02-14T12:00:00Z"}
+curl http://localhost:8787/health | jq '.'
 ```
+
+Response includes:
+- Service status and uptime
+- Task counts by status
+- Agent count (online/offline)
+- Memory and CPU metrics
+- Integration status (GitHub, Telegram, Google Calendar)
+- Readiness check results
+
+**Use for:** Dashboards, monitoring systems, alerting
+
+#### 2. `/health/ready` - Kubernetes Readiness Probe
+
+Determines if the service is ready to accept traffic. Returns 200 if all required resources are available.
+
+```bash
+curl http://localhost:8787/health/ready
+```
+
+Returns:
+- `200 OK` - Service ready, can route traffic
+- `503 Service Unavailable` - Service not ready, skip traffic
+
+**Use for:** Kubernetes readiness probes, load balancer health checks
+
+#### 3. `/health/live` - Kubernetes Liveness Probe
+
+Determines if the process is alive and responsive. Returns 200 as long as the process is running.
+
+```bash
+curl http://localhost:8787/health/live
+```
+
+**Use for:** Kubernetes liveness probes, process health checks, restart triggers
 
 ### Docker Compose Health
 

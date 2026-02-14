@@ -14,9 +14,10 @@ export class HealthChecker {
   }
 
   updateTaskStats(tasks) {
+    const taskList = Array.isArray(tasks) ? tasks : []
     this.taskStats = {
-      total: tasks.length,
-      byStatus: tasks.reduce((acc, task) => {
+      total: taskList.length,
+      byStatus: taskList.reduce((acc, task) => {
         const status = task.lane || 'queued'
         acc[status] = (acc[status] || 0) + 1
         return acc
@@ -26,11 +27,12 @@ export class HealthChecker {
   }
 
   updateAgentStats(agents) {
-    const online = agents.filter(a => a.status === 'online').length
+    const agentList = Array.isArray(agents) ? agents : []
+    const online = agentList.filter(a => a.status === 'online').length
     this.agentStats = {
-      total: agents.length,
+      total: agentList.length,
       online,
-      offline: agents.length - online,
+      offline: agentList.length - online,
     }
     this.lastUpdate = Date.now()
   }

@@ -1,6 +1,5 @@
-import { defineConfig, devices } from '@playwright/test';
-
-export default defineConfig({
+// @ts-check
+const config = {
   testDir: './e2e',
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
@@ -16,7 +15,10 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'], headless: true },
+      use: {
+        browserName: 'chromium',
+        headless: true,
+      },
     },
   ],
 
@@ -34,4 +36,6 @@ export default defineConfig({
       timeout: 120 * 1000,
     },
   ],
-});
+};
+
+export default config;
