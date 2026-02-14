@@ -1244,7 +1244,7 @@ function NewProjectWizard({
                 <Alert style={{ marginTop: 12 }}>
                   <strong>Summary</strong>
                   <div className="muted" style={{ marginTop: 6 }}>{analysis?.summary}</div>
-                </div>
+                </Alert>
 
                 <div className="stack-h" style={{ marginTop: 14, justifyContent: 'flex-end' }}>
                   <Button variant="ghost" type="button" onClick={() => setMode('idea')}>Back</Button>
@@ -1310,7 +1310,7 @@ function NewProjectWizard({
                     <li>Generated questions + all answers (verbatim)</li>
                     <li>Generated tree + linked sources (citations)</li>
                   </ul>
-                </div>
+                </Alert>
 
                 <div className="stack-h" style={{ marginTop: 14, justifyContent: 'flex-end' }}>
                   <Button variant="ghost" type="button" onClick={() => setMode('questions')}>Back</Button>
@@ -1420,7 +1420,7 @@ export function Projects({ adapter: _adapter }: { adapter: Adapter }) {
             <div className="projects-main-footer">
               <TabBar tab={tab} setTab={setTab} />
             </div>
-          </Alert>
+          </div>
         )}
       </section>
 
