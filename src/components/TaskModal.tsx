@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { Adapter } from '../adapters/adapter'
 import type { BoardLane, Priority, Task } from '../types'
-import { Button } from '@/components/ui/button'
 
 const LANES: BoardLane[] = ['proposed', 'queued', 'development', 'review', 'done']
 const PRIORITIES: Priority[] = ['P0', 'P1', 'P2', 'P3']
@@ -34,68 +33,101 @@ function normalizeLines(raw: string): string[] {
     .filter(Boolean)
 }
 
-const Badge = ({ children, variant = 'default' }: { children: React.ReactNode; variant?: string }) => {
-  const styles: { [key: string]: string } = {
-    p0: 'bg-red-500/15 text-red-400 border border-red-500/20',
-    epic: 'bg-violet-500/15 text-violet-400 border border-violet-500/20',
-    default: 'bg-slate-700/50 text-slate-300 border border-slate-600/30',
-  }
+/* ── Style constants ─────────────────────────────────── */
+
+const TAG_STYLES: { [key: string]: { bg: string; text: string; border: string } } = {
+  Epic: { bg: 'rgba(139,92,246,0.15)', text: '#c4b5fd', border: 'rgba(139,92,246,0.2)' },
+  UI: { bg: 'rgba(14,165,233,0.15)', text: '#7dd3fc', border: 'rgba(14,165,233,0.2)' },
+  Backend: { bg: 'rgba(168,85,247,0.15)', text: '#d8b4fe', border: 'rgba(168,85,247,0.2)' },
+  QA: { bg: 'rgba(16,185,129,0.15)', text: '#6ee7b7', border: 'rgba(16,185,129,0.2)' },
+  Arch: { bg: 'rgba(245,158,11,0.15)', text: '#fcd34d', border: 'rgba(245,158,11,0.2)' },
+  Frontend: { bg: 'rgba(6,182,212,0.15)', text: '#67e8f9', border: 'rgba(6,182,212,0.2)' },
+  Docs: { bg: 'rgba(100,116,139,0.15)', text: '#94a3b8', border: 'rgba(100,116,139,0.2)' },
+}
+
+const P_STYLES: { [key: string]: { bg: string; text: string; border: string } } = {
+  P0: { bg: 'rgba(239,68,68,0.15)', text: '#fca5a5', border: 'rgba(239,68,68,0.2)' },
+  P1: { bg: 'rgba(245,158,11,0.15)', text: '#fde68a', border: 'rgba(245,158,11,0.2)' },
+  P2: { bg: 'rgba(234,179,8,0.15)', text: '#fef08a', border: 'rgba(234,179,8,0.2)' },
+  P3: { bg: 'rgba(100,116,139,0.15)', text: '#94a3b8', border: 'rgba(100,116,139,0.2)' },
+}
+
+const DEFAULT_BADGE = { bg: 'rgba(51,65,85,0.5)', text: '#cbd5e1', border: 'rgba(51,65,85,0.3)' }
+
+const inputStyle: React.CSSProperties = {
+  width: '100%',
+  background: 'rgba(30,41,59,0.5)',
+  border: '1px solid rgba(51,65,85,0.6)',
+  borderRadius: 8,
+  padding: '8px 12px',
+  fontSize: 14,
+  color: '#e2e8f0',
+  outline: 'none',
+  transition: 'border-color 0.15s',
+  fontFamily: 'inherit',
+}
+
+const selectStyle: React.CSSProperties = {
+  ...inputStyle,
+  appearance: 'none' as const,
+  cursor: 'pointer',
+  paddingRight: 32,
+}
+
+const textareaStyle: React.CSSProperties = {
+  ...inputStyle,
+  resize: 'none' as const,
+}
+
+/* ── Sub-components ──────────────────────────────────── */
+
+function Badge({ children, style: badgeStyle }: { children: React.ReactNode; style?: { bg: string; text: string; border: string } }) {
+  const s = badgeStyle || DEFAULT_BADGE
   return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium ${styles[variant] || styles.default}`}>
+    <span style={{
+      display: 'inline-flex',
+      alignItems: 'center',
+      padding: '2px 8px',
+      borderRadius: 6,
+      fontSize: 12,
+      fontWeight: 500,
+      background: s.bg,
+      color: s.text,
+      border: `1px solid ${s.border}`,
+    }}>
       {children}
     </span>
   )
 }
 
-const FieldLabel = ({ children }: { children: React.ReactNode }) => (
-  <label className="block text-xs font-medium text-slate-400 uppercase tracking-wider mb-1.5">{children}</label>
-)
+function FieldLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <label style={{
+      display: 'block',
+      fontSize: 11,
+      fontWeight: 600,
+      color: '#94a3b8',
+      textTransform: 'uppercase',
+      letterSpacing: '0.05em',
+      marginBottom: 6,
+    }}>
+      {children}
+    </label>
+  )
+}
 
-const TextArea = ({ label, placeholder, rows = 3, value, onChange }: { label: string; placeholder?: string; rows?: number; value: string; onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void }) => (
-  <div>
-    <FieldLabel>{label}</FieldLabel>
-    <textarea 
-      placeholder={placeholder} 
-      rows={rows}
-      value={value}
-      onChange={onChange}
-      className="w-full bg-slate-800/50 border border-slate-700/60 rounded-lg px-3 py-2.5 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/40 resize-none transition-all"
-    />
-  </div>
-)
+function SelectArrow() {
+  return (
+    <svg
+      width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth={2}
+      style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}
+    >
+      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+    </svg>
+  )
+}
 
-const Select = ({ label, value, options, onChange }: { label: string; value: string; options: string[]; onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void }) => (
-  <div>
-    <FieldLabel>{label}</FieldLabel>
-    <div className="relative">
-      <select 
-        value={value} 
-        onChange={onChange}
-        className="w-full appearance-none bg-slate-800/50 border border-slate-700/60 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/40 pr-8 transition-all cursor-pointer"
-      >
-        {options.map((o) => (
-          <option key={o} value={o}>{o || '—'}</option>
-        ))}
-      </select>
-      <svg className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-      </svg>
-    </div>
-  </div>
-)
-
-const Input = ({ label, value, placeholder, onChange }: { label: string; value: string; placeholder?: string; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void }) => (
-  <div>
-    <FieldLabel>{label}</FieldLabel>
-    <input 
-      type="text" 
-      value={value} 
-      onChange={onChange}
-      placeholder={placeholder} 
-      className="w-full bg-slate-800/50 border border-slate-700/60 rounded-lg px-3 py-2 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/40 transition-all"
-    />
-  </div>
-)
+/* ── Main component ──────────────────────────────────── */
 
 export function TaskModal({
   adapter,
@@ -121,7 +153,6 @@ export function TaskModal({
   const [draftScope, setDraftScope] = useState(String(task.scope ?? ''))
   const [draftAcceptanceRaw, setDraftAcceptanceRaw] = useState((task.acceptanceCriteria ?? []).join('\n'))
 
-  // Fetch agents on mount
   useEffect(() => {
     fetch('/api/agents')
       .then((res) => res.json())
@@ -172,156 +203,259 @@ export function TaskModal({
     }
   }
 
-  const getPriorityVariant = (priority: Priority) => {
-    return priority === 'P0' ? 'p0' : 'default'
-  }
-
-  const getTagVariant = (tag?: string) => {
-    if (!tag) return 'default'
-    const variants: { [key: string]: string } = {
-      Epic: 'epic',
-      UI: 'default',
-      Backend: 'default',
-      QA: 'default',
-      Arch: 'default',
-      Frontend: 'default',
-      Docs: 'default',
-    }
-    return variants[tag] || 'default'
-  }
+  const tagStyle = task.tag ? TAG_STYLES[task.tag] : undefined
+  const pStyle = P_STYLES[task.priority] || DEFAULT_BADGE
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center p-4 z-50">
-      <div 
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm cursor-pointer" 
+    <div style={{
+      position: 'fixed',
+      inset: 0,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: 16,
+      zIndex: 50,
+    }}>
+      {/* Backdrop */}
+      <div
         onClick={onClose}
-        style={{ animation: "fadeIn 0.15s ease-out" }}
+        style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(0,0,0,0.6)',
+          backdropFilter: 'blur(4px)',
+          cursor: 'pointer',
+          animation: 'fadeIn 0.15s ease-out',
+        }}
       />
-      
-      <div 
-        className="relative w-full max-w-2xl bg-slate-900 border border-slate-700/50 rounded-2xl shadow-2xl shadow-black/40 overflow-hidden flex flex-col max-h-[90vh]"
-        style={{ animation: "slideUp 0.2s ease-out" }}
-      >
+
+      {/* Modal */}
+      <div style={{
+        position: 'relative',
+        width: '100%',
+        maxWidth: 672,
+        maxHeight: '90vh',
+        background: '#0f172a',
+        border: '1px solid rgba(51,65,85,0.5)',
+        borderRadius: 16,
+        boxShadow: '0 25px 50px -12px rgba(0,0,0,0.4)',
+        overflow: 'hidden',
+        display: 'flex',
+        flexDirection: 'column',
+        animation: 'slideUp 0.2s ease-out',
+      }}>
+
         {/* Header */}
-        <div className="flex items-start justify-between px-6 pt-5 pb-4 border-b border-slate-700/40 flex-shrink-0">
-          <div className="flex-1 min-w-0 pr-4">
-            <div className="flex items-center gap-2 mb-2">
-              {task.tag && <Badge variant={getTagVariant(task.tag)}>{task.tag}</Badge>}
-              <Badge variant={getPriorityVariant(task.priority)}>{task.priority}</Badge>
-              <span className="text-xs text-slate-500 font-mono">{task.id}</span>
+        <div style={{
+          display: 'flex',
+          alignItems: 'flex-start',
+          justifyContent: 'space-between',
+          padding: '20px 24px 16px',
+          borderBottom: '1px solid rgba(51,65,85,0.4)',
+          flexShrink: 0,
+        }}>
+          <div style={{ flex: 1, minWidth: 0, paddingRight: 16 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+              {tagStyle && <Badge style={tagStyle}>{task.tag}</Badge>}
+              <Badge style={pStyle}>{task.priority}</Badge>
+              <span style={{ fontSize: 12, color: '#64748b', fontFamily: 'monospace' }}>{task.id}</span>
             </div>
-            <input 
-              type="text" 
-              value={draftTitle} 
+            <input
+              type="text"
+              value={draftTitle}
               onChange={(e) => setDraftTitle(e.target.value)}
-              className="w-full text-lg font-semibold text-slate-100 bg-transparent border-none outline-none focus:ring-0 p-0 placeholder-slate-500"
               placeholder="Enter title..."
+              style={{
+                width: '100%',
+                fontSize: 18,
+                fontWeight: 600,
+                color: '#f1f5f9',
+                background: 'transparent',
+                border: 'none',
+                outline: 'none',
+                padding: 0,
+                fontFamily: 'inherit',
+              }}
             />
           </div>
-          <button 
+          <button
             onClick={onClose}
-            className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
+            style={{
+              flexShrink: 0,
+              width: 32,
+              height: 32,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderRadius: 8,
+              color: '#94a3b8',
+              background: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+              transition: 'all 0.15s',
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = '#e2e8f0'; e.currentTarget.style.background = 'rgba(30,41,59,0.8)' }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = '#94a3b8'; e.currentTarget.style.background = 'transparent' }}
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
 
         {/* Tabs */}
-        <div className="flex px-6 border-b border-slate-700/40 flex-shrink-0">
+        <div style={{
+          display: 'flex',
+          padding: '0 24px',
+          borderBottom: '1px solid rgba(51,65,85,0.4)',
+          flexShrink: 0,
+        }}>
           {(['details', 'history'] as const).map((tab) => (
-            <button 
+            <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`px-4 py-2.5 text-sm font-medium capitalize transition-colors relative ${
-                activeTab === tab ? 'text-blue-400' : 'text-slate-400 hover:text-slate-200'
-              }`}
+              style={{
+                padding: '10px 16px',
+                fontSize: 14,
+                fontWeight: 500,
+                textTransform: 'capitalize',
+                color: activeTab === tab ? '#60a5fa' : '#94a3b8',
+                background: 'transparent',
+                border: 'none',
+                borderBottom: activeTab === tab ? '2px solid #60a5fa' : '2px solid transparent',
+                cursor: 'pointer',
+                transition: 'all 0.15s',
+                fontFamily: 'inherit',
+                position: 'relative',
+              }}
             >
               {tab}
-              {activeTab === tab && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-400 rounded-full" />}
             </button>
           ))}
         </div>
 
         {/* Body */}
-        <div className="px-6 py-5 overflow-y-auto flex-1">
+        <div style={{
+          padding: '20px 24px',
+          overflowY: 'auto',
+          flex: 1,
+        }}>
           {error && (
-            <div className="bg-red-900/20 border border-red-700/50 rounded-lg p-4 text-sm text-red-300 mb-5">
-              <strong className="font-semibold">Error:</strong> {error}
+            <div style={{
+              background: 'rgba(127,29,29,0.2)',
+              border: '1px solid rgba(185,28,28,0.5)',
+              borderRadius: 8,
+              padding: 16,
+              fontSize: 14,
+              color: '#fca5a5',
+              marginBottom: 20,
+            }}>
+              <strong style={{ fontWeight: 600 }}>Error:</strong> {error}
             </div>
           )}
 
           {activeTab === 'details' && (
-            <div className="space-y-5">
-              <div className="grid grid-cols-3 gap-4">
-                <Select 
-                  label="Status" 
-                  value={draftLane} 
-                  options={LANES.map(l => LANE_DISPLAY[l])}
-                  onChange={(e) => {
-                    const laneKey = Object.entries(LANE_DISPLAY).find(([, display]) => display === e.target.value)?.[0] as BoardLane
-                    if (laneKey) setDraftLane(laneKey)
-                  }}
-                />
-                <Select 
-                  label="Priority" 
-                  value={draftPriority} 
-                  options={PRIORITIES}
-                  onChange={(e) => setDraftPriority(e.target.value as Priority)}
-                />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+              {/* Status / Priority / Owner row */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 }}>
+                <div>
+                  <FieldLabel>Status</FieldLabel>
+                  <div style={{ position: 'relative' }}>
+                    <select
+                      value={LANE_DISPLAY[draftLane]}
+                      onChange={(e) => {
+                        const laneKey = Object.entries(LANE_DISPLAY).find(([, display]) => display === e.target.value)?.[0] as BoardLane
+                        if (laneKey) setDraftLane(laneKey)
+                      }}
+                      style={selectStyle}
+                    >
+                      {LANES.map((l) => (
+                        <option key={l} value={LANE_DISPLAY[l]}>{LANE_DISPLAY[l]}</option>
+                      ))}
+                    </select>
+                    <SelectArrow />
+                  </div>
+                </div>
+
+                <div>
+                  <FieldLabel>Priority</FieldLabel>
+                  <div style={{ position: 'relative' }}>
+                    <select
+                      value={draftPriority}
+                      onChange={(e) => setDraftPriority(e.target.value as Priority)}
+                      style={selectStyle}
+                    >
+                      {PRIORITIES.map((p) => (
+                        <option key={p} value={p}>{p}</option>
+                      ))}
+                    </select>
+                    <SelectArrow />
+                  </div>
+                </div>
+
                 <div>
                   <FieldLabel>Owner</FieldLabel>
-                  <div className="relative">
-                    <select 
+                  <div style={{ position: 'relative' }}>
+                    <select
                       value={draftOwner}
                       onChange={(e) => setDraftOwner(e.target.value)}
-                      className="w-full appearance-none bg-slate-800/50 border border-slate-700/60 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/40 pr-8 transition-all cursor-pointer"
+                      style={selectStyle}
                     >
                       <option value="">—</option>
-                      {agents.map(a => (
+                      {agents.map((a) => (
                         <option key={a.id} value={a.id}>{a.name}</option>
                       ))}
                     </select>
-                    <svg className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
+                    <SelectArrow />
                   </div>
                 </div>
               </div>
 
-              <div className="border-t border-slate-700/30" />
+              <div style={{ borderTop: '1px solid rgba(51,65,85,0.3)' }} />
 
-              <TextArea 
-                label="Problem" 
-                placeholder="Why does this task exist?" 
-                rows={3}
-                value={draftProblem}
-                onChange={(e) => setDraftProblem(e.target.value)}
-              />
+              {/* Problem */}
+              <div>
+                <FieldLabel>Problem</FieldLabel>
+                <textarea
+                  placeholder="Why does this task exist?"
+                  rows={3}
+                  value={draftProblem}
+                  onChange={(e) => setDraftProblem(e.target.value)}
+                  style={textareaStyle}
+                />
+              </div>
 
-              <TextArea 
-                label="Scope" 
-                placeholder="What is in/out of scope?" 
-                rows={3}
-                value={draftScope}
-                onChange={(e) => setDraftScope(e.target.value)}
-              />
+              {/* Scope */}
+              <div>
+                <FieldLabel>Scope</FieldLabel>
+                <textarea
+                  placeholder="What is in/out of scope?"
+                  rows={3}
+                  value={draftScope}
+                  onChange={(e) => setDraftScope(e.target.value)}
+                  style={textareaStyle}
+                />
+              </div>
 
-              <TextArea 
-                label="Acceptance Criteria" 
-                placeholder="One criterion per line" 
-                rows={4}
-                value={draftAcceptanceRaw}
-                onChange={(e) => setDraftAcceptanceRaw(e.target.value)}
-              />
+              {/* Acceptance Criteria */}
+              <div>
+                <FieldLabel>Acceptance Criteria</FieldLabel>
+                <textarea
+                  placeholder="One criterion per line"
+                  rows={4}
+                  value={draftAcceptanceRaw}
+                  onChange={(e) => setDraftAcceptanceRaw(e.target.value)}
+                  style={textareaStyle}
+                />
+              </div>
 
-              <div className="border-t border-slate-700/30" />
+              <div style={{ borderTop: '1px solid rgba(51,65,85,0.3)' }} />
 
-              <div className="flex items-center gap-6 text-xs text-slate-500">
-                <span>Created <span className="text-slate-400">{fmtWhen(task.createdAt)}</span></span>
-                <span>Updated <span className="text-slate-400">{fmtWhen(task.updatedAt)}</span></span>
-                <span><span className="text-slate-400">{task.statusHistory?.length ?? 0}</span> event{(task.statusHistory?.length ?? 0) !== 1 ? 's' : ''}</span>
+              {/* Metadata */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 24, fontSize: 12, color: '#64748b' }}>
+                <span>Created <span style={{ color: '#94a3b8' }}>{fmtWhen(task.createdAt)}</span></span>
+                <span>Updated <span style={{ color: '#94a3b8' }}>{fmtWhen(task.updatedAt)}</span></span>
+                <span><span style={{ color: '#94a3b8' }}>{task.statusHistory?.length ?? 0}</span> event{(task.statusHistory?.length ?? 0) !== 1 ? 's' : ''}</span>
               </div>
             </div>
           )}
@@ -329,21 +463,27 @@ export function TaskModal({
           {activeTab === 'history' && (
             <div>
               {(task.statusHistory?.length ?? 0) > 0 ? (
-                <div className="space-y-2">
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {(task.statusHistory ?? []).map((h, idx) => (
-                    <div key={`${h.at}-${idx}`} className="bg-slate-800/50 border border-slate-700/40 rounded-lg p-3 text-sm">
-                      <div className="font-medium text-white">
+                    <div key={`${h.at}-${idx}`} style={{
+                      background: 'rgba(30,41,59,0.5)',
+                      border: '1px solid rgba(51,65,85,0.4)',
+                      borderRadius: 8,
+                      padding: 12,
+                      fontSize: 14,
+                    }}>
+                      <div style={{ fontWeight: 500, color: '#fff' }}>
                         {h.to}
-                        {h.from && <span className="text-slate-400 font-normal"> ← {h.from}</span>}
+                        {h.from && <span style={{ color: '#94a3b8', fontWeight: 400 }}> ← {h.from}</span>}
                       </div>
-                      {h.note && <div className="text-slate-400 mt-1 text-xs">{h.note}</div>}
-                      <div className="text-xs text-slate-500 mt-1">{fmtWhen(h.at)}</div>
+                      {h.note && <div style={{ color: '#94a3b8', marginTop: 4, fontSize: 12 }}>{h.note}</div>}
+                      <div style={{ fontSize: 12, color: '#64748b', marginTop: 4 }}>{fmtWhen(h.at)}</div>
                     </div>
                   ))}
                 </div>
               ) : (
-                <div className="py-8 text-center text-sm text-slate-500">
-                  <svg className="w-8 h-8 mx-auto mb-2 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div style={{ padding: '32px 0', textAlign: 'center', fontSize: 14, color: '#64748b' }}>
+                  <svg width="32" height="32" fill="none" stroke="#475569" viewBox="0 0 24 24" style={{ margin: '0 auto 8px' }}>
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                   No history yet
@@ -354,22 +494,55 @@ export function TaskModal({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-end px-6 py-4 border-t border-slate-700/40 bg-slate-900/80 flex-shrink-0">
-          <div className="flex items-center gap-2">
-            <button 
-              onClick={onClose}
-              className="px-4 py-2 text-sm text-slate-300 hover:text-slate-100 transition-colors"
-            >
-              Cancel
-            </button>
-            <Button
-              onClick={save}
-              disabled={busy || !dirty}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium rounded-lg transition-colors shadow-lg shadow-blue-600/20"
-            >
-              {busy ? 'Saving…' : dirty ? 'Save Changes' : 'Saved'}
-            </Button>
-          </div>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'flex-end',
+          padding: '16px 24px',
+          borderTop: '1px solid rgba(51,65,85,0.4)',
+          background: 'rgba(15,23,42,0.8)',
+          flexShrink: 0,
+          gap: 8,
+        }}>
+          <button
+            onClick={onClose}
+            style={{
+              padding: '8px 16px',
+              fontSize: 14,
+              color: '#cbd5e1',
+              background: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+              transition: 'color 0.15s',
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = '#f1f5f9' }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = '#cbd5e1' }}
+          >
+            Cancel
+          </button>
+          <button
+            onClick={save}
+            disabled={busy || !dirty}
+            style={{
+              padding: '8px 16px',
+              fontSize: 14,
+              fontWeight: 500,
+              color: '#fff',
+              background: busy || !dirty ? '#334155' : '#2563eb',
+              border: 'none',
+              borderRadius: 8,
+              cursor: busy || !dirty ? 'default' : 'pointer',
+              fontFamily: 'inherit',
+              transition: 'background 0.15s',
+              boxShadow: busy || !dirty ? 'none' : '0 10px 15px -3px rgba(37,99,235,0.2)',
+              opacity: busy || !dirty ? 0.6 : 1,
+            }}
+            onMouseEnter={(e) => { if (!busy && dirty) e.currentTarget.style.background = '#3b82f6' }}
+            onMouseLeave={(e) => { if (!busy && dirty) e.currentTarget.style.background = '#2563eb' }}
+          >
+            {busy ? 'Saving…' : dirty ? 'Save Changes' : 'Saved'}
+          </button>
         </div>
 
         <style>{`
