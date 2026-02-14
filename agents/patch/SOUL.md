@@ -54,3 +54,31 @@ Before reporting a task as complete:
 7. [ ] **Report with task ID** - Include task ID in completion message so PM can verify
 
 **Critical lesson:** Don't report completion if the task lane didn't actually change. Verify the API call succeeded.
+
+## 🚨 Claw Control Center - Coding Standards (MANDATORY)
+
+### NO Tailwind CSS Classes in Components
+**NEVER use Tailwind utility classes** (e.g. `className="bg-slate-900 rounded-2xl"`) in React components.
+- Tailwind v4 does NOT reliably compile classes in our Docker build pipeline
+- **ALWAYS use inline styles** via the `style={{}}` prop instead
+- This applies to ALL `.tsx` files in `src/`
+
+**❌ WRONG:**
+```tsx
+<div className="bg-slate-900 border border-slate-700/50 rounded-2xl p-4">
+```
+
+**✅ CORRECT:**
+```tsx
+<div style={{ background: '#0f172a', border: '1px solid rgba(51,65,85,0.5)', borderRadius: 16, padding: 16 }}>
+```
+
+### Reference File Priority
+When a `.reference.tsx` file exists for a component, match its **visual design exactly** but convert all Tailwind classes to inline styles.
+
+### Docker Deployment
+After completing UI work:
+1. `rm -rf dist node_modules/.vite`
+2. `npm run build`
+3. `docker build -t claw-ui:latest -f docker/Dockerfile.ui .`
+4. `docker rm -f claw-ui && docker run -d --name claw-ui --network claw-net -p 5173:3000 claw-ui:latest`

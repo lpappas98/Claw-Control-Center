@@ -1,3 +1,5 @@
+# ⚠️ Before any UI work: Read /home/openclaw/.openclaw/workspace/CODING_STANDARDS.md
+
 # HEARTBEAT.md - Forge (Backend Developer)
 
 ## Role
