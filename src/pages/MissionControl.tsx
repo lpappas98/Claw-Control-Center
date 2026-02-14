@@ -204,18 +204,24 @@ export function MissionControl({
     
     // Simple: just map persisted tasks to HomeTask format
     // Use task.lane directly - no inference, no worker merging
-    const allTasks: HomeTask[] = persistedTasks.map((t) => ({
-      id: t.id,
-      title: t.title,
-      priority: t.priority,
-      lane: t.lane as BoardLane,
-      tag: t.tag,
-      details: t,
-      detailsMatch: 'id',
-    }))
+    const allTasks: HomeTask[] = persistedTasks.map((t) => {
+      // Resolve agent name from owner ID
+      const ownerAgent = agents.find(a => a.id === t.owner)
+      return {
+        id: t.id,
+        title: t.title,
+        priority: t.priority,
+        lane: t.lane as BoardLane,
+        tag: t.tag,
+        agent: ownerAgent?.name ?? t.owner,
+        agentEmoji: ownerAgent?.emoji,
+        details: t,
+        detailsMatch: 'id',
+      }
+    })
 
     return allTasks
-  }, [persisted.data])
+  }, [persisted.data, agents])
 
   const boardColumns: Array<{ key: BoardLane; title: string }> = [
     { key: 'proposed', title: 'Proposed' },
