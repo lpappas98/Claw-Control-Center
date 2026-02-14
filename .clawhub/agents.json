@@ -16,8 +16,8 @@
     "activeTasks": [],
     "metadata": {},
     "createdAt": 1771047212861,
-    "updatedAt": 1771105585921,
-    "lastHeartbeat": 1771105585921
+    "updatedAt": 1771107805086,
+    "lastHeartbeat": 1771107805086
   },
   {
     "id": "dev-1",
@@ -33,15 +33,12 @@
     "status": "online",
     "instanceId": "openclaw-bozeman1",
     "tailscaleIP": "",
-    "currentTask": {
-      "id": "task-ccb64a8dbb329-1771056013768",
-      "title": "Implement redesigned TaskModal component following UI/UX guide"
-    },
+    "currentTask": null,
     "activeTasks": [],
     "metadata": {},
     "createdAt": 1771047212866,
-    "updatedAt": 1771105585925,
-    "lastHeartbeat": 1771105585925
+    "updatedAt": 1771107805090,
+    "lastHeartbeat": 1771107805090
   },
   {
     "id": "dev-2",
@@ -57,15 +54,12 @@
     "status": "online",
     "instanceId": "openclaw-bozeman1",
     "tailscaleIP": "",
-    "currentTask": {
-      "id": "task-95e830ae4e5e4-1771069249845",
-      "title": "Redesign LaneOverflowModal with search, sort, and priority summary"
-    },
+    "currentTask": null,
     "activeTasks": [],
     "metadata": {},
     "createdAt": 1771047212870,
-    "updatedAt": 1771105585930,
-    "lastHeartbeat": 1771105585930
+    "updatedAt": 1771107805093,
+    "lastHeartbeat": 1771107805093
   },
   {
     "id": "qa",
@@ -85,8 +79,8 @@
     "activeTasks": [],
     "metadata": {},
     "createdAt": 1771047212875,
-    "updatedAt": 1771105601723,
-    "lastHeartbeat": 1771105601723
+    "updatedAt": 1771107805098,
+    "lastHeartbeat": 1771107805098
   },
   {
     "id": "architect",
@@ -102,14 +96,11 @@
     "status": "online",
     "instanceId": "openclaw-bozeman1",
     "tailscaleIP": "",
-    "currentTask": {
-      "id": "task-50ff48a80b91-1770789048858",
-      "title": "P0 Epic: Projects backend (bridge persistence + APIs)"
-    },
+    "currentTask": null,
     "activeTasks": [],
     "metadata": {},
     "createdAt": 1771047212879,
-    "updatedAt": 1771105585940,
-    "lastHeartbeat": 1771105585940
+    "updatedAt": 1771107805101,
+    "lastHeartbeat": 1771107805101
   }
 ]

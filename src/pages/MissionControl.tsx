@@ -8,7 +8,7 @@ import { Badge } from '../components/Badge'
 import { TaskModal } from '../components/TaskModal'
 import { TaskListModal } from '../components/TaskListModal'
 import { CreateTaskModal } from '../components/CreateTaskModal'
-import type { ActivityEvent, BoardLane, LiveSnapshot, Priority, SystemStatus, Task, WorkerHeartbeat } from '../types'
+import type { ActivityEvent, BoardLane, LiveSnapshot, Priority, SystemStatus, Task, WorkerHeartbeat, Blocker } from '../types'
 
 const MAX_TASKS_PER_LANE = 5
 
@@ -86,6 +86,8 @@ function activityActor(e: ActivityEvent): string | null {
   return null
 }
 
+const NAV_ITEMS = ['Mission Control', 'Projects', 'Activity', 'Kanban', 'Recurring', 'Integrations', 'System', 'Config', 'Docs'] as const
+
 export function MissionControl({
   adapter,
 }: {
@@ -129,6 +131,8 @@ export function MissionControl({
   const [creating, setCreating] = useState(false)
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [overflowLane, setOverflowLane] = useState<{ lane: BoardLane; tasks: Task[] } | null>(null)
+  const [activeNav, setActiveNav] = useState<typeof NAV_ITEMS[number]>('Mission Control')
+  const [blockedExpanded, setBlockedExpanded] = useState(true)
 
   // WebSocket for real-time updates - TEMPORARILY DISABLED due to connection storm
   // TODO: Re-enable after fixing reconnect logic
@@ -257,15 +261,75 @@ export function MissionControl({
   }
 
   return (
-    <main className="main-grid" style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '16px 20px' }}>
-      {live.error && (
-        <Alert variant="destructive">
-          <strong>Live snapshot error:</strong> {live.error.message}
-          <div className="muted" style={{ marginTop: 6 }}>
-            Bridge URL: http://{window.location.hostname}:8787. If viewing from another device, use the server's IP (not localhost).
+    <div style={{ minHeight: '100vh', background: '#080c16', color: '#e2e8f0', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif", display: 'flex', flexDirection: 'column' }}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap');
+        * { box-sizing: border-box; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 3px; }
+      `}</style>
+
+      {/* Navigation Bar */}
+      <header style={{
+        borderBottom: '1px solid rgba(30,41,59,0.7)',
+        background: 'rgba(8,12,22,0.95)',
+        backdropFilter: 'blur(12px)',
+        position: 'sticky',
+        top: 0,
+        zIndex: 30,
+      }}>
+        <div style={{ maxWidth: 1440, margin: '0 auto', padding: '0 20px', display: 'flex', alignItems: 'center', height: 48 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginRight: 32, flexShrink: 0 }}>
+            <div style={{
+              width: 26,
+              height: 26,
+              borderRadius: 7,
+              background: 'linear-gradient(135deg, #3b82f6, #7c3aed)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+            </div>
+            <span style={{ fontSize: 14, fontWeight: 700, color: '#f1f5f9', letterSpacing: '-0.02em' }}>Claw Control</span>
+            <span style={{ fontSize: 11, color: '#334155', fontWeight: 500 }}>local</span>
           </div>
-        </Alert>
-      )}
+          <nav style={{ display: 'flex', gap: 2, overflowX: 'auto', flex: 1 }}>
+            {NAV_ITEMS.map(n => (
+              <button 
+                key={n} 
+                onClick={() => setActiveNav(n)} 
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: 6,
+                  fontSize: 12,
+                  fontWeight: 500,
+                  whiteSpace: 'nowrap',
+                  border: 'none',
+                  cursor: 'pointer',
+                  background: activeNav === n ? 'rgba(30,41,59,0.7)' : 'transparent',
+                  color: activeNav === n ? '#f1f5f9' : '#64748b',
+                  transition: 'all 0.15s',
+                  fontFamily: 'inherit',
+                }}
+              >
+                {n}
+              </button>
+            ))}
+          </nav>
+        </div>
+      </header>
+
+      <main className="main-grid" style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '16px 20px', flex: 1 }}>
+        {live.error && (
+          <Alert variant="destructive">
+            <strong>Live snapshot error:</strong> {live.error.message}
+            <div className="muted" style={{ marginTop: 6 }}>
+              Bridge URL: http://{window.location.hostname}:8787. If viewing from another device, use the server's IP (not localhost).
+            </div>
+          </Alert>
+        )}
 
       {/* Agent Strip - Adaptive layout */}
       <div style={{ display: 'flex', gap: '10px', alignItems: 'stretch' }}>
@@ -391,6 +455,136 @@ export function MissionControl({
           )}
         </div>
       </div>
+
+      {/* Blocked Tasks Bar */}
+      {blockedTasks.length > 0 && (
+        <div style={{
+          background: 'rgba(239,68,68,0.04)',
+          border: '1px solid rgba(239,68,68,0.12)',
+          borderRadius: 10,
+          overflow: 'hidden',
+        }}>
+          {/* Header bar — always visible */}
+          <div
+            onClick={() => setBlockedExpanded(!blockedExpanded)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              padding: '8px 16px',
+              cursor: 'pointer',
+              userSelect: 'none',
+            }}
+          >
+            <span style={{
+              fontSize: 10,
+              fontWeight: 600,
+              display: 'inline-block',
+              transition: 'transform 0.2s',
+              transform: blockedExpanded ? 'rotate(90deg)' : 'rotate(0deg)',
+              color: '#f87171',
+            }}>▶</span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{
+                width: 7,
+                height: 7,
+                borderRadius: '50%',
+                background: '#f87171',
+                display: 'inline-block',
+                boxShadow: '0 0 6px rgba(248,113,113,0.4)',
+              }} />
+              <span style={{ fontSize: 11, fontWeight: 700, color: '#fca5a5', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Blocked</span>
+            </span>
+            <span style={{
+              fontSize: 10,
+              fontWeight: 600,
+              color: '#f87171',
+              background: 'rgba(239,68,68,0.12)',
+              padding: '2px 8px',
+              borderRadius: 10,
+            }}>
+              {blockedTasks.length}
+            </span>
+            {!blockedExpanded && (
+              <div style={{ display: 'flex', gap: 8, marginLeft: 8, flex: 1, overflow: 'hidden' }}>
+                {blockedTasks.slice(0, 3).map(t => (
+                  <span key={t.id} style={{
+                    fontSize: 11,
+                    color: '#fca5a5',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                  }}>
+                    {t.title}
+                  </span>
+                ))}
+                {blockedTasks.length > 3 && <span style={{ fontSize: 11, color: '#fca5a5' }}>+{blockedTasks.length - 3} more</span>}
+              </div>
+            )}
+          </div>
+
+          {/* Expanded: horizontal task cards */}
+          {blockedExpanded && blockedTasks.length > 0 && (
+            <div style={{
+              padding: '4px 16px 12px',
+              display: 'flex',
+              gap: 8,
+              overflowX: 'auto',
+            }}>
+              {blockedTasks.map(task => {
+                const tc = tagColors[task.tag ?? 'Docs'] || { bg: 'rgba(100,116,139,0.15)', text: '#94a3b8' }
+                const pc = priorityColors[task.priority] || priorityColors.P3
+                return (
+                  <div
+                    key={task.id}
+                    style={{
+                      minWidth: 260,
+                      maxWidth: 320,
+                      flex: '0 0 auto',
+                      background: 'rgba(30,41,59,0.4)',
+                      border: '1px solid rgba(239,68,68,0.15)',
+                      borderLeft: '3px solid #f87171',
+                      borderRadius: 8,
+                      padding: '10px 14px',
+                      cursor: 'pointer',
+                      transition: 'background 0.12s',
+                    }}
+                    onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.background = 'rgba(30,41,59,0.6)'}
+                    onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.background = 'rgba(30,41,59,0.4)'}
+                    onClick={() => setOpenTask(task)}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+                      <span style={{
+                        fontSize: 10,
+                        fontWeight: 600,
+                        padding: '2px 7px',
+                        borderRadius: 4,
+                        background: tc.bg,
+                        color: tc.text,
+                      }}>
+                        {task.tag || 'Task'}
+                      </span>
+                      <span style={{ fontSize: 10, fontWeight: 700, color: pc.text }}>{task.priority}</span>
+                    </div>
+                    <p style={{
+                      fontSize: 12.5,
+                      color: '#e2e8f0',
+                      margin: 0,
+                      lineHeight: 1.4,
+                      display: '-webkit-box',
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: 'vertical' as const,
+                      overflow: 'hidden',
+                    }}>
+                      {task.title}
+                    </p>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Board + Activity */}
       <div style={{ display: 'flex', gap: '14px', alignItems: 'flex-start' }}>
@@ -700,6 +894,7 @@ export function MissionControl({
           highlightLane={overflowLane.lane}
         />
       )}
-    </main>
+      </main>
+    </div>
   )
 }
