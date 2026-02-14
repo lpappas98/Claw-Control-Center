@@ -13,9 +13,10 @@ services:
       - NODE_ENV=production
       - LOG_LEVEL=info
       - PORT=8787
+      - OPENCLAW_WORKSPACE=/data
     volumes:
-      # Persistent data storage
-      - clawhub_data:/data/.clawhub
+      # Persistent data storage (bind mount to existing data)
+      - ./.clawhub:/data/.clawhub
       - ./logs:/app/logs
     networks:
       - claw-net
@@ -49,10 +50,6 @@ services:
       start_period: 20s
     depends_on:
       - bridge
-
-volumes:
-  clawhub_data:
-    driver: local
 
 networks:
   claw-net:
