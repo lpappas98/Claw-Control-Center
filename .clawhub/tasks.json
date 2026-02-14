@@ -2,7 +2,7 @@
   {
     "id": "task-89d5d4f1974da-1771070537948",
     "title": "Implement Feature Detail page with sub-features, tasks, and AI context",
-    "lane": "development",
+    "lane": "review",
     "priority": "P0",
     "owner": "dev-1",
     "problem": "Need feature detail page from file_119: breadcrumb nav, feature header with stats, acceptance criteria checklist, AI context card, dependency chain, expandable sub-features with task tables, activity sidebar",
@@ -28,8 +28,14 @@
       "Screenshot matches file_119 design"
     ],
     "createdAt": "2026-02-14T12:02:17.948Z",
-    "updatedAt": "2026-02-14T12:07:33.673Z",
+    "updatedAt": "2026-02-14T12:10:34.176Z",
     "statusHistory": [
+      {
+        "at": "2026-02-14T12:10:34.176Z",
+        "from": "development",
+        "to": "review",
+        "note": "updated"
+      },
       {
         "at": "2026-02-14T12:07:33.673Z",
         "from": "queued",
@@ -46,7 +52,7 @@
   {
     "id": "task-6049e6e5c7c88-1771070520750",
     "title": "Implement Projects overview page with sidebar, features grid, and activity",
-    "lane": "development",
+    "lane": "review",
     "priority": "P0",
     "owner": "dev-1",
     "problem": "Projects page needs redesign from file_120: sidebar project list, tabbed interface (Overview/Tree/Kanban), project header with stats, features grid, description editor, quick links, activity feed",
@@ -69,8 +75,14 @@
       "Screenshot matches file_120 design"
     ],
     "createdAt": "2026-02-14T12:02:00.750Z",
-    "updatedAt": "2026-02-14T12:08:23.869Z",
+    "updatedAt": "2026-02-14T12:10:50.534Z",
     "statusHistory": [
+      {
+        "at": "2026-02-14T12:10:50.534Z",
+        "from": "development",
+        "to": "review",
+        "note": "updated"
+      },
       {
         "at": "2026-02-14T12:08:23.869Z",
         "from": "queued",

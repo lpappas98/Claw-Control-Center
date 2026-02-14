@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "features": {
+    "feat-1": {
+      "acceptanceCriteria": [
+        { "text": "Display current weather information", "done": true },
+        { "text": "Show quick access to active trips", "done": true },
+        { "text": "Display trending destinations carousel", "done": false },
+        { "text": "Show saved places count", "done": false },
+        { "text": "Mobile responsive layout", "done": false }
+      ],
+      "aiContext": {
+        "reasoning": "The Home Dashboard is a critical entry point for users. It should provide at-a-glance information about their travel plans and quick access to key features. The dashboard consolidates multiple pieces of information into a single, easily scannable interface. Based on the user research, travelers want to quickly see their current trips and discover new destinations.",
+        "confidence": 82,
+        "generatedAt": "2026-02-14T12:00:00Z",
+        "model": "TARS"
+      },
+      "tasks": [
+        { "id": "task-1", "title": "Design dashboard layout mockup", "status": "done", "priority": "p0", "tag": "design", "assignee": "Alice", "done": true },
+        { "id": "task-2", "title": "Implement weather widget component", "status": "in_progress", "priority": "p0", "tag": "frontend", "assignee": "Bob", "done": false },
+        { "id": "task-3", "title": "Create trips carousel component", "status": "planned", "priority": "p1", "tag": "frontend", "assignee": null, "done": false },
+        { "id": "task-4", "title": "Setup backend API endpoints", "status": "planned", "priority": "p1", "tag": "backend", "assignee": "Charlie", "done": false },
+        { "id": "task-5", "title": "Add responsive breakpoints", "status": "planned", "priority": "p2", "tag": "frontend", "assignee": null, "done": false }
+      ]
+    }
+  }
+}
