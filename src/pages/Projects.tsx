@@ -535,39 +535,97 @@ export default function ProjectsApp() {
   if (!project) return null;
 
   return (
-    <div style={{ maxWidth: 1200, margin: "0 auto", padding: "16px 20px" }}>
-      {/* Project bar + tabs */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <h1 style={{ fontSize: 18, fontWeight: 700, color: "#f1f5f9", margin: 0, cursor: selectedFeature ? "pointer" : "default" }}
-            onClick={() => setSelectedFeature(null)}>{project.name}</h1>
-          <span style={{ fontSize: 10, fontWeight: 600, padding: "3px 8px", borderRadius: 5, background: project.status === "active" ? "rgba(16,185,129,0.12)" : "rgba(100,116,139,0.12)", color: project.status === "active" ? "#6ee7b7" : "#64748b" }}>{project.status}</span>
-          <span style={{ fontSize: 12, color: "#475569" }}>{aspects.length} features · {totalTasks} tasks · {doneTasks} done</span>
+    <div style={{ display: "flex", height: "calc(100vh - 48px)" }}>
+      {/* Left sidebar - Project list */}
+      <div style={{
+        width: 280,
+        flexShrink: 0,
+        background: "rgba(15,23,42,0.6)",
+        borderRight: "1px solid rgba(30,41,59,0.5)",
+        display: "flex",
+        flexDirection: "column",
+        overflow: "hidden",
+      }}>
+        {/* Sidebar header */}
+        <div style={{ padding: "16px 16px", borderBottom: "1px solid rgba(30,41,59,0.4)" }}>
+          <span style={{ fontSize: 11, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em" }}>Projects</span>
+          <span style={{ fontSize: 10, fontWeight: 600, color: "#475569", marginLeft: 6 }}>({projects.length})</span>
         </div>
-        {!selectedFeature && (
-          <div style={{ display: "flex", gap: 2 }}>
-            {TABS.map(t => (
-              <button key={t} onClick={() => setActiveTab(t)} style={{
-                padding: "7px 16px", borderRadius: 8, fontSize: 12, fontWeight: 600,
-                border: "none", cursor: "pointer", fontFamily: "inherit",
-                background: activeTab === t ? "rgba(30,41,59,0.6)" : "transparent",
-                color: activeTab === t ? "#f1f5f9" : "#475569",
+
+        {/* Project list */}
+        <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: 2, padding: "8px" }}>
+          {projects.map(p => (
+            <div
+              key={p.id}
+              onClick={() => { setSelectedProjectId(p.id); setSelectedFeature(null); }}
+              style={{
+                padding: "12px 14px",
+                borderRadius: 8,
+                background: selectedProjectId === p.id ? "rgba(59,130,246,0.15)" : "transparent",
+                border: selectedProjectId === p.id ? "1px solid rgba(59,130,246,0.3)" : "1px solid transparent",
+                cursor: "pointer",
                 transition: "all 0.15s",
-              }}>{t}</button>
-            ))}
-          </div>
-        )}
+              }}
+              onMouseEnter={e => {
+                if (selectedProjectId !== p.id) {
+                  (e.currentTarget as HTMLDivElement).style.background = "rgba(30,41,59,0.5)";
+                }
+              }}
+              onMouseLeave={e => {
+                if (selectedProjectId !== p.id) {
+                  (e.currentTarget as HTMLDivElement).style.background = "transparent";
+                }
+              }}
+            >
+              <div style={{ fontSize: 12, fontWeight: 600, color: selectedProjectId === p.id ? "#60a5fa" : "#e2e8f0", marginBottom: 2 }}>{p.name}</div>
+              <div style={{ fontSize: 11, color: "#475569", lineHeight: 1.3 }}>{p.tagline || p.description?.split("\n")[0] || "No description"}</div>
+              {p.status && (
+                <div style={{ marginTop: 6, fontSize: 10, fontWeight: 600, padding: "2px 6px", borderRadius: 4, background: p.status === "active" ? "rgba(16,185,129,0.15)" : "rgba(100,116,139,0.12)", color: p.status === "active" ? "#6ee7b7" : "#64748b", width: "fit-content" }}>
+                  {p.status}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
       </div>
 
-      {/* Views */}
-      <div style={{ ...panel, padding: selectedFeature ? "0 16px" : "0 16px", overflow: "hidden" }}>
-        {selectedFeature && selectedAspect ? (
-          <FeatureDetailView aspect={selectedAspect} tasks={featureTasks} onBack={() => setSelectedFeature(null)} />
-        ) : activeTab === "Overview" ? (
-          <OverviewTab project={project} aspects={aspects} tasks={tasks} activity={activity} onSelectFeature={setSelectedFeature} />
-        ) : (
-          <KanbanTab tasks={tasks} aspects={aspects} onSelectFeature={setSelectedFeature} />
-        )}
+      {/* Main content area */}
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+        {/* Project bar + tabs */}
+        <div style={{ padding: "12px 20px", borderBottom: "1px solid rgba(30,41,59,0.4)", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <h1 style={{ fontSize: 18, fontWeight: 700, color: "#f1f5f9", margin: 0, cursor: selectedFeature ? "pointer" : "default" }}
+              onClick={() => setSelectedFeature(null)}>{project.name}</h1>
+            <span style={{ fontSize: 10, fontWeight: 600, padding: "3px 8px", borderRadius: 5, background: project.status === "active" ? "rgba(16,185,129,0.12)" : "rgba(100,116,139,0.12)", color: project.status === "active" ? "#6ee7b7" : "#64748b" }}>{project.status}</span>
+            <span style={{ fontSize: 12, color: "#475569" }}>{aspects.length} features · {totalTasks} tasks · {doneTasks} done</span>
+          </div>
+          {!selectedFeature && (
+            <div style={{ display: "flex", gap: 2 }}>
+              {TABS.map(t => (
+                <button key={t} onClick={() => setActiveTab(t)} style={{
+                  padding: "7px 16px", borderRadius: 8, fontSize: 12, fontWeight: 600,
+                  border: "none", cursor: "pointer", fontFamily: "inherit",
+                  background: activeTab === t ? "rgba(30,41,59,0.6)" : "transparent",
+                  color: activeTab === t ? "#f1f5f9" : "#475569",
+                  transition: "all 0.15s",
+                }}>{t}</button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Views */}
+        <div style={{ flex: 1, overflow: "auto", padding: "16px 20px" }}>
+          <div style={{ ...panel, padding: selectedFeature ? "0 16px" : "0 16px", overflow: "hidden" }}>
+            {selectedFeature && selectedAspect ? (
+              <FeatureDetailView aspect={selectedAspect} tasks={featureTasks} onBack={() => setSelectedFeature(null)} />
+            ) : activeTab === "Overview" ? (
+              <OverviewTab project={project} aspects={aspects} tasks={tasks} activity={activity} onSelectFeature={setSelectedFeature} />
+            ) : (
+              <KanbanTab tasks={tasks} aspects={aspects} onSelectFeature={setSelectedFeature} />
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
