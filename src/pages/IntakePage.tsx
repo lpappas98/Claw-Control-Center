@@ -573,26 +573,39 @@ export default function IntakePage({}: AppProps) {
       setAnalysisError(null);
       setAnalysisResult(null);
 
-      // Generate unique intake ID
-      const id = `intake-${Date.now()}-${Math.random().toString(36).substring(7)}`;
-      setIntakeId(id);
-
-      const res = await fetch("http://localhost:8787/api/analyze-intake", {
+      // Step 1: Create intake in database
+      const createRes = await fetch("http://localhost:8787/api/intakes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          intakeId: id,
           projectId: selectedProjectId,
           text: intakeText,
         }),
       });
 
-      if (!res.ok) {
-        const err = await res.json();
+      if (!createRes.ok) {
+        const err = await createRes.json();
+        throw new Error(err.message || "Failed to create intake");
+      }
+
+      const createdIntake = await createRes.json();
+      setIntakeId(createdIntake.id);
+
+      // Step 2: Analyze the created intake
+      const analyzeRes = await fetch("http://localhost:8787/api/analyze-intake", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          intakeId: createdIntake.id,
+        }),
+      });
+
+      if (!analyzeRes.ok) {
+        const err = await analyzeRes.json();
         throw new Error(err.message || "Analysis failed");
       }
 
-      const result = await res.json();
+      const result = await analyzeRes.json();
       setAnalysisResult(result);
     } catch (err: any) {
       setAnalysisError(err.message || "Analysis failed");
