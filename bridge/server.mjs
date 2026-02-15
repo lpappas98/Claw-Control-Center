@@ -223,6 +223,8 @@ try {
   } catch {}
 }
 
+console.log(`[Gateway Config] Token: ${gatewayToken ? gatewayToken.substring(0, 8) + '...' : 'EMPTY'}, URL: ${gatewayUrl}`)
+
 // Set env vars for initializeTaskRouter
 process.env.GATEWAY_URL = gatewayUrl
 process.env.GATEWAY_TOKEN = gatewayToken
@@ -233,7 +235,7 @@ const subAgentRegistry = new SubAgentRegistry(SUB_AGENT_REGISTRY_FILE)
 await subAgentRegistry.load()
 
 // Initialize TaskRouter (push-based sub-agent execution model)
-const taskRouter = await initializeTaskRouter(app, newTasksStore, agentsStore, subAgentRegistry)
+const taskRouter = await initializeTaskRouter(app, newTasksStore, agentsStore, subAgentRegistry, { gatewayUrl, gatewayToken })
 
 // Initialize SubAgentTracker (polls gateway every 15s)
 const subAgentTracker = new SubAgentTracker(subAgentRegistry, { gatewayUrl, gatewayToken })

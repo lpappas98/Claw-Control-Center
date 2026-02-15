@@ -7,9 +7,9 @@ import TaskRouter from './taskRouter.mjs'
 import { emitTaskQueued, emitTaskCompleted, emitTaskBlocked } from './taskEvents.mjs'
 import setupTaskRouterEndpoints from './taskRouterEndpoints.mjs'
 
-// Gateway config — bridge reads from env or uses defaults
-const GATEWAY_URL = process.env.GATEWAY_URL || 'http://172.18.0.1:18789'
-const GATEWAY_TOKEN = process.env.GATEWAY_TOKEN || ''
+// Gateway config — set at runtime by initializeTaskRouter()
+let GATEWAY_URL = ''
+let GATEWAY_TOKEN = ''
 
 /**
  * Build the message that will be sent to the sub-agent when it spawns.
@@ -115,7 +115,11 @@ async function spawnSubAgent(agentId, message, label) {
 /**
  * Initialize TaskRouter with stores and attach to server
  */
-export async function initializeTaskRouter(app, tasksStore, agentsStore, subAgentRegistry) {
+export async function initializeTaskRouter(app, tasksStore, agentsStore, subAgentRegistry, options = {}) {
+  // Set gateway config from caller (avoids ESM import-time env var issues)
+  GATEWAY_URL = options.gatewayUrl || process.env.GATEWAY_URL || 'http://172.18.0.1:18789'
+  GATEWAY_TOKEN = options.gatewayToken || process.env.GATEWAY_TOKEN || ''
+  
   console.log('[TaskRouter] Initializing push-based execution model...')
   
   const taskRouter = new TaskRouter(tasksStore, agentsStore)
