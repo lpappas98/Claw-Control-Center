@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { Adapter } from '../adapters/adapter'
 import type { BoardLane, Priority, Task, TaskWork, TaskWorkSummary } from '../types'
+import { deleteTask } from '../services/api'
 
 const LANES: BoardLane[] = ['proposed', 'queued', 'development', 'review', 'done']
 const PRIORITIES: Priority[] = ['P0', 'P1', 'P2', 'P3']
@@ -807,6 +808,8 @@ export function TaskModal({
   const [activeTab, setActiveTab] = useState<'details' | 'workDone' | 'tests' | 'history'>('details')
   const [agents, setAgents] = useState<Agent[]>([])
   const [projects, setProjects] = useState<Project[]>([])
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   const [draftTitle, setDraftTitle] = useState(String(task.title ?? ''))
   const [draftLane, setDraftLane] = useState<BoardLane>(task.lane)
@@ -882,6 +885,22 @@ export function TaskModal({
       setError(e instanceof Error ? e.message : String(e))
     } finally {
       setBusy(false)
+    }
+  }
+
+  async function handleDelete() {
+    setDeleting(true)
+    setError(null)
+    try {
+      await deleteTask(task.id)
+      onClose()
+      // Trigger a page refresh to update the task list
+      window.location.reload()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e))
+      setShowDeleteConfirm(false)
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -1079,52 +1098,82 @@ export function TaskModal({
         <div style={{
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'flex-end',
+          justifyContent: 'space-between',
           padding: '16px 24px',
           borderTop: '1px solid rgba(51,65,85,0.4)',
           background: 'rgba(15,23,42,0.8)',
           flexShrink: 0,
-          gap: 8,
         }}>
+          {/* Delete button (bottom-left) */}
           <button
-            onClick={onClose}
+            onClick={() => setShowDeleteConfirm(true)}
+            disabled={deleting}
             style={{
-              padding: '8px 16px',
-              fontSize: 14,
-              color: '#cbd5e1',
-              background: 'transparent',
-              border: 'none',
-              cursor: 'pointer',
-              fontFamily: 'inherit',
-              transition: 'color 0.15s',
-            }}
-            onMouseEnter={(e) => { e.currentTarget.style.color = '#f1f5f9' }}
-            onMouseLeave={(e) => { e.currentTarget.style.color = '#cbd5e1' }}
-          >
-            Cancel
-          </button>
-          <button
-            onClick={save}
-            disabled={busy || !dirty}
-            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
               padding: '8px 16px',
               fontSize: 14,
               fontWeight: 500,
-              color: '#fff',
-              background: busy || !dirty ? '#334155' : '#2563eb',
+              color: deleting ? '#94a3b8' : '#ef4444',
+              background: 'transparent',
               border: 'none',
-              borderRadius: 8,
-              cursor: busy || !dirty ? 'default' : 'pointer',
+              cursor: deleting ? 'default' : 'pointer',
               fontFamily: 'inherit',
-              transition: 'background 0.15s',
-              boxShadow: busy || !dirty ? 'none' : '0 10px 15px -3px rgba(37,99,235,0.2)',
-              opacity: busy || !dirty ? 0.6 : 1,
+              transition: 'color 0.15s',
+              opacity: deleting ? 0.5 : 1,
             }}
-            onMouseEnter={(e) => { if (!busy && dirty) e.currentTarget.style.background = '#3b82f6' }}
-            onMouseLeave={(e) => { if (!busy && dirty) e.currentTarget.style.background = '#2563eb' }}
+            onMouseEnter={(e) => { if (!deleting) e.currentTarget.style.color = '#dc2626' }}
+            onMouseLeave={(e) => { if (!deleting) e.currentTarget.style.color = '#ef4444' }}
           >
-            {busy ? 'Saving…' : dirty ? 'Save Changes' : 'Saved'}
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+            {deleting ? 'Deleting…' : 'Delete'}
           </button>
+
+          {/* Right side buttons */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <button
+              onClick={onClose}
+              style={{
+                padding: '8px 16px',
+                fontSize: 14,
+                color: '#cbd5e1',
+                background: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+                transition: 'color 0.15s',
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.color = '#f1f5f9' }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = '#cbd5e1' }}
+            >
+              Cancel
+            </button>
+            <button
+              onClick={save}
+              disabled={busy || !dirty}
+              style={{
+                padding: '8px 16px',
+                fontSize: 14,
+                fontWeight: 500,
+                color: '#fff',
+                background: busy || !dirty ? '#334155' : '#2563eb',
+                border: 'none',
+                borderRadius: 8,
+                cursor: busy || !dirty ? 'default' : 'pointer',
+                fontFamily: 'inherit',
+                transition: 'background 0.15s',
+                boxShadow: busy || !dirty ? 'none' : '0 10px 15px -3px rgba(37,99,235,0.2)',
+                opacity: busy || !dirty ? 0.6 : 1,
+              }}
+              onMouseEnter={(e) => { if (!busy && dirty) e.currentTarget.style.background = '#3b82f6' }}
+              onMouseLeave={(e) => { if (!busy && dirty) e.currentTarget.style.background = '#2563eb' }}
+            >
+              {busy ? 'Saving…' : dirty ? 'Save Changes' : 'Saved'}
+            </button>
+          </div>
         </div>
 
         <style>{`
@@ -1132,6 +1181,108 @@ export function TaskModal({
           @keyframes slideUp { from { opacity: 0; transform: translateY(12px) scale(0.98) } to { opacity: 1; transform: translateY(0) scale(1) } }
         `}</style>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      {showDeleteConfirm && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 100,
+        }}>
+          <div
+            onClick={() => setShowDeleteConfirm(false)}
+            style={{
+              position: 'fixed',
+              inset: 0,
+              background: 'rgba(0,0,0,0.5)',
+              backdropFilter: 'blur(2px)',
+            }}
+          />
+          <div style={{
+            position: 'relative',
+            width: '100%',
+            maxWidth: 400,
+            background: '#0f172a',
+            border: '1px solid rgba(51,65,85,0.5)',
+            borderRadius: 12,
+            padding: 24,
+            boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16, marginBottom: 20 }}>
+              <div style={{
+                flexShrink: 0,
+                width: 48,
+                height: 48,
+                borderRadius: 12,
+                background: 'rgba(239,68,68,0.1)',
+                border: '1px solid rgba(239,68,68,0.3)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#ef4444',
+              }}>
+                <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <h3 style={{ fontSize: 16, fontWeight: 600, color: '#f1f5f9', marginBottom: 8 }}>
+                  Delete Task
+                </h3>
+                <p style={{ fontSize: 14, color: '#94a3b8', lineHeight: 1.5 }}>
+                  Are you sure you want to delete this task? This action cannot be undone.
+                </p>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={deleting}
+                style={{
+                  padding: '8px 16px',
+                  fontSize: 14,
+                  color: '#cbd5e1',
+                  background: 'transparent',
+                  border: 'none',
+                  cursor: deleting ? 'default' : 'pointer',
+                  fontFamily: 'inherit',
+                  transition: 'color 0.15s',
+                  opacity: deleting ? 0.5 : 1,
+                }}
+                onMouseEnter={(e) => { if (!deleting) e.currentTarget.style.color = '#f1f5f9' }}
+                onMouseLeave={(e) => { if (!deleting) e.currentTarget.style.color = '#cbd5e1' }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDelete}
+                disabled={deleting}
+                style={{
+                  padding: '8px 16px',
+                  fontSize: 14,
+                  fontWeight: 500,
+                  color: '#fff',
+                  background: deleting ? '#991b1b' : '#dc2626',
+                  border: 'none',
+                  borderRadius: 8,
+                  cursor: deleting ? 'default' : 'pointer',
+                  fontFamily: 'inherit',
+                  transition: 'background 0.15s',
+                  opacity: deleting ? 0.7 : 1,
+                }}
+                onMouseEnter={(e) => { if (!deleting) e.currentTarget.style.background = '#b91c1c' }}
+                onMouseLeave={(e) => { if (!deleting) e.currentTarget.style.background = '#dc2626' }}
+              >
+                {deleting ? 'Deleting…' : 'Delete Task'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
