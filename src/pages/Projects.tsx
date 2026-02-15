@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react'
+import { TaskModal } from '../components/TaskModal'
 
 type Project = {
   id: string
@@ -326,7 +327,7 @@ function OverviewTab({ project, aspects }: { project: Project; aspects: Aspect[]
 }
 
 // ─── Kanban Tab ───────────────────────────────────────────────
-function KanbanTab({ projectId }: { projectId: string }) {
+function KanbanTab({ projectId, onTaskClick }: { projectId: string; onTaskClick: (task: any) => void }) {
   const [tasks, setTasks] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -377,21 +378,31 @@ function KanbanTab({ projectId }: { projectId: string }) {
               </h4>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {colTasks.map((task) => (
-                  <div
+                  <button
                     key={task.id}
+                    onClick={() => onTaskClick(task)}
                     style={{
                       padding: 12,
                       background: '#1e293b',
                       border: `1px solid ${col.color}30`,
                       borderRadius: 6,
                       fontSize: 12,
+                      cursor: 'pointer',
+                      textAlign: 'left',
+                      transition: 'background 0.2s',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = '#334155'
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = '#1e293b'
                     }}
                   >
                     <div style={{ fontWeight: 500, color: '#fff', marginBottom: 4 }}>{task.title}</div>
                     <div style={{ color: '#94a3b8', fontSize: 11 }}>
                       {task.priority ? `${task.priority} • ` : ''}{task.owner ? `@${task.owner}` : 'Unassigned'}
                     </div>
-                  </div>
+                  </button>
                 ))}
               </div>
             </div>
@@ -409,6 +420,7 @@ function ProjectsPage() {
   const [aspects, setAspects] = useState<Aspect[]>([])
   const [tab, setTab] = useState<ProjectTab>('Overview')
   const [loading, setLoading] = useState(true)
+  const [openTask, setOpenTask] = useState<any | null>(null)
 
   const selectedProject = useMemo(() => projects.find((p) => p.id === selectedProjectId) || projects[0], [projects, selectedProjectId])
 
@@ -568,9 +580,14 @@ function ProjectsPage() {
         {/* Tab content */}
         <div style={{ flex: 1, overflow: 'auto', background: '#0f172a' }}>
           {tab === 'Overview' && <OverviewTab project={selectedProject} aspects={aspects} />}
-          {tab === 'Kanban' && <KanbanTab projectId={selectedProject.id} />}
+          {tab === 'Kanban' && <KanbanTab projectId={selectedProject.id} onTaskClick={setOpenTask} />}
         </div>
       </div>
+
+      {/* Task Modal */}
+      {openTask && (
+        <TaskModal task={openTask} onClose={() => setOpenTask(null)} onUpdate={() => setOpenTask(null)} />
+      )}
     </div>
   )
 }
