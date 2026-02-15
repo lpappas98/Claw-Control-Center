@@ -169,6 +169,38 @@ export function bridgeAdapter(opts: BridgeAdapterOptions): Adapter {
       })
     },
 
+    // ---- Aspects ----
+    listAspects(projectId?: string) {
+      const qs = projectId ? `?projectId=${encodeURIComponent(projectId)}` : ''
+      return fetchJson<import('../types').Aspect[]>(`${base}/api/aspects${qs}`)
+    },
+
+    getAspect(id: string) {
+      return fetchJson<import('../types').Aspect>(`${base}/api/aspects/${encodeURIComponent(id)}`)
+    },
+
+    createAspect(create: import('../types').AspectCreate) {
+      return fetchJson<import('../types').Aspect>(`${base}/api/aspects`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(create),
+      })
+    },
+
+    updateAspect(update: import('../types').AspectUpdate) {
+      return fetchJson<import('../types').Aspect>(`${base}/api/aspects/${encodeURIComponent(update.id)}`, {
+        method: 'PUT',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(update),
+      })
+    },
+
+    deleteAspect(id: string) {
+      return fetchJson<{ ok: boolean }>(`${base}/api/aspects/${encodeURIComponent(id)}`, {
+        method: 'DELETE',
+      })
+    },
+
     // ---- Intake projects ----
     listIntakeProjects() {
       return fetchJson<import('../types').IntakeProject[]>(`${base}/api/intake/projects`)

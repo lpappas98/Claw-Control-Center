@@ -156,35 +156,81 @@ export type TaskUpdate = {
 }
 
 // ---- Projects ----
-export type ProjectStatus = 'active' | 'paused' | 'completed' | 'archived'
+export type ProjectStatus = 'active' | 'paused' | 'archived' | 'planning'
 
 export type Project = {
   id: string
   name: string
-  description?: string
+  tagline: string
   status: ProjectStatus
-  priority: Priority
-  owner?: string
+  owner: string
+  tags: string[]
+  description: string
+  links: Array<{ title: string; url: string }>
+  stats: { open: number; blocked: number; done: number; total: number }
   createdAt: string
   updatedAt: string
 }
 
 export type ProjectCreate = {
-  id?: string
   name: string
-  description?: string
+  tagline?: string
   status?: ProjectStatus
-  priority?: Priority
   owner?: string
+  tags?: string[]
+  description?: string
+  links?: Array<{ title: string; url: string }>
+  stats?: { open: number; blocked: number; done: number; total: number }
 }
 
 export type ProjectUpdate = {
   id: string
   name?: string
-  description?: string
+  tagline?: string
   status?: ProjectStatus
-  priority?: Priority
   owner?: string
+  tags?: string[]
+  description?: string
+  links?: Array<{ title: string; url: string }>
+  stats?: { open: number; blocked: number; done: number; total: number }
+}
+
+// ---- Aspects (epic-level sub-features) ----
+export type AspectStatus = 'proposed' | 'queued' | 'development' | 'review' | 'blocked' | 'done'
+export type AspectPriority = 'P0' | 'P1' | 'P2' | 'P3'
+
+export type Aspect = {
+  id: string
+  projectId: string
+  name: string
+  desc: string
+  priority: AspectPriority
+  status: AspectStatus
+  progress: number
+  order: number
+  createdAt: string
+  updatedAt: string
+}
+
+export type AspectCreate = {
+  projectId: string
+  name: string
+  desc?: string
+  priority?: AspectPriority
+  status?: AspectStatus
+  progress?: number
+  order?: number
+}
+
+export type AspectUpdate = {
+  id: string
+  projectId?: string
+  name?: string
+  desc?: string
+  priority?: AspectPriority
+  status?: AspectStatus
+  progress?: number
+  order?: number
 }
 
 // ---- PM/PO Intake ----

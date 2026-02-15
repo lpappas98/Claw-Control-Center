@@ -23,6 +23,9 @@ import type {
   Project,
   ProjectCreate,
   ProjectUpdate,
+  Aspect,
+  AspectCreate,
+  AspectUpdate,
 } from '../types'
 
 export type Adapter = {
@@ -58,6 +61,13 @@ export type Adapter = {
   createProject(create: ProjectCreate): Promise<Project>
   updateProject(update: ProjectUpdate): Promise<Project>
   deleteProject(id: string): Promise<{ ok: boolean }>
+
+  // Aspects (epic-level sub-features)
+  listAspects(projectId?: string): Promise<Aspect[]>
+  getAspect(id: string): Promise<Aspect>
+  createAspect(create: AspectCreate): Promise<Aspect>
+  updateAspect(update: AspectUpdate): Promise<Aspect>
+  deleteAspect(id: string): Promise<{ ok: boolean }>
 
   // PM/PO intake projects (local single-user)
   listIntakeProjects(): Promise<IntakeProject[]>

@@ -610,9 +610,135 @@ app.get('/api/live', async (_req, res) => {
   res.json({ updatedAt: nowIso, status, workers, blockers, watchdog })
 })
 
+// ---- Projects (epic-level feature containers) ----
 app.get('/api/projects', async (_req, res) => {
-  const projects = await listProjects()
-  res.json(projects)
+  try {
+    const projects = await projectsStore.getAll()
+    res.json(projects)
+  } catch (err) {
+    logger.error('Error listing projects', { error: err?.message })
+    res.status(400).send(err?.message ?? 'invalid request')
+  }
+})
+
+app.post('/api/projects', async (req, res) => {
+  try {
+    const body = req.body ?? {}
+    const name = typeof body.name === 'string' ? body.name.trim() : ''
+    if (!name) return res.status(400).send('name required')
+
+    const project = await projectsStore.create(body)
+    res.json(project)
+    if (global.broadcastWS) global.broadcastWS('project-created', project)
+  } catch (err) {
+    logger.error('Error creating project', { error: err?.message })
+    res.status(400).send(err?.message ?? 'invalid project')
+  }
+})
+
+app.get('/api/projects/:id', async (req, res) => {
+  try {
+    const project = await projectsStore.get(req.params.id)
+    if (!project) return res.status(404).send('project not found')
+    res.json(project)
+  } catch (err) {
+    logger.error('Error getting project', { error: err?.message })
+    res.status(400).send(err?.message ?? 'invalid request')
+  }
+})
+
+app.put('/api/projects/:id', async (req, res) => {
+  try {
+    const project = await projectsStore.update(req.params.id, req.body ?? {})
+    if (!project) return res.status(404).send('project not found')
+    res.json(project)
+    if (global.broadcastWS) global.broadcastWS('project-updated', project)
+  } catch (err) {
+    logger.error('Error updating project', { error: err?.message })
+    res.status(400).send(err?.message ?? 'invalid request')
+  }
+})
+
+app.delete('/api/projects/:id', async (req, res) => {
+  try {
+    const ok = await projectsStore.delete(req.params.id)
+    if (!ok) return res.status(404).send('project not found')
+    // Clean up aspects for this project
+    await aspectsStore.deleteByProject(req.params.id)
+    res.json({ ok: true })
+    if (global.broadcastWS) global.broadcastWS('project-deleted', { id: req.params.id })
+  } catch (err) {
+    logger.error('Error deleting project', { error: err?.message })
+    res.status(400).send(err?.message ?? 'invalid request')
+  }
+})
+
+// ---- Aspects (epic-level sub-features) ----
+app.get('/api/aspects', async (req, res) => {
+  try {
+    const filters = {}
+    if (req.query.projectId) filters.projectId = req.query.projectId
+    if (req.query.status) filters.status = req.query.status
+    if (req.query.priority) filters.priority = req.query.priority
+
+    const aspects = await aspectsStore.getAll(filters)
+    res.json(aspects)
+  } catch (err) {
+    logger.error('Error listing aspects', { error: err?.message })
+    res.status(400).send(err?.message ?? 'invalid request')
+  }
+})
+
+app.post('/api/aspects', async (req, res) => {
+  try {
+    const body = req.body ?? {}
+    const projectId = typeof body.projectId === 'string' ? body.projectId.trim() : ''
+    const name = typeof body.name === 'string' ? body.name.trim() : ''
+    if (!projectId) return res.status(400).send('projectId required')
+    if (!name) return res.status(400).send('name required')
+
+    const aspect = await aspectsStore.create(body)
+    res.json(aspect)
+    if (global.broadcastWS) global.broadcastWS('aspect-created', aspect)
+  } catch (err) {
+    logger.error('Error creating aspect', { error: err?.message })
+    res.status(400).send(err?.message ?? 'invalid aspect')
+  }
+})
+
+app.get('/api/aspects/:id', async (req, res) => {
+  try {
+    const aspect = await aspectsStore.get(req.params.id)
+    if (!aspect) return res.status(404).send('aspect not found')
+    res.json(aspect)
+  } catch (err) {
+    logger.error('Error getting aspect', { error: err?.message })
+    res.status(400).send(err?.message ?? 'invalid request')
+  }
+})
+
+app.put('/api/aspects/:id', async (req, res) => {
+  try {
+    const aspect = await aspectsStore.update(req.params.id, req.body ?? {})
+    if (!aspect) return res.status(404).send('aspect not found')
+    res.json(aspect)
+    if (global.broadcastWS) global.broadcastWS('aspect-updated', aspect)
+  } catch (err) {
+    logger.error('Error updating aspect', { error: err?.message })
+    res.status(400).send(err?.message ?? 'invalid request')
+  }
+})
+
+app.delete('/api/aspects/:id', async (req, res) => {
+  try {
+    const ok = await aspectsStore.delete(req.params.id)
+    if (!ok) return res.status(404).send('aspect not found')
+    res.json({ ok: true })
+    if (global.broadcastWS) global.broadcastWS('aspect-deleted', { id: req.params.id })
+  } catch (err) {
+    logger.error('Error deleting aspect', { error: err?.message })
+    res.status(400).send(err?.message ?? 'invalid request')
+  }
 })
 
 app.get('/api/workers', async (_req, res) => {
