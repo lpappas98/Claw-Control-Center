@@ -29,7 +29,8 @@ export async function initializeTaskRouter(app, tasksStore, agentsStore) {
     console.log(`[TaskRouter] Task created: ${task.id}`)
     // Emit event so router can spawn agent if conditions met
     // Pass task object directly to avoid sync issues with deferred saves
-    emitTaskQueued(task.id, task.assignedTo, task)
+    // Use owner field if available
+    emitTaskQueued(task.id, task.owner || task.assignedTo, task)
     // Call original callback if it exists
     if (originalTaskCreatedCallback) originalTaskCreatedCallback(task)
   }
@@ -41,7 +42,8 @@ export async function initializeTaskRouter(app, tasksStore, agentsStore) {
     if (task.lane === 'queued' && oldTask.lane !== 'queued') {
       console.log(`[TaskRouter] Task moved to queued: ${task.id}`)
       // Pass task object to avoid sync issues
-      emitTaskQueued(task.id, task.assignedTo, task)
+      // Use owner field if available
+      emitTaskQueued(task.id, task.owner || task.assignedTo, task)
     }
     // Call original callback if it exists
     if (originalTaskUpdatedCallback) originalTaskUpdatedCallback(task, oldTask)

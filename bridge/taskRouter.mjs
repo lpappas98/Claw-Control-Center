@@ -91,7 +91,8 @@ export class TaskRouter {
       }
 
       // Determine agent assignment
-      let agentId = task.assignedTo || agentAssignment
+      // Try: explicit owner → agentAssignment → auto-assign from tags
+      let agentId = task.owner || task.assignedTo || agentAssignment
       if (!agentId) {
         agentId = this.autoAssignAgent(task)
       }
