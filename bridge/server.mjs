@@ -48,7 +48,7 @@ import {
 } from './pmProjectsStore.mjs'
 
 import { getAgentsStore } from './agentsStore.mjs'
-import { getTasksStore } from './tasksStore.mjs'
+import { LegacyTasksAdapter } from './legacyTasksAdapter.mjs'
 import { getIntakesStore } from './intakesStore.mjs'
 import { getNotificationsStore } from './notificationsStore.mjs'
 import { getTaskTemplatesStore } from './taskTemplates.mjs'
@@ -114,7 +114,7 @@ const TASKS_FILE = process.env.OPERATOR_HUB_TASKS_FILE ?? path.join(WORKSPACE, '
 const INTAKE_PROJECTS_FILE = process.env.OPERATOR_HUB_INTAKE_PROJECTS_FILE ?? path.join(WORKSPACE, '.clawhub', 'intake-projects.json')
 const PM_PROJECTS_DIR = process.env.OPERATOR_HUB_PM_PROJECTS_DIR ?? path.join(WORKSPACE, '.clawhub', 'projects')
 const AGENTS_FILE = process.env.OPERATOR_HUB_AGENTS_FILE ?? path.join(WORKSPACE, '.clawhub', 'agents.json')
-const NEW_TASKS_FILE = process.env.OPERATOR_HUB_NEW_TASKS_FILE ?? path.join(WORKSPACE, '.clawhub', 'new-tasks.json')
+// REMOVED: NEW_TASKS_FILE — unified to single tasks system (tasks.json via LegacyTasksAdapter)
 const NOTIFICATIONS_FILE = process.env.OPERATOR_HUB_NOTIFICATIONS_FILE ?? path.join(WORKSPACE, '.clawhub', 'notifications.json')
 const TEMPLATES_FILE = process.env.OPERATOR_HUB_TEMPLATES_FILE ?? path.join(WORKSPACE, '.clawhub', 'taskTemplates.json')
 const ROUTINES_FILE = process.env.OPERATOR_HUB_ROUTINES_FILE ?? path.join(WORKSPACE, '.clawhub', 'routines.json')
@@ -175,7 +175,14 @@ let tasksSaveTimer = null
 
 // Initialize new stores (multi-agent system)
 const agentsStore = getAgentsStore(AGENTS_FILE)
-const newTasksStore = getTasksStore(NEW_TASKS_FILE)
+// Unified task adapter: wraps the legacy in-memory `tasks` array with TasksStore interface.
+// This eliminates the dual-store problem — TaskRouter, enhanced endpoints, and legacy
+// endpoints all read/write from the SAME array.
+const newTasksStore = new LegacyTasksAdapter(
+  () => tasks,
+  (updated) => { tasks = updated },
+  () => scheduleTasksSave()
+)
 const intakesStore = await getIntakesStore(INTAKES_FILE)
 const notificationsStore = getNotificationsStore(NOTIFICATIONS_FILE)
 const templatesStore = getTaskTemplatesStore(TEMPLATES_FILE)
@@ -185,7 +192,7 @@ const aspectsStore = getAspectsStore(ASPECTS_FILE)
 
 // Ensure stores are loaded
 await agentsStore.load()
-await newTasksStore.load()
+// newTasksStore.load() not needed — LegacyTasksAdapter reads from in-memory tasks array
 await notificationsStore.load()
 await templatesStore.load()
 await routinesStore.load()
