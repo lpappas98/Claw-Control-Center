@@ -107,6 +107,82 @@ function AspectCard({ aspect }: { aspect: Aspect }) {
   )
 }
 
+// ─── ActivityFeed ─────────────────────────────────────────────
+function ActivityFeed({ projectName }: { projectName: string }) {
+  const [activities, setActivities] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchActivities = async () => {
+      try {
+        const res = await fetch('http://localhost:8787/api/activity')
+        const data = await res.json()
+        // Filter activities that mention this project
+        const filtered = (Array.isArray(data) ? data : [])
+          .filter((act: any) => {
+            const msg = (act.message || act.msg || '').toLowerCase()
+            const meta = act.meta || {}
+            return msg.includes(projectName.toLowerCase()) || 
+                   msg.includes('project') ||
+                   (meta.task && String(meta.task).toLowerCase().includes(projectName.toLowerCase()))
+          })
+          .slice(0, 10) // Show last 10 activities
+        setActivities(filtered)
+      } catch (err) {
+        console.error('Failed to fetch activities:', err)
+        setActivities([])
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchActivities()
+  }, [projectName])
+
+  if (loading) {
+    return (
+      <section>
+        <h4 style={{ margin: '0 0 8px 0', fontSize: 13, fontWeight: 600, color: '#cbd5e1' }}>Activity</h4>
+        <div style={{ fontSize: 11, color: '#94a3b8' }}>Loading...</div>
+      </section>
+    )
+  }
+
+  return (
+    <section>
+      <h4 style={{ margin: '0 0 8px 0', fontSize: 13, fontWeight: 600, color: '#cbd5e1' }}>Activity</h4>
+      {activities.length > 0 ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: '200px', overflowY: 'auto' }}>
+          {activities.map((act: any, idx: number) => {
+            const msg = act.message || act.msg || ''
+            const ts = act.at || act.ts || ''
+            const timeStr = ts ? formatAgo(ts) : 'unknown'
+            return (
+              <div
+                key={idx}
+                style={{
+                  padding: '8px',
+                  background: '#334155',
+                  borderRadius: 4,
+                  fontSize: 11,
+                  color: '#cbd5e1',
+                  lineHeight: 1.3,
+                }}
+              >
+                <div style={{ marginBottom: 2 }}>
+                  {msg.length > 60 ? msg.substring(0, 60) + '...' : msg}
+                </div>
+                <div style={{ fontSize: 10, color: '#94a3b8' }}>{timeStr}</div>
+              </div>
+            )
+          })}
+        </div>
+      ) : (
+        <div style={{ fontSize: 11, color: '#94a3b8' }}>No recent activity</div>
+      )}
+    </section>
+  )
+}
+
 // ─── Overview Tab ─────────────────────────────────────────────
 function OverviewTab({ project, aspects }: { project: Project; aspects: Aspect[] }) {
   const [description, setDescription] = useState(project.description)
@@ -243,12 +319,7 @@ function OverviewTab({ project, aspects }: { project: Project; aspects: Aspect[]
         </section>
 
         {/* Activity Feed */}
-        <section>
-          <h4 style={{ margin: '0 0 8px 0', fontSize: 13, fontWeight: 600, color: '#cbd5e1' }}>Activity</h4>
-          <div style={{ fontSize: 11, color: '#94a3b8' }}>
-            (Activity feed will be populated from /api/activity endpoint)
-          </div>
-        </section>
+        <ActivityFeed projectName={project.name} />
       </div>
     </div>
   )
