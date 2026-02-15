@@ -12,8 +12,8 @@ emitter.setMaxListeners(20)
  * Emit when task enters queued status
  * Triggers TaskRouter to check if agent can spawn immediately
  */
-export function emitTaskQueued(taskId, agentAssignment = null) {
-  emitter.emit('task:queued', { taskId, agentAssignment, at: Date.now() })
+export function emitTaskQueued(taskId, agentAssignment = null, task = null) {
+  emitter.emit('task:queued', { taskId, agentAssignment, task, at: Date.now() })
 }
 
 /**

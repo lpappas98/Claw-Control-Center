@@ -63,8 +63,8 @@ export class TaskRouter {
    * Subscribe to all task events
    */
   subscribeToTaskEvents() {
-    onTaskQueued(({ taskId, agentAssignment }) => {
-      this.onTaskQueued(taskId, agentAssignment)
+    onTaskQueued(({ taskId, agentAssignment, task }) => {
+      this.onTaskQueued(taskId, agentAssignment, task)
     })
 
     onTaskCompleted(({ taskId, agentId }) => {
@@ -79,12 +79,15 @@ export class TaskRouter {
   /**
    * Task has entered queued status - check if we should spawn an agent immediately
    */
-  async onTaskQueued(taskId, agentAssignment = null) {
+  async onTaskQueued(taskId, agentAssignment = null, task = null) {
     try {
-      const task = await this.tasksStore.get(taskId)
+      // If task object not provided, fetch from store
       if (!task) {
-        console.log(`[TaskRouter] Task ${taskId} not found`)
-        return
+        task = await this.tasksStore.get(taskId)
+        if (!task) {
+          console.log(`[TaskRouter] Task ${taskId} not found`)
+          return
+        }
       }
 
       // Determine agent assignment
