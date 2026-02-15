@@ -6,10 +6,11 @@
 const POLL_INTERVAL = 15_000
 
 export class SubAgentTracker {
-  constructor(registry, { gatewayUrl, gatewayToken }) {
+  constructor(registry, { gatewayUrl, gatewayToken, tasksStore = null }) {
     this.registry = registry
     this.gatewayUrl = gatewayUrl
     this.gatewayToken = gatewayToken
+    this.tasksStore = tasksStore
     this._interval = null
   }
 
@@ -80,6 +81,16 @@ export class SubAgentTracker {
             tokenUsage: entry.tokenUsage,
             isActive: false,
           })
+          continue
+        }
+        
+        // Also check task lane — if task moved out of development, agent is done
+        if (this.tasksStore && entry.taskId) {
+          const task = await this.tasksStore.get(entry.taskId)
+          if (task && task.lane !== 'development' && task.lane !== 'queued') {
+            console.log(`[SubAgentTracker] Task ${entry.taskId} is in ${task.lane} — marking ${entry.agentId} complete`)
+            await this.registry.markComplete(entry.childSessionKey, 'completed')
+          }
         }
       }
     } catch (err) {

@@ -238,7 +238,7 @@ await subAgentRegistry.load()
 const taskRouter = await initializeTaskRouter(app, newTasksStore, agentsStore, subAgentRegistry, { gatewayUrl, gatewayToken })
 
 // Initialize SubAgentTracker (polls gateway every 15s)
-const subAgentTracker = new SubAgentTracker(subAgentRegistry, { gatewayUrl, gatewayToken })
+const subAgentTracker = new SubAgentTracker(subAgentRegistry, { gatewayUrl, gatewayToken, tasksStore: newTasksStore })
 subAgentTracker.start()
 
 // Make addActivity globally available for TaskRouter
