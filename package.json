@@ -11,6 +11,7 @@
     "test:headed": "playwright test --headed",
     "test:debug": "playwright test --debug",
     "test:ui": "playwright test --ui",
+    "test:comprehensive": "node e2e/run-all-tests.mjs",
     "test:unit": "node --test 'scripts/**/*.test.mjs' bridge/instanceDiscovery.test.mjs bridge/taskTemplates.test.mjs bridge/taskTemplates.integration.test.mjs bridge/cronParser.test.mjs bridge/routines.test.mjs bridge/routineExecutor.test.mjs bridge/routines-api.test.mjs bridge/telegramIntegration.test.mjs",
     "test:phase2": "node --test 'scripts/**/*.test.mjs' bridge/instanceDiscovery.test.mjs",
     "test:phase3": "node --experimental-test-loader=./node_modules/@testing-library/react src/**/*.test.tsx src/services/api.test.ts 2>/dev/null || echo 'Phase 3 tests require jsdom support'",
