@@ -648,20 +648,17 @@ app.get('/api/live', async (_req, res) => {
   const nowMs = Date.now()
   const nowIso = new Date(nowMs).toISOString()
 
-  // Get workers from agents store (new system) instead of worker-heartbeats.json
-  const agents = await agentsStore.getAll()
-  const workers = agents.map(agent => {
-    const lastBeatIso = agent.lastHeartbeat ? new Date(agent.lastHeartbeat).toISOString() : undefined
-    const taskTitle = agent.currentTask && typeof agent.currentTask === 'object' 
-      ? agent.currentTask.title 
-      : agent.currentTask
+  // Get workers from sub-agent registry (live status)
+  const activeSubAgents = subAgentRegistry.getActive()
+  const workers = AGENT_DEFINITIONS.map(def => {
+    const activeSession = activeSubAgents.find(s => s.agentId === def.id)
     return {
-      slot: agent.id,
-      label: agent.name,
-      status: agent.status === 'online' ? 'active' : agent.status === 'busy' ? 'active' : 'offline',
-      task: taskTitle || undefined,
-      lastBeatAt: lastBeatIso,
-      beats: lastBeatIso ? [{ at: lastBeatIso }] : []
+      slot: def.id,
+      label: def.name,
+      status: activeSession ? 'active' : 'waiting',
+      task: activeSession?.taskTitle || undefined,
+      lastBeatAt: activeSession?.spawnedAt ? new Date(activeSession.spawnedAt).toISOString() : undefined,
+      beats: activeSession?.spawnedAt ? [{ at: new Date(activeSession.spawnedAt).toISOString() }] : []
     }
   })
 
