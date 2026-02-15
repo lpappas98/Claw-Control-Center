@@ -54,10 +54,10 @@ describe('SubAgentRegistry with transcript metrics', () => {
   })
 
   it('should extract metrics when marking complete with valid transcript', async () => {
-    // Create a test transcript
+    // Create a test transcript in the actual sessions directory
     const sessionKey = 'agent:main:subagent:test-with-transcript'
     const sessionId = 'test-with-transcript'
-    const transcriptPath = `${TEST_TRANSCRIPT_DIR}/${sessionId}.jsonl`
+    const transcriptPath = `/home/openclaw/.openclaw/agents/main/sessions/${sessionId}.jsonl`
     
     const transcript = [
       { type: 'session', version: 3, id: sessionId, timestamp: '2026-02-15T10:00:00.000Z' },
