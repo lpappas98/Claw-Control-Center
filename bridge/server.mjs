@@ -1232,23 +1232,19 @@ app.put('/api/tasks/:id', async (req, res) => {
 
   // Check for work data when moving to review
   if (nextLane === 'review' && before.lane !== 'review') {
-    const workData = before.work
-    const hasCommits = workData && Array.isArray(workData.commits) && workData.commits.length > 0
+    // Load work data from file to check for commits
+    const workData = await loadTaskWork(id)
+    const hasCommits = Array.isArray(workData.commits) && workData.commits.length > 0
     
     if (!hasCommits) {
       console.warn(`[TaskRouter] ⚠️ Task ${id} moved to review without work data (commits missing)`)
       
       // Log to activity feed
-      if (global.addActivity) {
-        global.addActivity({
-          type: 'warning',
-          agent: before.owner || 'unknown',
-          taskId: id,
-          taskTitle: before.title,
-          time: Date.now(),
-          message: `Task "${before.title}" moved to review without logging commits or work data`
-        })
-      }
+      pushActivity({
+        type: 'warning',
+        msg: `⚠️ Task "${before.title}" moved to review without logging commits or work data`,
+        ts: now
+      })
     } else {
       console.log(`[TaskRouter] ✓ Task ${id} moved to review with work data: ${workData.commits.length} commit(s)`)
     }

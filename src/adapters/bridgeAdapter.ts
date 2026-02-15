@@ -62,6 +62,7 @@ export function bridgeAdapter(opts: BridgeAdapterOptions): Adapter {
           status: string; currentTask: {
             id: string; title: string; priority: string; tag: string;
             startedAt: number; runningFor: number; tokenUsage: number | null;
+            duration: number | null; totalTokens: number | null; model: string | null;
           } | null;
         }> }>(`${base}/api/agents/status`)
         
