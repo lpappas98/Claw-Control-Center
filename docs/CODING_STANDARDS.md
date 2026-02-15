@@ -41,14 +41,53 @@ red-400: #f87171      orange-400: #fb923c   yellow-400: #facc15
 green-400: #4ade80    blue-400: #60a5fa     purple-400: #a78bfa
 ```
 
+## Test Task Naming & Cleanup (CRITICAL)
+
+**⚠️ NEVER delete tasks from done/review lanes accidentally!**
+
+### Creating Test Tasks
+Always prefix test task titles with `TEMP-TEST:` for easy identification:
+
+```bash
+# ✅ CORRECT
+curl -X POST http://localhost:8787/api/tasks -H "Content-Type: application/json" \
+  -d '{"title":"TEMP-TEST: Nav item 1","lane":"queued","priority":"P3"}'
+```
+
+```bash
+# ❌ WRONG (no prefix - risk of confusion with real tasks)
+curl -X POST http://localhost:8787/api/tasks -H "Content-Type: application/json" \
+  -d '{"title":"Test navigation","lane":"queued","priority":"P3"}'
+```
+
+### Deleting Test Tasks
+Use an exact pattern match to delete ONLY tasks with the `TEMP-TEST:` prefix:
+
+```bash
+# ✅ CORRECT (safe - only deletes TEMP-TEST tasks)
+curl -s http://localhost:8787/api/tasks | \
+  python3 -c "import sys,json; [print(t['id']) for t in json.load(sys.stdin) if 'TEMP-TEST:' in t.get('title','')]" | \
+  xargs -I {} curl -X DELETE http://localhost:8787/api/tasks/{}
+```
+
+```bash
+# ❌ WRONG (dangerous - could delete real tasks with 'test' in title)
+curl -s http://localhost:8787/api/tasks | grep -i test | delete
+```
+
+**NEVER:**
+- Use broad patterns like `grep -i "test"` or `grep -i "nav"` — these match real task titles
+- Delete tasks from done/review lanes unless explicitly instructed
+- Delete tasks by lane (always filter by exact title prefix)
+
 ## Agent Verification Checklist
 
 Before submitting UI work, agents MUST verify:
 
 1. **Build passes:** `npm run build` with 0 errors
 2. **Docker deploy:** Full rebuild cycle (clear vite cache → build → docker build → rm+run)
-3. **Visual verification:** Create test tasks to trigger the UI, take screenshots or verify via Playwright
-4. **Cleanup:** Delete ALL test tasks after verification
+3. **Visual verification:** Create test tasks with `TEMP-TEST:` prefix, verify UI works
+4. **Cleanup:** Delete ONLY `TEMP-TEST:` prefixed tasks using exact pattern match
 5. **No invisible elements:** Check that modals/overlays actually render visible content (not just backdrop)
 6. **No Tailwind classes:** `grep -c "className" <file>` must be 0 for new components
 
