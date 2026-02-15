@@ -49,6 +49,7 @@ import {
 
 import { getAgentsStore } from './agentsStore.mjs'
 import { getTasksStore } from './tasksStore.mjs'
+import { getIntakesStore } from './intakesStore.mjs'
 import { getNotificationsStore } from './notificationsStore.mjs'
 import { getTaskTemplatesStore } from './taskTemplates.mjs'
 import { autoAssignTask, getAssignmentSuggestions } from './taskAssignment.mjs'
@@ -118,6 +119,7 @@ const ROUTINES_FILE = process.env.OPERATOR_HUB_ROUTINES_FILE ?? path.join(WORKSP
 const CONFIG_FILE = process.env.OPERATOR_HUB_CONFIG_FILE ?? path.join(WORKSPACE, '.clawhub', 'config.json')
 const PROJECTS_FILE = process.env.OPERATOR_HUB_PROJECTS_FILE ?? path.join(WORKSPACE, '.clawhub', 'projects.json')
 const ASPECTS_FILE = process.env.OPERATOR_HUB_ASPECTS_FILE ?? path.join(WORKSPACE, '.clawhub', 'aspects.json')
+const INTAKES_FILE = process.env.OPERATOR_HUB_INTAKES_FILE ?? path.join(WORKSPACE, '.clawhub', 'intakes.json')
 
 // Load GitHub config
 async function loadGitHubConfig() {
@@ -172,6 +174,7 @@ let tasksSaveTimer = null
 // Initialize new stores (multi-agent system)
 const agentsStore = getAgentsStore(AGENTS_FILE)
 const newTasksStore = getTasksStore(NEW_TASKS_FILE)
+const intakesStore = await getIntakesStore(INTAKES_FILE)
 const notificationsStore = getNotificationsStore(NOTIFICATIONS_FILE)
 const templatesStore = getTaskTemplatesStore(TEMPLATES_FILE)
 const routinesStore = getRoutinesStore(ROUTINES_FILE)
@@ -1219,6 +1222,121 @@ app.post('/api/tasks/:id/comment', async (req, res) => {
   res.json({ success: true, comment, task: updated })
   // Broadcast task update
   if (global.broadcastWS) global.broadcastWS("task-updated", updated)
+})
+
+// ---- Intakes API ----
+app.get('/api/intakes', async (req, res) => {
+  try {
+    const projectId = req.query.projectId
+    
+    if (!projectId) {
+      // Get all intakes
+      const all = intakesStore.getAll()
+      return res.json(all)
+    }
+
+    // Get intakes for a specific project with pagination
+    const limit = Math.min(parseInt(req.query.limit) || 50, 500)
+    const offset = parseInt(req.query.offset) || 0
+    const result = intakesStore.listByProject(projectId, { limit, offset })
+    res.json(result)
+  } catch (e) {
+    logger.error('Failed to fetch intakes', { error: e.message })
+    res.status(500).send(e.message)
+  }
+})
+
+app.get('/api/intakes/:id', async (req, res) => {
+  try {
+    const intake = intakesStore.getById(req.params.id)
+    if (!intake) {
+      return res.status(404).send('intake not found')
+    }
+    res.json(intake)
+  } catch (e) {
+    logger.error('Failed to fetch intake', { error: e.message, intakeId: req.params.id })
+    res.status(500).send(e.message)
+  }
+})
+
+app.post('/api/intakes', async (req, res) => {
+  try {
+    const body = req.body ?? {}
+    const projectId = body.projectId
+    const text = typeof body.text === 'string' ? body.text.trim() : ''
+
+    if (!projectId) {
+      return res.status(400).send('projectId required')
+    }
+    if (!text) {
+      return res.status(400).send('text required')
+    }
+
+    const intake = intakesStore.create({
+      projectId,
+      text,
+      files: body.files || [],
+      generatedTaskIds: body.generatedTaskIds || [],
+      status: body.status || 'pending',
+    })
+
+    await intakesStore.save()
+    logger.info('Intake created', { intakeId: intake.id, projectId, textLength: text.length })
+    res.status(201).json(intake)
+  } catch (e) {
+    logger.error('Failed to create intake', { error: e.message })
+    res.status(500).send(e.message)
+  }
+})
+
+app.put('/api/intakes/:id', async (req, res) => {
+  try {
+    const intake = intakesStore.getById(req.params.id)
+    if (!intake) {
+      return res.status(404).send('intake not found')
+    }
+
+    const body = req.body ?? {}
+    const updates = {}
+
+    if (body.status) {
+      updates.status = body.status === 'processed' ? 'processed' : 'pending'
+    }
+    if (Array.isArray(body.generatedTaskIds)) {
+      updates.generatedTaskIds = body.generatedTaskIds
+    }
+    if (body.text !== undefined) {
+      updates.text = typeof body.text === 'string' ? body.text : intake.text
+    }
+    if (Array.isArray(body.files)) {
+      updates.files = body.files
+    }
+
+    const updated = intakesStore.update(req.params.id, updates)
+    await intakesStore.save()
+    logger.info('Intake updated', { intakeId: req.params.id, updates: Object.keys(updates) })
+    res.json(updated)
+  } catch (e) {
+    logger.error('Failed to update intake', { error: e.message, intakeId: req.params.id })
+    res.status(500).send(e.message)
+  }
+})
+
+app.delete('/api/intakes/:id', async (req, res) => {
+  try {
+    const intake = intakesStore.getById(req.params.id)
+    if (!intake) {
+      return res.status(404).send('intake not found')
+    }
+
+    const success = intakesStore.delete(req.params.id)
+    await intakesStore.save()
+    logger.info('Intake deleted', { intakeId: req.params.id })
+    res.json({ success, deleted: intake })
+  } catch (e) {
+    logger.error('Failed to delete intake', { error: e.message, intakeId: req.params.id })
+    res.status(500).send(e.message)
+  }
 })
 
 // ---- Projects Hub API (epic-level feature containers) ----
