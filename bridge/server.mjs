@@ -1538,6 +1538,326 @@ app.put('/api/tasks/:id/work', async (req, res) => {
   }
 })
 
+/**
+ * POST /api/tasks/:id/commits
+ * Append commits to task work data
+ */
+app.post('/api/tasks/:id/commits', async (req, res) => {
+  try {
+    const taskId = req.params.id
+    
+    // Verify task exists
+    const task = tasks.find(t => t.id === taskId)
+    if (!task) {
+      return res.status(404).send('task not found')
+    }
+    
+    // Load existing work data
+    const workData = await loadTaskWork(taskId)
+    
+    // Validate and append commits
+    const newCommits = Array.isArray(req.body.commits) ? req.body.commits : [req.body]
+    const validCommits = newCommits.filter(c => 
+      typeof c === 'object' && 
+      typeof c.hash === 'string' && 
+      typeof c.message === 'string' && 
+      typeof c.timestamp === 'string'
+    )
+    
+    if (validCommits.length === 0) {
+      return res.status(400).send('No valid commits provided. Each commit must have hash, message, and timestamp.')
+    }
+    
+    // Append to existing commits (avoiding duplicates by hash)
+    const existingHashes = new Set((workData.commits || []).map(c => c.hash))
+    const uniqueCommits = validCommits.filter(c => !existingHashes.has(c.hash))
+    
+    workData.commits = [...(workData.commits || []), ...uniqueCommits]
+    
+    // Save updated work data
+    const saved = await saveTaskWork(taskId, workData)
+    const summary = computeWorkSummary(saved)
+    
+    logger.info('Task commits logged', {
+      taskId,
+      newCommits: uniqueCommits.length,
+      totalCommits: workData.commits.length
+    })
+    
+    // Log activity
+    pushActivity({
+      type: 'info',
+      msg: `${uniqueCommits.length} commit(s) logged: ${task.title.substring(0, 50)}`,
+      ts: saved.updatedAt
+    })
+    
+    res.json({
+      ...saved,
+      ...summary
+    })
+    
+    // Broadcast work update
+    if (global.broadcastWS) {
+      global.broadcastWS('task-work-updated', { taskId, ...summary })
+    }
+  } catch (err) {
+    logger.error('Error logging commits', {
+      taskId: req.params.id,
+      error: err.message
+    })
+    res.status(500).send(err.message)
+  }
+})
+
+/**
+ * POST /api/tasks/:id/files
+ * Append file changes to task work data
+ */
+app.post('/api/tasks/:id/files', async (req, res) => {
+  try {
+    const taskId = req.params.id
+    
+    // Verify task exists
+    const task = tasks.find(t => t.id === taskId)
+    if (!task) {
+      return res.status(404).send('task not found')
+    }
+    
+    // Load existing work data
+    const workData = await loadTaskWork(taskId)
+    
+    // Validate and append files
+    const newFiles = Array.isArray(req.body.files) ? req.body.files : [req.body]
+    const validFiles = newFiles.filter(f => 
+      typeof f === 'object' && 
+      typeof f.path === 'string' && 
+      typeof f.additions === 'number' && 
+      typeof f.deletions === 'number'
+    )
+    
+    if (validFiles.length === 0) {
+      return res.status(400).send('No valid files provided. Each file must have path, additions, and deletions.')
+    }
+    
+    // Append to existing files
+    workData.files = [...(workData.files || []), ...validFiles]
+    
+    // Save updated work data
+    const saved = await saveTaskWork(taskId, workData)
+    const summary = computeWorkSummary(saved)
+    
+    logger.info('Task files logged', {
+      taskId,
+      newFiles: validFiles.length,
+      totalFiles: workData.files.length
+    })
+    
+    // Log activity
+    pushActivity({
+      type: 'info',
+      msg: `${validFiles.length} file(s) logged: ${task.title.substring(0, 50)}`,
+      ts: saved.updatedAt
+    })
+    
+    res.json({
+      ...saved,
+      ...summary
+    })
+    
+    // Broadcast work update
+    if (global.broadcastWS) {
+      global.broadcastWS('task-work-updated', { taskId, ...summary })
+    }
+  } catch (err) {
+    logger.error('Error logging files', {
+      taskId: req.params.id,
+      error: err.message
+    })
+    res.status(500).send(err.message)
+  }
+})
+
+/**
+ * POST /api/tasks/:id/tests
+ * Update test results in task work data
+ */
+app.post('/api/tasks/:id/tests', async (req, res) => {
+  try {
+    const taskId = req.params.id
+    
+    // Verify task exists
+    const task = tasks.find(t => t.id === taskId)
+    if (!task) {
+      return res.status(404).send('task not found')
+    }
+    
+    // Load existing work data
+    const workData = await loadTaskWork(taskId)
+    
+    // Validate and update test results
+    const testResults = req.body.testResults || req.body
+    if (typeof testResults !== 'object') {
+      return res.status(400).send('Test results must be an object with passed, failed, and skipped counts.')
+    }
+    
+    workData.testResults = {
+      passed: typeof testResults.passed === 'number' ? testResults.passed : 0,
+      failed: typeof testResults.failed === 'number' ? testResults.failed : 0,
+      skipped: typeof testResults.skipped === 'number' ? testResults.skipped : 0
+    }
+    
+    // Save updated work data
+    const saved = await saveTaskWork(taskId, workData)
+    const summary = computeWorkSummary(saved)
+    
+    logger.info('Task test results logged', {
+      taskId,
+      testResults: workData.testResults
+    })
+    
+    // Log activity
+    pushActivity({
+      type: 'info',
+      msg: `test results logged: ${task.title.substring(0, 50)} (${summary.testSummary.total} tests)`,
+      ts: saved.updatedAt
+    })
+    
+    res.json({
+      ...saved,
+      ...summary
+    })
+    
+    // Broadcast work update
+    if (global.broadcastWS) {
+      global.broadcastWS('task-work-updated', { taskId, ...summary })
+    }
+  } catch (err) {
+    logger.error('Error logging test results', {
+      taskId: req.params.id,
+      error: err.message
+    })
+    res.status(500).send(err.message)
+  }
+})
+
+/**
+ * POST /api/tasks/:id/artifacts
+ * Append artifacts to task work data
+ */
+app.post('/api/tasks/:id/artifacts', async (req, res) => {
+  try {
+    const taskId = req.params.id
+    
+    // Verify task exists
+    const task = tasks.find(t => t.id === taskId)
+    if (!task) {
+      return res.status(404).send('task not found')
+    }
+    
+    // Load existing work data
+    const workData = await loadTaskWork(taskId)
+    
+    // Validate and append artifacts
+    const newArtifacts = Array.isArray(req.body.artifacts) ? req.body.artifacts : [req.body]
+    const validArtifacts = newArtifacts.filter(a => 
+      typeof a === 'object' && 
+      typeof a.name === 'string' && 
+      typeof a.size === 'number' && 
+      typeof a.path === 'string'
+    )
+    
+    if (validArtifacts.length === 0) {
+      return res.status(400).send('No valid artifacts provided. Each artifact must have name, size, and path.')
+    }
+    
+    // Append to existing artifacts
+    workData.artifacts = [...(workData.artifacts || []), ...validArtifacts]
+    
+    // Save updated work data
+    const saved = await saveTaskWork(taskId, workData)
+    const summary = computeWorkSummary(saved)
+    
+    logger.info('Task artifacts logged', {
+      taskId,
+      newArtifacts: validArtifacts.length,
+      totalArtifacts: workData.artifacts.length
+    })
+    
+    // Log activity
+    pushActivity({
+      type: 'info',
+      msg: `${validArtifacts.length} artifact(s) logged: ${task.title.substring(0, 50)}`,
+      ts: saved.updatedAt
+    })
+    
+    res.json({
+      ...saved,
+      ...summary
+    })
+    
+    // Broadcast work update
+    if (global.broadcastWS) {
+      global.broadcastWS('task-work-updated', { taskId, ...summary })
+    }
+  } catch (err) {
+    logger.error('Error logging artifacts', {
+      taskId: req.params.id,
+      error: err.message
+    })
+    res.status(500).send(err.message)
+  }
+})
+
+/**
+ * GET /api/tasks/:id/work-done
+ * Get work summary with auto-generated summary from commits
+ */
+app.get('/api/tasks/:id/work-done', async (req, res) => {
+  try {
+    const taskId = req.params.id
+    
+    // Verify task exists
+    const task = tasks.find(t => t.id === taskId)
+    if (!task) {
+      return res.status(404).send('task not found')
+    }
+    
+    // Load work data
+    const workData = await loadTaskWork(taskId)
+    const summary = computeWorkSummary(workData)
+    
+    // Auto-generate work summary from commits
+    const commitMessages = (workData.commits || [])
+      .map(c => c.message)
+      .join('\n')
+    
+    const autoSummary = commitMessages || 'No commits logged yet.'
+    
+    res.json({
+      taskId,
+      task: {
+        id: task.id,
+        title: task.title,
+        lane: task.lane,
+        assignedTo: task.assignedTo
+      },
+      summary: autoSummary,
+      commits: workData.commits || [],
+      files: workData.files || [],
+      testResults: workData.testResults || { passed: 0, failed: 0, skipped: 0 },
+      artifacts: workData.artifacts || [],
+      stats: summary,
+      updatedAt: workData.updatedAt
+    })
+  } catch (err) {
+    logger.error('Error loading work-done', {
+      taskId: req.params.id,
+      error: err.message
+    })
+    res.status(500).send(err.message)
+  }
+})
+
 // ---- Intakes API ----
 app.get('/api/intakes', async (req, res) => {
   try {
