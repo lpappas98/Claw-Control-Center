@@ -52,6 +52,83 @@ Capture what matters. Decisions, context, things to remember. Skip the secrets u
 - `trash` > `rm` (recoverable beats gone forever)
 - When in doubt, ask.
 
+## 🤖 Sub-Agent Task Completion Workflow
+
+**APPLIES TO: All sub-agents spawned for task work**
+
+When you're assigned a task (via task ID), you MUST log your work before completion. This creates an audit trail and populates the task detail view.
+
+### Required Steps Before Moving to Review
+
+1. **Commit all changes** with descriptive messages:
+   ```bash
+   git add .
+   git commit -m "feat(scope): description of changes"
+   ```
+
+2. **Collect commit data** from your session:
+   ```bash
+   # Get commits from this session (adjust -n count as needed)
+   git log -n 5 --format='{"hash":"%H","message":"%s","timestamp":"%aI"}' | \
+     jq -s '.' > /tmp/commits.json
+   ```
+
+3. **Log your work** via the bridge API:
+   ```bash
+   # Replace TASK_ID with your actual task ID
+   curl -X PUT http://localhost:8787/api/tasks/TASK_ID/work \
+     -H "Content-Type: application/json" \
+     -d "$(cat /tmp/commits.json | jq -c '{commits: .}')"
+   ```
+
+4. **If you ran tests**, include results:
+   ```bash
+   # Example: after running tests, parse output and log
+   curl -X PUT http://localhost:8787/api/tasks/TASK_ID/work \
+     -H "Content-Type: application/json" \
+     -d '{
+       "commits": [{"hash":"abc123","message":"feat: impl","timestamp":"2026-02-15T23:00:00Z"}],
+       "testResults": {
+         "passed": 5,
+         "failed": 0,
+         "skipped": 0
+       }
+     }'
+   ```
+
+5. **Log artifacts** (if applicable):
+   - Branch name: Include in work data as `"branch": "feature/branch-name"`
+   - PR links: Include as `"prUrl": "https://github.com/owner/repo/pull/123"`
+   - Build artifacts: Include as `"artifacts": ["path/to/artifact"]`
+
+6. **Move task to review**:
+   ```bash
+   curl -X PUT http://localhost:8787/api/tasks/TASK_ID \
+     -H "Content-Type: application/json" \
+     -d '{"lane": "review"}'
+   ```
+
+### Sub-Agent Completion Checklist
+
+Before claiming a task is complete, verify:
+
+- [ ] All code changes committed with clear messages
+- [ ] Commits logged via `/api/tasks/:id/work` endpoint
+- [ ] Test results logged (if tests were run)
+- [ ] Artifacts documented (branch, PR, build outputs)
+- [ ] Code compiles/runs without errors
+- [ ] Acceptance criteria met (check task description)
+- [ ] Task moved to "review" lane via API
+
+**If blocked:** Move task to "blocked" lane and document the blocker:
+```bash
+curl -X PUT http://localhost:8787/api/tasks/TASK_ID \
+  -H "Content-Type: application/json" \
+  -d '{"lane": "blocked"}'
+```
+
+**Why this matters:** Missing work data means the task appears incomplete in the UI, even if the code was written. Log your work to create accountability and visibility.
+
 ## External vs Internal
 
 **Safe to do freely:**
