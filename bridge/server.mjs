@@ -1,10 +1,22 @@
-import 'dotenv/config'
+import dotenv from 'dotenv'
+import { fileURLToPath } from 'node:url'
+import { dirname } from 'node:path'
+import { existsSync } from 'node:fs'
+
+// Load .env from workspace root (for local development)
+// In Docker, environment variables are passed directly
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
+const envPath = `${__dirname}/../.env`
+if (existsSync(envPath)) {
+  dotenv.config({ path: envPath })
+}
+
 import express from 'express'
 import cors from 'cors'
 import os from 'node:os'
 import path from 'node:path'
 import fs from 'node:fs/promises'
-import { existsSync } from 'node:fs'
 import { execFile } from 'node:child_process'
 import { promisify } from 'node:util'
 import { WebSocketServer } from 'ws'
@@ -72,6 +84,13 @@ import { SubAgentTracker } from './subAgentTracker.mjs'
 const execFileAsync = promisify(execFile)
 const healthChecker = createHealthChecker()
 const startTime = Date.now()
+
+// Verify environment variables are loaded
+if (process.env.OPENAI_API_KEY) {
+  console.log('[ENV] ✓ OPENAI_API_KEY loaded successfully')
+} else {
+  console.warn('[ENV] ⚠ OPENAI_API_KEY not found in environment')
+}
 
 const app = express()
 app.use(cors())
