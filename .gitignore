@@ -40,3 +40,4 @@ test-modal*.mjs
 
 # Reference design files (task-specific, not product code)
 *.reference.tsx
+.env
