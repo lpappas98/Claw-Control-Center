@@ -35,10 +35,9 @@ services:
       dockerfile: docker/Dockerfile.ui
     container_name: claw-ui
     ports:
-      - "0.0.0.0:3000:3000"
+      - "0.0.0.0:5173:3000"
     environment:
       - NODE_ENV=production
-      - VITE_BRIDGE_URL=http://bridge:8787
     networks:
       - claw-net
     restart: unless-stopped

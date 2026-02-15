@@ -1,151 +1,236 @@
-# Claw Control Center - Setup Guide
+# Setup Guide
 
 ## Prerequisites
-- [Node.js](https://nodejs.org/) v20+
-- [Docker](https://docs.docker.com/get-docker/) and Docker Compose
-- [OpenClaw](https://github.com/openclaw/openclaw) installed and configured
 
-## Quick Start
+- **Node.js** v20+ ([download](https://nodejs.org/))
+- **Docker** and Docker Compose ([download](https://docs.docker.com/get-docker/))
+- **OpenClaw** installed and running ([install](https://github.com/openclaw/openclaw))
 
-### 1. Clone the repo
+## Installation
+
+### 1. Clone the repository
+
 ```bash
-git clone https://github.com/your-org/Claw-Control-Center.git
+git clone https://github.com/lpappas98/Claw-Control-Center.git
 cd Claw-Control-Center
-```
-
-### 2. Install dependencies
-```bash
 npm install
 ```
 
-### 3. Start with Docker Compose
+### 2. Configure the gateway connection
+
+The bridge needs to communicate with your OpenClaw gateway to spawn sub-agents.
+
 ```bash
-docker-compose up -d
+cp .clawhub/config.example.json .clawhub/config.json
 ```
 
-This starts:
-- **claw-bridge** (port 8787) — API server + task management
-- **claw-ui** (port 5173) — React frontend
+Edit `.clawhub/config.json`:
+```json
+{
+  "gatewayToken": "YOUR_TOKEN",
+  "gatewayUrl": "http://172.18.0.1:18789"
+}
+```
 
-### 4. Access the UI
-Open http://localhost:5173 in your browser.
+**Finding your gateway token:**
+```bash
+openclaw gateway token
+```
 
-## Agent Setup
+**Finding the gateway URL:**
+- OpenClaw gateway runs on port `18789` by default
+- From inside Docker, use the host IP on the bridge network (typically `172.18.0.1`)
+- Verify: `docker network inspect claw-net | grep Gateway`
+- If running without Docker, use `http://localhost:18789`
 
-The Claw Control Center comes with 5 pre-configured agents:
+### 3. Configure OpenClaw for sub-agents
 
-| Agent | ID | Role | Description |
-|-------|-----|------|-------------|
-| TARS | pm | Project Manager | Creates tasks, coordinates agents |
-| Forge | dev-1 | Developer | Primary dev, picks up queued tasks |
-| Patch | dev-2 | Developer | Secondary dev, picks up queued tasks |
-| Sentinel | qa | QA | Verifies implementations, runs Playwright tests |
-| Blueprint | architect | Architect | System design and architecture |
-
-### Connecting Agents to OpenClaw
-
-Add agents to your `openclaw.json` config:
+Add sub-agent permissions to your OpenClaw config (`~/.openclaw/openclaw.json` or your instance config):
 
 ```json
 {
   "agents": {
-    "defaults": {
-      "models": {
-        "anthropic/claude-haiku-4-5": { "alias": "haiku" },
-        "anthropic/claude-sonnet-4-5": { "alias": "sonnet" }
-      }
-    },
     "list": [
       {
         "id": "main",
         "subagents": {
-          "allowAgents": ["haiku", "sonnet", "dev-1", "dev-2", "qa", "architect"]
+          "allowAgents": ["forge", "patch", "blueprint", "sentinel"]
         }
-      },
-      {
-        "id": "dev-1",
-        "name": "Forge",
-        "workspace": "/path/to/Claw-Control-Center/agents/forge",
-        "model": { "primary": "anthropic/claude-haiku-4-5" }
-      },
-      {
-        "id": "dev-2",
-        "name": "Patch",
-        "workspace": "/path/to/Claw-Control-Center/agents/patch",
-        "model": { "primary": "anthropic/claude-haiku-4-5" }
-      },
-      {
-        "id": "qa",
-        "name": "Sentinel",
-        "workspace": "/path/to/Claw-Control-Center/agents/sentinel",
-        "model": { "primary": "anthropic/claude-haiku-4-5" }
-      },
-      {
-        "id": "architect",
-        "name": "Blueprint",
-        "workspace": "/path/to/Claw-Control-Center/agents/blueprint",
-        "model": { "primary": "anthropic/claude-haiku-4-5" }
       }
     ]
   }
 }
 ```
 
-### Setting Up Agent Heartbeats (Cron Jobs)
+This allows the main agent to spawn sub-agents with those IDs via `sessions_spawn`.
 
-Create cron jobs in OpenClaw for each agent to poll for tasks:
+### 4. Deploy with Docker
 
 ```bash
-# Each agent checks for tasks every 60 seconds
-openclaw cron add --schedule '{"kind":"every","everyMs":60000}' \
-  --payload '{"kind":"agentTurn","message":"Check for tasks and execute if found.","model":"anthropic/claude-haiku-4-5"}' \
-  --sessionTarget isolated
+docker-compose up -d
 ```
 
-## Task Workflow
+This starts two containers:
+- **claw-bridge** (port 8787) — API server + TaskRouter
+- **claw-ui** (port 5173) — React dashboard
+
+**Important:** The bridge container mounts `.clawhub/` as a volume for persistent data:
+```yaml
+volumes:
+  - ./.clawhub:/data/.clawhub
+```
+
+### 5. Verify
+
+```bash
+# Check bridge health
+curl http://localhost:8787/api/status
+
+# Check UI
+open http://localhost:5173
+```
+
+## Development (without Docker)
+
+For local development:
+
+```bash
+# Terminal 1: Start the bridge
+cd bridge
+node server.mjs
+
+# Terminal 2: Start the UI dev server
+npm run dev
+```
+
+The Vite dev server proxies `/api` requests to `localhost:8787` automatically.
+
+## Agent Configuration
+
+### Default agents
+
+| Agent | ID | Role | Auto-assign tags |
+|-------|-----|------|-----------------|
+| Forge | forge | Developer | backend |
+| Patch | patch | Developer | frontend |
+| Blueprint | blueprint | Architect | architecture |
+| Sentinel | sentinel | QA | qa |
+
+### Customizing agents
+
+Agent definitions are in `bridge/server.mjs` (`AGENT_DEFINITIONS` array):
+
+```javascript
+const AGENT_DEFINITIONS = [
+  { id: 'forge', name: 'Forge', role: 'Dev', emoji: '🔨' },
+  { id: 'patch', name: 'Patch', role: 'Dev', emoji: '🌟' },
+  { id: 'blueprint', name: 'Blueprint', role: 'Architect', emoji: '🏗️' },
+  { id: 'sentinel', name: 'Sentinel', role: 'QA', emoji: '🛡️' },
+]
+```
+
+To add a new agent:
+1. Add it to `AGENT_DEFINITIONS` in `bridge/server.mjs`
+2. Add the ID to `allowAgents` in your OpenClaw config
+3. Restart the bridge
+
+### Tag-to-agent mapping
+
+Auto-assignment maps task tags to agents. Configure in `bridge/taskRouter.mjs`:
+
+```javascript
+const TAG_AGENT_MAP = {
+  backend: 'forge',
+  frontend: 'patch',
+  architecture: 'blueprint',
+  qa: 'sentinel',
+}
+```
+
+### Sub-agent model
+
+The model used for sub-agents is configured in `bridge/initializeTaskRouter.mjs`:
+
+```javascript
+model: 'anthropic/claude-sonnet-4-5'
+```
+
+Change this to any model supported by your OpenClaw instance.
+
+## TaskRouter Settings
+
+In `bridge/taskRouter.mjs`:
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `MAX_CONCURRENT` | 4 | Maximum parallel sub-agents |
+| `MAX_RETRIES` | 3 | Spawn attempts before moving task to blocked |
+| `SPAWN_DELAY_MS` | 3000 | Delay between sequential spawns (ms) |
+
+## Docker Networking
+
+The bridge container needs to reach the OpenClaw gateway on the host machine:
 
 ```
-Proposed → Queued → Development → Review → Done
-                      ↑                ↓
-                      └── (QA fails) ──┘
+┌─────────────────────────────────────────┐
+│  Docker: claw-net bridge network        │
+│                                         │
+│  ┌──────────┐    ┌──────────┐          │
+│  │ claw-ui  │    │  bridge  │──────┐   │
+│  │ :3000    │    │  :8787   │      │   │
+│  └──────────┘    └──────────┘      │   │
+│                                     │   │
+└─────────────────────────────────────│───┘
+                                      │
+                          ┌───────────▼───┐
+                          │  Host machine  │
+                          │  OpenClaw GW   │
+                          │  :18789        │
+                          └───────────────┘
 ```
 
-1. **Proposed**: Ideas, not yet ready for work
-2. **Queued**: Ready for an agent to pick up
-3. **Development**: Agent is actively working on it
-4. **Review**: Dev agent finished, waiting for Sentinel QA
-5. **Done**: Sentinel verified, task complete
-
-### Key Rules
-- Dev agents (Forge, Patch) pick up from **queued**, work in **development**, move to **review**
-- Only Sentinel (QA) moves tasks from **review** to **done**
-- Failed QA sends tasks back to **development**
-
-## API Endpoints
-
-### Tasks
-- `GET /api/tasks` — List all tasks (supports `?lane=` and `?owner=` filters)
-- `POST /api/tasks` — Create a task
-- `PUT /api/tasks/:id` — Update a task
-- `DELETE /api/tasks/:id` — Delete a task
-
-### Agents
-- `GET /api/agents` — List all agents
-- `POST /api/agents/:id/heartbeat` — Update agent heartbeat
-- `PUT /api/agents/:id/status` — Update agent status
-
-### Activity
-- `GET /api/activity` — Recent activity events
-
-### System
-- `GET /api/status` — System health check
+- Host IP from inside Docker: typically `172.18.0.1` (check with `docker network inspect claw-net`)
+- The UI container proxies `/api` to the bridge container via nginx
 
 ## Data Storage
 
-All data is stored locally in `.clawhub/` (created on first run):
-- `tasks.json` — All tasks
-- `agents.json` — Agent status and heartbeats
-- `activity.json` — Activity feed
-- `projects/` — Project data
+All persistent data lives in `.clawhub/`:
 
-This directory is gitignored — your data stays on your machine.
+| File | Description |
+|------|-------------|
+| `config.json` | Gateway token and URL |
+| `tasks.json` | All tasks (kanban board state) |
+| `sub-agent-registry.json` | Active sub-agent sessions |
+| `agents.json` | Agent metadata |
+| `activity.json` | Activity feed events |
+| `projects.json` | Projects |
+| `intakes.json` | Intake items |
+| `rules.json` | PM rules |
+| `notifications.json` | Notifications |
+| `routines.json` | Routines |
+| `taskTemplates.json` | Task templates |
+
+This directory is `.gitignored` — your data stays local. Only `config.example.json` is committed.
+
+## Troubleshooting
+
+### Sub-agents not spawning
+1. Check gateway config: `cat .clawhub/config.json`
+2. Verify gateway is reachable: `curl http://172.18.0.1:18789/api/status` (from inside bridge container)
+3. Check bridge logs: `docker logs claw-bridge`
+4. Verify `allowAgents` includes your agent IDs in OpenClaw config
+
+### Tasks stuck in queued
+- TaskRouter only claims tasks with an `owner` field matching a known agent ID
+- Check `AGENT_DEFINITIONS` in `bridge/server.mjs`
+- Check bridge logs for spawn errors
+
+### Gateway timeout on spawn
+- The gateway has a ~10s internal timeout for `sessions_spawn`
+- The sequential spawn queue (3-5s delay) prevents overwhelming the gateway
+- If spawns still fail, increase `SPAWN_DELAY_MS` in `taskRouter.mjs`
+
+### Docker API calls returning HTML
+- The nginx config must proxy `/api` to the bridge container
+- Check `docker/nginx.conf` has a `/api` location block
+- Verify bridge container IP: `docker network inspect claw-net`

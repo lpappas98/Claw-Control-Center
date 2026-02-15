@@ -1,0 +1,26 @@
+{
+  "gatewayToken": "YOUR_OPENCLAW_GATEWAY_TOKEN",
+  "gatewayUrl": "http://172.18.0.1:18789",
+  "integrations": {
+    "github": {
+      "token": "",
+      "defaultRepo": "",
+      "autoCreateIssues": false,
+      "autoCloseOnDone": false,
+      "webhookSecret": ""
+    },
+    "telegram": {
+      "botToken": "",
+      "channels": {
+        "default": ""
+      },
+      "enabled": false
+    },
+    "googleCalendar": {
+      "enabled": false,
+      "calendarId": "primary",
+      "credentials": "",
+      "token": ""
+    }
+  }
+}
