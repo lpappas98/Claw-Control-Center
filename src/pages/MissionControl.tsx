@@ -58,13 +58,7 @@ function homeStatus(status: string, hasTask?: boolean) {
   return 'sleeping'
 }
 
-const PINNED_SLOTS: Array<{ slot: string; name: string; role: string; emoji: string }> = [
-  { slot: 'tars', name: 'TARS', role: 'Project Manager', emoji: '🧠' },
-  { slot: 'architect', name: 'Blueprint', role: 'Architect', emoji: '🏗️' },
-  { slot: 'qa', name: 'Sentinel', role: 'QA', emoji: '🛡️' },
-  { slot: 'dev-1', name: 'Forge', role: 'Developer', emoji: '🛠️' },
-  { slot: 'dev-2', name: 'Patch', role: 'Developer', emoji: '🧩' },
-]
+// PINNED_SLOTS removed — agent strip is now driven entirely by live sub-agent data
 
 function unknownSystemStatus(now: string): SystemStatus {
   return {
@@ -159,44 +153,23 @@ export function MissionControl({
 
   const agents = useMemo(() => {
     const workers = live.data?.workers ?? []
-    const bySlot = new Map(workers.map((w) => [w.slot, w]))
-
-    const pinned = PINNED_SLOTS.map((def) => {
-      const w = bySlot.get(def.slot)
-      const hasTask = w ? (w.task !== undefined && w.task !== null && w.task !== '') : undefined
-      return {
-        id: def.slot,
-        name: def.name,
-        emoji: def.emoji,
-        role: def.role,
-        status: w ? homeStatus(w.status, hasTask) : 'sleeping',
-        rawStatus: w?.status ?? 'offline',
-        online: !!w && w.status !== 'offline',
-        task: w?.task ?? (w ? 'No active task' : 'Waiting for next task'),
-        lastBeatAt: w?.lastBeatAt,
-      }
-    })
-
-    const pinnedSet = new Set(PINNED_SLOTS.map((s) => s.slot))
-    const extras = workers
-      .filter((w) => !pinnedSet.has(w.slot))
+    // Only show agents that are actively working on a task — no mock/pinned data
+    return workers
+      .filter(w => w.status === 'active' && w.task)
       .map((w) => {
         const profile = agentProfile(w.slot, w.label)
-        const hasTask = w.task !== undefined && w.task !== null && w.task !== ''
         return {
           id: w.slot,
           name: profile.name,
           emoji: profile.emoji,
           role: profile.role,
-          status: homeStatus(w.status, hasTask),
+          status: 'working' as const,
           rawStatus: w.status,
-          online: w.status !== 'offline',
-          task: w.task ?? 'No active task',
+          online: true,
+          task: w.task ?? '',
           lastBeatAt: w.lastBeatAt,
         }
       })
-
-    return [...pinned, ...extras]
   }, [live.data?.workers])
 
   const tasks = useMemo<HomeTask[]>(() => {
@@ -233,8 +206,8 @@ export function MissionControl({
 
   const blockedTasks = tasks.filter((t) => t.lane === 'blocked')
 
-  const workingAgents = useMemo(() => agents.filter(a => a.status === 'working'), [agents])
-  const idleAgents = useMemo(() => agents.filter(a => a.status !== 'working'), [agents])
+  // All agents in the list are active (idle agents are not shown)
+  const workingAgents = agents
   const useCompactMode = workingAgents.length >= 4
   
   const totalTasks = tasks.length
@@ -285,130 +258,42 @@ export function MissionControl({
           </Alert>
         )}
 
-      {/* Agent Strip - Adaptive layout */}
-      <div style={{ display: 'flex', gap: '10px', alignItems: 'stretch' }}>
-        <div style={{ flex: 1, minWidth: 0, display: 'flex', gap: '10px', alignItems: 'stretch', flexWrap: useCompactMode ? 'wrap' : 'nowrap', overflowX: 'auto' }}>
-          {useCompactMode ? (
-            // Compact mode: all agents equal-width
-            agents.map((agent) => (
+      {/* Agent Strip — only visible when sub-agents are actively working */}
+      {workingAgents.length > 0 && (
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'stretch' }}>
+          <div style={{ flex: 1, minWidth: 0, display: 'flex', gap: '10px', alignItems: 'stretch', flexWrap: useCompactMode ? 'wrap' : 'nowrap', overflowX: 'auto' }}>
+            {workingAgents.map((agent) => (
               <div
                 key={agent.id}
                 style={{
                   flex: useCompactMode ? 1 : undefined,
                   minWidth: useCompactMode ? 0 : '300px',
                   flexShrink: 0,
-                  background: agent.status === 'working' 
-                    ? 'linear-gradient(135deg, rgba(16,185,129,0.06) 0%, rgba(15,23,42,0.5) 100%)'
-                    : 'rgba(30,41,59,0.4)',
-                  border: agent.status === 'working'
-                    ? '1px solid rgba(16,185,129,0.18)'
-                    : '1px solid rgba(51,65,85,0.35)',
-                  borderRadius: '12px',
-                  padding: '10px 14px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '10px',
-                }}
-              >
-                <span style={{ fontSize: '18px', flexShrink: 0 }}>{agent.emoji}</span>
-                <div style={{ minWidth: 0, flex: 1 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}>
-                    <span style={{ fontSize: '12px', fontWeight: 600, color: '#f1f5f9' }}>{agent.name}</span>
-                    <span style={{ fontSize: '10px', color: '#475569' }}>{agent.role}</span>
-                    <div style={{
-                      marginLeft: 'auto',
-                      width: '6px',
-                      height: '6px',
-                      borderRadius: '50%',
-                      flexShrink: 0,
-                      background: agent.status === 'working' ? '#34d399' : '#475569',
-                      boxShadow: agent.status === 'working' ? '0 0 6px rgba(52,211,153,0.5)' : 'none',
-                    }} />
-                  </div>
-                  {agent.status === 'working' ? (
-                    <p style={{ fontSize: '11px', color: 'rgba(110,231,183,0.6)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {typeof agent.task === 'object' && agent.task?.title ? agent.task.title : agent.task}
-                    </p>
-                  ) : (
-                    <p style={{ fontSize: '11px', color: '#334155', margin: 0 }}>Idle · {fmtAgo(agent.lastBeatAt)}</p>
-                  )}
-                </div>
-              </div>
-            ))
-          ) : (
-            <>
-              {/* Expanded mode: large cards for working agents */}
-              {workingAgents.map((agent) => (
-                <div
-                  key={agent.id}
-                  style={{
-                    width: '300px',
-                    flexShrink: 0,
-                    background: 'linear-gradient(135deg, rgba(16,185,129,0.07) 0%, rgba(15,23,42,0.5) 100%)',
-                    border: '1px solid rgba(16,185,129,0.18)',
-                    borderRadius: '12px',
-                    padding: '12px 16px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '12px',
-                  }}
-                >
-                  <span style={{ fontSize: '20px', flexShrink: 0 }}>{agent.emoji}</span>
-                  <div style={{ minWidth: 0, flex: 1 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '3px' }}>
-                      <span style={{ fontSize: '13px', fontWeight: 600, color: '#f1f5f9' }}>{agent.name}</span>
-                      <span style={{ fontSize: '11px', color: '#64748b' }}>{agent.role}</span>
-                      <div style={{ marginLeft: 'auto', width: '6px', height: '6px', borderRadius: '50%', background: '#34d399', boxShadow: '0 0 6px rgba(52,211,153,0.5)' }} />
-                    </div>
-                    <p style={{ fontSize: '12px', color: 'rgba(110,231,183,0.65)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {typeof agent.task === 'object' && agent.task?.title ? agent.task.title : agent.task}
-                    </p>
-                  </div>
-                </div>
-              ))}
-              {/* Idle cluster */}
-              {idleAgents.length > 0 && (
-                <div style={{
-                  background: 'rgba(30,41,59,0.4)',
-                  border: '1px solid rgba(51,65,85,0.35)',
+                  background: 'linear-gradient(135deg, rgba(16,185,129,0.07) 0%, rgba(15,23,42,0.5) 100%)',
+                  border: '1px solid rgba(16,185,129,0.18)',
                   borderRadius: '12px',
                   padding: '12px 16px',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '14px',
-                  flexShrink: 0,
-                }}>
-                  <div style={{ display: 'flex', gap: '6px' }}>
-                    {idleAgents.map(a => (
-                      <div
-                        key={a.id}
-                        title={`${a.name} · ${a.role}`}
-                        style={{
-                          width: '34px',
-                          height: '34px',
-                          borderRadius: '50%',
-                          background: 'rgba(51,65,85,0.5)',
-                          border: '1px solid rgba(71,85,105,0.4)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontSize: '15px',
-                          cursor: 'default',
-                        }}
-                      >
-                        {a.emoji}
-                      </div>
-                    ))}
+                  gap: '12px',
+                }}
+              >
+                <span style={{ fontSize: '20px', flexShrink: 0 }}>{agent.emoji}</span>
+                <div style={{ minWidth: 0, flex: 1 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '3px' }}>
+                    <span style={{ fontSize: '13px', fontWeight: 600, color: '#f1f5f9' }}>{agent.name}</span>
+                    <span style={{ fontSize: '11px', color: '#64748b' }}>{agent.role}</span>
+                    <div style={{ marginLeft: 'auto', width: '6px', height: '6px', borderRadius: '50%', background: '#34d399', boxShadow: '0 0 6px rgba(52,211,153,0.5)', animation: 'pulse 2s infinite' }} />
                   </div>
-                  <span style={{ fontSize: '12px', color: '#64748b', whiteSpace: 'nowrap' }}>
-                    <span style={{ color: '#cbd5e1', fontWeight: 500 }}>{idleAgents.length}</span> idle
-                  </span>
+                  <p style={{ fontSize: '12px', color: 'rgba(110,231,183,0.65)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {typeof agent.task === 'object' && agent.task?.title ? agent.task.title : agent.task}
+                  </p>
                 </div>
-              )}
-            </>
-          )}
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Blocked Tasks Bar */}
       {blockedTasks.length > 0 && (
