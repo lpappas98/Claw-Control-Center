@@ -152,6 +152,7 @@ export function TaskModal({
   const [draftProblem, setDraftProblem] = useState(String(task.problem ?? ''))
   const [draftScope, setDraftScope] = useState(String(task.scope ?? ''))
   const [draftAcceptanceRaw, setDraftAcceptanceRaw] = useState((task.acceptanceCriteria ?? []).join('\n'))
+  const [draftNote, setDraftNote] = useState('')
 
   useEffect(() => {
     fetch('/api/agents')
@@ -168,8 +169,10 @@ export function TaskModal({
     setDraftProblem(String(task.problem ?? ''))
     setDraftScope(String(task.scope ?? ''))
     setDraftAcceptanceRaw((task.acceptanceCriteria ?? []).join('\n'))
+    setDraftNote('')
   }, [task])
 
+  const laneChanging = draftLane !== task.lane
   const dirty =
     draftTitle !== task.title ||
     draftLane !== task.lane ||
@@ -177,7 +180,8 @@ export function TaskModal({
     draftOwner !== (task.owner ?? '') ||
     draftProblem !== (task.problem ?? '') ||
     draftScope !== (task.scope ?? '') ||
-    draftAcceptanceRaw.trim() !== (task.acceptanceCriteria ?? []).join('\n').trim()
+    draftAcceptanceRaw.trim() !== (task.acceptanceCriteria ?? []).join('\n').trim() ||
+    (laneChanging && draftNote.trim() !== '')
 
   const acceptanceCriteria = useMemo(() => normalizeLines(draftAcceptanceRaw), [draftAcceptanceRaw])
 
@@ -185,7 +189,7 @@ export function TaskModal({
     setBusy(true)
     setError(null)
     try {
-      const updated = await adapter.updateTask({
+      const updatePayload: any = {
         id: task.id,
         title: draftTitle.trim() || task.title,
         lane: draftLane,
@@ -194,8 +198,14 @@ export function TaskModal({
         problem: draftProblem.trim() || undefined,
         scope: draftScope.trim() || undefined,
         acceptanceCriteria,
-      })
+      }
+      // Include note if lane is changing
+      if (draftLane !== task.lane && draftNote.trim()) {
+        updatePayload.note = draftNote.trim()
+      }
+      const updated = await adapter.updateTask(updatePayload)
       onSaved(updated)
+      setDraftNote('')
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e))
     } finally {
@@ -410,6 +420,19 @@ export function TaskModal({
                   </div>
                 </div>
               </div>
+
+              {laneChanging && (
+                <div>
+                  <FieldLabel>Reason for lane change (optional)</FieldLabel>
+                  <textarea
+                    placeholder="Why is this task moving? (e.g., 'Failed QA: API routes use wrong path')"
+                    rows={2}
+                    value={draftNote}
+                    onChange={(e) => setDraftNote(e.target.value)}
+                    style={textareaStyle}
+                  />
+                </div>
+              )}
 
               <div style={{ borderTop: '1px solid rgba(51,65,85,0.3)' }} />
 
