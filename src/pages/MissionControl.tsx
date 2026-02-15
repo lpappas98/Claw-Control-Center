@@ -449,7 +449,7 @@ export function MissionControl({
       )}
 
       {/* Board + Activity */}
-      <div style={{ display: 'flex', gap: '14px', alignItems: 'flex-start' }}>
+      <div style={{ display: 'flex', gap: '14px', alignItems: 'stretch' }}>
         {/* Task Board */}
         <div style={{
           flex: 1,
