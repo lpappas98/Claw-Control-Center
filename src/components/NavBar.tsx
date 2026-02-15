@@ -1,17 +1,14 @@
 import { useNavigate, useLocation } from 'react-router-dom'
 
-const NAV_ITEMS = ['Mission Control', 'Projects', 'Activity', 'Kanban', 'Recurring', 'Integrations', 'System', 'Config', 'Docs'] as const
+const NAV_ITEMS = ['Mission Control', 'Projects', 'Activity', 'Kanban', 'System', 'Config'] as const
 
 const routeMap: Record<typeof NAV_ITEMS[number], string> = {
   'Mission Control': '/',
   'Projects': '/projects',
   'Activity': '/activity',
   'Kanban': '/kanban',
-  'Recurring': '/recurring',
-  'Integrations': '/integrations',
   'System': '/system',
   'Config': '/config',
-  'Docs': '/docs',
 }
 
 const reverseRouteMap: Record<string, typeof NAV_ITEMS[number]> = {}

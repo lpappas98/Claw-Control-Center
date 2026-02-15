@@ -1,325 +1,243 @@
-import { useState } from 'react'
-import type { HealthStatus, Agent } from '../types'
+import { useState, useEffect } from 'react'
 import { usePoll } from '../lib/usePoll'
-import * as api from '../services/api'
 
-interface HealthResponse {
-  status: string
-  timestamp: string
-  uptime: number
-  version: string
-  service: string
-  stats: {
-    tasks: {
-      total: number
-      byStatus: Record<string, number>
-    }
-    agents: {
-      total: number
-      online: number
-      offline: number
-    }
-    errors: number
-  }
-  memory: {
-    heapUsed: number
-    heapTotal: number
-    external: number
-    rss: number
-  }
-  system: {
-    platform: string
-    nodeVersion: string
-    cpuCount: number
-    totalMemory: number
-    freeMemory: number
-    loadAverage: number[]
-  }
-  integrations: {
-    github: boolean
-    telegram: boolean
-    googleCalendar: boolean
-  }
-  readiness: {
-    ready: boolean
-    checks: Record<string, boolean>
-  }
+interface ServiceStatus {
+  name: string
+  status: 'online' | 'offline' | 'unknown'
+  uptime?: string
+  version?: string
+  lastDeployed?: string
+  port?: number
+  details?: Record<string, string | number>
+}
+
+const panel: React.CSSProperties = {
+  background: 'rgba(15,23,42,0.45)',
+  border: '1px solid rgba(30,41,59,0.55)',
+  borderRadius: 14,
+  padding: '20px 24px',
+}
+
+const statusColors: Record<string, { bg: string; text: string; dot: string }> = {
+  online: { bg: 'rgba(16,185,129,0.12)', text: '#6ee7b7', dot: '#10b981' },
+  offline: { bg: 'rgba(239,68,68,0.12)', text: '#fca5a5', dot: '#ef4444' },
+  unknown: { bg: 'rgba(100,116,139,0.12)', text: '#94a3b8', dot: '#64748b' },
+}
+
+function formatUptime(seconds: number): string {
+  const d = Math.floor(seconds / 86400)
+  const h = Math.floor((seconds % 86400) / 3600)
+  const m = Math.floor((seconds % 3600) / 60)
+  if (d > 0) return `${d}d ${h}h ${m}m`
+  if (h > 0) return `${h}h ${m}m`
+  return `${m}m`
+}
+
+function timeAgo(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime()
+  const mins = Math.floor(diff / 60000)
+  if (mins < 1) return 'just now'
+  if (mins < 60) return `${mins}m ago`
+  const hours = Math.floor(mins / 60)
+  if (hours < 24) return `${hours}h ago`
+  return `${Math.floor(hours / 24)}d ago`
 }
 
 export function SystemStatusPage() {
-  const [health, setHealth] = useState<HealthResponse | null>(null)
-  const [agents, setAgents] = useState<Agent[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [bridge, setBridge] = useState<ServiceStatus>({ name: 'Bridge API', status: 'unknown', port: 8787 })
+  const [ui, setUi] = useState<ServiceStatus>({ name: 'UI Dashboard', status: 'unknown', port: 5173 })
+  const [diskInfo, setDiskInfo] = useState<{ used: string; total: string; pct: number } | null>(null)
+  const [taskStats, setTaskStats] = useState<Record<string, number>>({})
 
-  const loadHealth = async () => {
+  const checkBridge = async () => {
     try {
-      setError(null)
-      const response = await fetch('/health')
-      if (!response.ok) throw new Error('Failed to fetch health')
-      const data = (await response.json()) as HealthResponse
-      setHealth(data)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load system status')
-      setHealth(null)
-    } finally {
-      setLoading(false)
+      const res = await fetch('/api/status')
+      if (!res.ok) throw new Error('Bridge unreachable')
+      const data = await res.json()
+      setBridge({
+        name: 'Bridge API',
+        status: 'online',
+        port: 8787,
+        uptime: data.uptime ? formatUptime(data.uptime) : undefined,
+        version: data.version || '1.0.0',
+        lastDeployed: data.startedAt || data.timestamp,
+        details: {
+          tasks: data.stats?.tasks?.total ?? 0,
+          agents: data.stats?.agents?.total ?? 0,
+          ...(data.memory ? { heapMB: Math.round(data.memory.heapUsed) } : {}),
+        },
+      })
+    } catch {
+      setBridge(prev => ({ ...prev, status: 'offline' }))
     }
   }
 
-  const loadAgents = async () => {
+  const checkHealth = async () => {
     try {
-      const data = await api.fetchAgents()
-      setAgents(data)
-    } catch (err) {
-      console.error('Failed to load agents:', err)
-    }
+      const res = await fetch('/health')
+      if (res.ok) {
+        const data = await res.json()
+        if (data.uptime) {
+          setBridge(prev => ({
+            ...prev,
+            status: 'online',
+            uptime: formatUptime(data.uptime),
+            version: data.version,
+            lastDeployed: data.timestamp,
+            details: {
+              tasks: data.stats?.tasks?.total ?? 0,
+              agentsOnline: data.stats?.agents?.online ?? 0,
+              agentsTotal: data.stats?.agents?.total ?? 0,
+              ...(data.memory ? { heapMB: Math.round(data.memory.heapUsed) } : {}),
+              ...(data.system ? { cpus: data.system.cpuCount, freeMemMB: data.system.freeMemory } : {}),
+            },
+          }))
+          if (data.system) {
+            const totalGB = (data.system.totalMemory / 1024).toFixed(1)
+            const freeGB = (data.system.freeMemory / 1024).toFixed(1)
+            const usedGB = ((data.system.totalMemory - data.system.freeMemory) / 1024).toFixed(1)
+            setDiskInfo({ used: usedGB, total: totalGB, pct: Math.round(((data.system.totalMemory - data.system.freeMemory) / data.system.totalMemory) * 100) })
+          }
+        }
+      }
+    } catch { /* ignore */ }
   }
 
-  // Poll health every 10s
-  usePoll(loadHealth, 10000)
+  const fetchTasks = async () => {
+    try {
+      const res = await fetch('/api/tasks')
+      if (!res.ok) return
+      const tasks = await res.json()
+      const stats: Record<string, number> = {}
+      for (const t of tasks) {
+        const lane = t.lane || 'unknown'
+        stats[lane] = (stats[lane] || 0) + 1
+      }
+      setTaskStats(stats)
+    } catch { /* ignore */ }
+  }
 
-  // Poll agents every 10s
-  usePoll(loadAgents, 10000)
+  // UI is always online if this page loads
+  useEffect(() => {
+    setUi({
+      name: 'UI Dashboard',
+      status: 'online',
+      port: 5173,
+      lastDeployed: document.querySelector('meta[name="build-time"]')?.getAttribute('content') || undefined,
+    })
+  }, [])
 
-  const uptime = health?.uptime ?? 0
-  const uptimeStr = Math.floor(uptime / 3600)
-    + 'h ' + Math.floor((uptime % 3600) / 60)
-    + 'm ' + (uptime % 60)
-    + 's'
+  usePoll(checkBridge, 10000)
+  usePoll(checkHealth, 10000)
+  usePoll(fetchTasks, 15000)
+
+  const services = [bridge, ui]
 
   return (
-    <main className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-6xl mx-auto">
-        <h1 className="text-4xl font-bold text-gray-900 mb-8">System Status</h1>
+    <div style={{ maxWidth: 1000, margin: '0 auto', padding: '24px 20px' }}>
+      <h1 style={{ fontSize: 22, fontWeight: 700, color: '#f1f5f9', marginBottom: 20 }}>System Status</h1>
 
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
-            {error}
-          </div>
-        )}
-
-        {loading && !health && (
-          <div className="text-center py-12">
-            <div className="animate-spin w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full mx-auto" />
-            <p className="text-gray-600 mt-4">Loading system status...</p>
-          </div>
-        )}
-
-        {health && (
-          <>
-            {/* Overall Status */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              {/* Bridge Health */}
-              <div className="bg-white rounded-lg shadow p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-semibold text-gray-900">Bridge Status</h2>
-                  <span className="inline-block w-3 h-3 bg-green-500 rounded-full" />
+      {/* Service cards */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 20 }}>
+        {services.map(svc => {
+          const sc = statusColors[svc.status]
+          return (
+            <div key={svc.name} style={panel}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <div style={{ width: 10, height: 10, borderRadius: '50%', background: sc.dot, boxShadow: `0 0 8px ${sc.dot}60` }} />
+                  <span style={{ fontSize: 15, fontWeight: 700, color: '#f1f5f9' }}>{svc.name}</span>
                 </div>
-                <dl className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <dt className="text-gray-600">Service</dt>
-                    <dd className="text-gray-900 font-mono">{health.service}</dd>
-                  </div>
-                  <div className="flex justify-between">
-                    <dt className="text-gray-600">Version</dt>
-                    <dd className="text-gray-900 font-mono">{health.version}</dd>
-                  </div>
-                  <div className="flex justify-between">
-                    <dt className="text-gray-600">Uptime</dt>
-                    <dd className="text-gray-900">{uptimeStr}</dd>
-                  </div>
-                  <div className="flex justify-between">
-                    <dt className="text-gray-600">Last Update</dt>
-                    <dd className="text-gray-900 text-xs">{new Date(health.timestamp).toLocaleTimeString()}</dd>
-                  </div>
-                </dl>
+                <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 6, background: sc.bg, color: sc.text, textTransform: 'uppercase', letterSpacing: '0.04em' }}>{svc.status}</span>
               </div>
 
-              {/* Agent Health */}
-              <div className="bg-white rounded-lg shadow p-6">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">Agents</h2>
-                <dl className="space-y-2">
-                  <div className="flex justify-between">
-                    <dt className="text-gray-600">Total</dt>
-                    <dd className="text-2xl font-bold text-gray-900">{health.stats.agents.total}</dd>
-                  </div>
-                  <div className="flex justify-between">
-                    <dt className="text-gray-600">Online</dt>
-                    <dd className="text-xl font-bold text-green-600">{health.stats.agents.online}</dd>
-                  </div>
-                  <div className="flex justify-between">
-                    <dt className="text-gray-600">Offline</dt>
-                    <dd className="text-xl font-bold text-gray-400">{health.stats.agents.offline}</dd>
-                  </div>
-                </dl>
-              </div>
-
-              {/* Integration Status */}
-              <div className="bg-white rounded-lg shadow p-6">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">Integrations</h2>
-                <dl className="space-y-2 text-sm">
-                  <div className="flex items-center justify-between">
-                    <dt className="text-gray-600">GitHub</dt>
-                    <dd>
-                      <span
-                        className={`inline-block px-2 py-1 rounded text-xs font-semibold ${
-                          health.integrations.github
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-gray-100 text-gray-800'
-                        }`}
-                      >
-                        {health.integrations.github ? 'Connected' : 'Disabled'}
-                      </span>
-                    </dd>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <dt className="text-gray-600">Telegram</dt>
-                    <dd>
-                      <span
-                        className={`inline-block px-2 py-1 rounded text-xs font-semibold ${
-                          health.integrations.telegram
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-gray-100 text-gray-800'
-                        }`}
-                      >
-                        {health.integrations.telegram ? 'Connected' : 'Disabled'}
-                      </span>
-                    </dd>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <dt className="text-gray-600">Google Calendar</dt>
-                    <dd>
-                      <span
-                        className={`inline-block px-2 py-1 rounded text-xs font-semibold ${
-                          health.integrations.googleCalendar
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-gray-100 text-gray-800'
-                        }`}
-                      >
-                        {health.integrations.googleCalendar ? 'Connected' : 'Disabled'}
-                      </span>
-                    </dd>
-                  </div>
-                </dl>
-              </div>
-            </div>
-
-            {/* Task Stats */}
-            <div className="bg-white rounded-lg shadow p-6 mb-8">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Task Statistics</h2>
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                <div>
-                  <p className="text-sm text-gray-600">Total Tasks</p>
-                  <p className="text-2xl font-bold text-gray-900">{health.stats.tasks.total}</p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12 }}>
+                  <span style={{ color: '#64748b' }}>Port</span>
+                  <span style={{ color: '#94a3b8', fontFamily: 'monospace' }}>{svc.port}</span>
                 </div>
-                {Object.entries(health.stats.tasks.byStatus).map(([status, count]) => (
-                  <div key={status}>
-                    <p className="text-sm text-gray-600 capitalize">{status}</p>
-                    <p className="text-2xl font-bold text-blue-600">{count}</p>
+                {svc.uptime && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12 }}>
+                    <span style={{ color: '#64748b' }}>Uptime</span>
+                    <span style={{ color: '#94a3b8' }}>{svc.uptime}</span>
                   </div>
-                ))}
+                )}
+                {svc.version && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12 }}>
+                    <span style={{ color: '#64748b' }}>Version</span>
+                    <span style={{ color: '#94a3b8', fontFamily: 'monospace' }}>{svc.version}</span>
+                  </div>
+                )}
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12 }}>
+                  <span style={{ color: '#64748b' }}>Last Deployed</span>
+                  <span style={{ color: '#94a3b8' }}>
+                    {svc.lastDeployed ? timeAgo(svc.lastDeployed) : '—'}
+                  </span>
+                </div>
+                {svc.lastDeployed && (
+                  <div style={{ fontSize: 10, color: '#334155', textAlign: 'right' }}>
+                    {new Date(svc.lastDeployed).toLocaleString()}
+                  </div>
+                )}
+
+                {/* Extra details */}
+                {svc.details && Object.keys(svc.details).length > 0 && (
+                  <div style={{ borderTop: '1px solid rgba(30,41,59,0.4)', paddingTop: 10, marginTop: 4 }}>
+                    {Object.entries(svc.details).map(([k, v]) => (
+                      <div key={k} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, padding: '2px 0' }}>
+                        <span style={{ color: '#475569' }}>{k}</span>
+                        <span style={{ color: '#94a3b8' }}>{v}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
-
-            {/* Memory & System */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-              {/* Memory Usage */}
-              <div className="bg-white rounded-lg shadow p-6">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">Memory Usage</h2>
-                <dl className="space-y-3 text-sm">
-                  <div className="flex justify-between">
-                    <dt className="text-gray-600">Heap Used</dt>
-                    <dd className="text-gray-900">{health.memory.heapUsed} MB</dd>
-                  </div>
-                  <div className="flex justify-between">
-                    <dt className="text-gray-600">Heap Total</dt>
-                    <dd className="text-gray-900">{health.memory.heapTotal} MB</dd>
-                  </div>
-                  <div className="flex justify-between">
-                    <dt className="text-gray-600">External</dt>
-                    <dd className="text-gray-900">{health.memory.external} MB</dd>
-                  </div>
-                  <div className="flex justify-between">
-                    <dt className="text-gray-600">RSS</dt>
-                    <dd className="text-gray-900">{health.memory.rss} MB</dd>
-                  </div>
-                  <div className="mt-4 pt-4 border-t">
-                    <div
-                      className="h-2 bg-blue-200 rounded overflow-hidden"
-                      style={{
-                        width: '100%',
-                      }}
-                    >
-                      <div
-                        className="h-full bg-blue-600"
-                        style={{
-                          width: `${(health.memory.heapUsed / health.memory.heapTotal) * 100}%`,
-                        }}
-                      />
-                    </div>
-                    <p className="text-xs text-gray-600 mt-2">
-                      {Math.round((health.memory.heapUsed / health.memory.heapTotal) * 100)}% of heap used
-                    </p>
-                  </div>
-                </dl>
-              </div>
-
-              {/* System Info */}
-              <div className="bg-white rounded-lg shadow p-6">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">System Info</h2>
-                <dl className="space-y-3 text-sm">
-                  <div className="flex justify-between">
-                    <dt className="text-gray-600">Platform</dt>
-                    <dd className="text-gray-900">{health.system.platform}</dd>
-                  </div>
-                  <div className="flex justify-between">
-                    <dt className="text-gray-600">Node Version</dt>
-                    <dd className="text-gray-900 font-mono text-xs">{health.system.nodeVersion}</dd>
-                  </div>
-                  <div className="flex justify-between">
-                    <dt className="text-gray-600">CPU Cores</dt>
-                    <dd className="text-gray-900">{health.system.cpuCount}</dd>
-                  </div>
-                  <div className="flex justify-between">
-                    <dt className="text-gray-600">Total Memory</dt>
-                    <dd className="text-gray-900">{health.system.totalMemory} MB</dd>
-                  </div>
-                  <div className="flex justify-between">
-                    <dt className="text-gray-600">Free Memory</dt>
-                    <dd className="text-gray-900">{health.system.freeMemory} MB</dd>
-                  </div>
-                  <div className="flex justify-between">
-                    <dt className="text-gray-600">Load Avg (1m)</dt>
-                    <dd className="text-gray-900">{health.system.loadAverage[0].toFixed(2)}</dd>
-                  </div>
-                </dl>
-              </div>
-            </div>
-
-            {/* Readiness Status */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Readiness Checks</h2>
-              <div className="space-y-2">
-                {Object.entries(health.readiness.checks).map(([check, passed]) => (
-                  <div key={check} className="flex items-center justify-between py-2 border-b last:border-b-0">
-                    <dt className="text-gray-600 capitalize">{check}</dt>
-                    <dd>
-                      <span
-                        className={`inline-block px-2 py-1 rounded text-xs font-semibold ${
-                          passed ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                        }`}
-                      >
-                        {passed ? 'OK' : 'FAILED'}
-                      </span>
-                    </dd>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </>
-        )}
+          )
+        })}
       </div>
-    </main>
+
+      {/* Task overview */}
+      {Object.keys(taskStats).length > 0 && (
+        <div style={panel}>
+          <h2 style={{ fontSize: 14, fontWeight: 700, color: '#f1f5f9', marginBottom: 14 }}>Task Overview</h2>
+          <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
+            {Object.entries(taskStats).sort().map(([lane, count]) => {
+              const colors: Record<string, string> = {
+                queued: '#64748b', proposed: '#94a3b8', development: '#3b82f6',
+                review: '#c084fc', done: '#10b981', blocked: '#f87171',
+              }
+              return (
+                <div key={lane} style={{ textAlign: 'center', minWidth: 70 }}>
+                  <div style={{ fontSize: 22, fontWeight: 700, color: colors[lane] || '#94a3b8' }}>{count}</div>
+                  <div style={{ fontSize: 11, color: '#475569', textTransform: 'capitalize', marginTop: 2 }}>{lane}</div>
+                </div>
+              )
+            })}
+            <div style={{ textAlign: 'center', minWidth: 70 }}>
+              <div style={{ fontSize: 22, fontWeight: 700, color: '#f1f5f9' }}>
+                {Object.values(taskStats).reduce((a, b) => a + b, 0)}
+              </div>
+              <div style={{ fontSize: 11, color: '#475569', marginTop: 2 }}>Total</div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Memory info */}
+      {diskInfo && (
+        <div style={{ ...panel, marginTop: 14 }}>
+          <h2 style={{ fontSize: 14, fontWeight: 700, color: '#f1f5f9', marginBottom: 10 }}>System Memory</h2>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            <div style={{ flex: 1, height: 6, borderRadius: 3, background: 'rgba(30,41,59,0.6)', overflow: 'hidden' }}>
+              <div style={{ height: '100%', borderRadius: 3, background: diskInfo.pct > 85 ? '#ef4444' : '#3b82f6', width: `${diskInfo.pct}%` }} />
+            </div>
+            <span style={{ fontSize: 12, color: '#94a3b8', whiteSpace: 'nowrap' }}>
+              {diskInfo.used} / {diskInfo.total} GB ({diskInfo.pct}%)
+            </span>
+          </div>
+        </div>
+      )}
+    </div>
   )
 }
