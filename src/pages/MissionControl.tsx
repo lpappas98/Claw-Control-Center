@@ -753,6 +753,19 @@ export function MissionControl({
                             }}>
                               {task.priority}
                             </span>
+                            {task.details?.project && (
+                              <span style={{
+                                fontSize: '10px',
+                                fontWeight: 600,
+                                padding: '2px 7px',
+                                borderRadius: '4px',
+                                background: 'rgba(139,92,246,0.12)',
+                                color: '#c084fc',
+                                letterSpacing: '0.01em',
+                              }}>
+                                📋 {task.details.project}
+                              </span>
+                            )}
                             {task.agent && (
                               <span style={{ fontSize: '10px', color: '#60a5fa' }}>
                                 → {task.agent}

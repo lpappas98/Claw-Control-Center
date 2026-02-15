@@ -120,6 +120,8 @@ export type Task = {
   problem?: string
   scope?: string
   acceptanceCriteria?: string[]
+  project?: string // project id
+  aspect?: string // aspect id
   createdAt: string
   updatedAt: string
   statusHistory: TaskStatusHistoryEntry[]
@@ -135,6 +137,8 @@ export type TaskCreate = {
   problem?: string
   scope?: string
   acceptanceCriteria?: string[]
+  project?: string
+  aspect?: string
 }
 
 export type TaskUpdate = {
@@ -147,6 +151,8 @@ export type TaskUpdate = {
   problem?: string
   scope?: string
   acceptanceCriteria?: string[]
+  project?: string
+  aspect?: string
 }
 
 // ---- Projects ----
