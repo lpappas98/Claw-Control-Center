@@ -29,5 +29,58 @@
     "metadata": {},
     "createdAt": 1771067351912,
     "updatedAt": 1771067351912
+  },
+  {
+    "id": "task-8ae597644cba6-1771119413777",
+    "title": "PARALLEL-TEST timing task",
+    "description": "Timing verification task",
+    "lane": "review",
+    "priority": "P1",
+    "assignedTo": null,
+    "createdBy": "cron-executor",
+    "parentId": null,
+    "projectId": null,
+    "tags": [
+      "parallel-test",
+      "timing"
+    ],
+    "estimatedHours": null,
+    "actualHours": 1.85,
+    "timeEntries": [
+      {
+        "startTime": 1771119520000,
+        "endTime": 1771119631000,
+        "duration": 111000
+      }
+    ],
+    "dependsOn": [],
+    "blocks": [],
+    "statusHistory": [
+      {
+        "at": 1771119520000,
+        "to": "active",
+        "note": "started",
+        "by": "cron-executor"
+      },
+      {
+        "at": 1771119631000,
+        "to": "review",
+        "note": "completed and moved to review",
+        "by": "cron-executor"
+      }
+    ],
+    "comments": [
+      {
+        "at": 1771119631000,
+        "by": "cron-executor",
+        "text": "Test output verified: start=01:38:40, end=01:40:31, duration=1m51s"
+      }
+    ],
+    "metadata": {
+      "currentTask": null,
+      "testOutput": "/tmp/ptest-patch.txt"
+    },
+    "createdAt": 1771119520000,
+    "updatedAt": 1771119631000
   }
 ]
