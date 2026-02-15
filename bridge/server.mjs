@@ -63,6 +63,7 @@ import { getProjectsStore, loadProjects, saveProjects } from './projectsStore.mj
 import { getAspectsStore, loadAspects, saveAspects } from './aspectsStore.mjs'
 import logger from './logger.mjs'
 import { createHealthChecker } from './healthChecks.mjs'
+import { analyzeIntake } from './openaiIntegration.mjs'
 
 const execFileAsync = promisify(execFile)
 const healthChecker = createHealthChecker()
@@ -1336,6 +1337,76 @@ app.delete('/api/intakes/:id', async (req, res) => {
   } catch (e) {
     logger.error('Failed to delete intake', { error: e.message, intakeId: req.params.id })
     res.status(500).send(e.message)
+  }
+})
+
+// ---- Intake AI Analysis API ----
+app.post('/api/analyze-intake', async (req, res) => {
+  try {
+    const body = req.body ?? {}
+    const intakeId = body.intakeId
+    const projectId = body.projectId
+
+    if (!intakeId) {
+      return res.status(400).send('intakeId required')
+    }
+
+    // Get intake
+    const intake = intakesStore.getById(intakeId)
+    if (!intake) {
+      return res.status(404).send('intake not found')
+    }
+
+    // Get project context if available
+    const projectContext = projectId ? { id: projectId } : {}
+
+    // Get available agents for capability matching
+    const agents = await agentsStore.getAll()
+
+    // Analyze intake with OpenAI
+    const analysis = await analyzeIntake(intake.text, projectContext, agents)
+
+    // Create tasks in the task store
+    const createdTaskIds = []
+
+    for (const task of analysis.tasks) {
+      const createdTask = await newTasksStore.create(task)
+      createdTaskIds.push(createdTask.id)
+    }
+
+    // Save tasks
+    await newTasksStore.save()
+
+    // Update intake with generated task IDs and mark as processed
+    const updated = intakesStore.update(intakeId, {
+      generatedTaskIds: createdTaskIds,
+      status: 'processed'
+    })
+    await intakesStore.save()
+
+    logger.info('Intake analyzed and tasks created', {
+      intakeId,
+      projectId,
+      taskCount: createdTaskIds.length,
+      confidence: analysis.confidence
+    })
+
+    // Return response matching IntakePage ResultsView expectations
+    res.json({
+      tasks: analysis.tasks,
+      confidence: analysis.confidence,
+      reasoning: analysis.reasoning,
+      intake: updated,
+      metadata: analysis.metadata
+    })
+  } catch (e) {
+    logger.error('Failed to analyze intake', { error: e.message, intakeId: req.body?.intakeId })
+    res.status(500).json({
+      error: e.message,
+      confidence: 0,
+      reasoning: `Analysis failed: ${e.message}`,
+      tasks: []
+    })
   }
 })
 
