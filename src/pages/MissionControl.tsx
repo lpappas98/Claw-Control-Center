@@ -10,7 +10,7 @@ import { TaskListModal } from '../components/TaskListModal'
 import { CreateTaskModal } from '../components/CreateTaskModal'
 import type { ActivityEvent, BoardLane, LiveSnapshot, Priority, SystemStatus, Task, WorkerHeartbeat, Blocker } from '../types'
 
-const MAX_TASKS_PER_LANE = 5
+const MAX_TASKS_PER_LANE = 7
 
 type HomeTask = {
   id: string
@@ -460,6 +460,7 @@ export function MissionControl({
           overflow: 'hidden',
           display: 'flex',
           flexDirection: 'column',
+          maxHeight: 'calc(100vh - 150px)',
         }}>
           {/* Board header */}
           <div style={{
