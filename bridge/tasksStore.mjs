@@ -12,7 +12,9 @@ import path from 'node:path'
  *   assignedTo: string?,           // agent id
  *   createdBy: string?,             // user or agent id
  *   parentId: string?,              // for subtasks/epics
- *   projectId: string?,             // link to project
+ *   projectId: string?,             // link to project (legacy)
+ *   project: string?,               // link to project (new)
+ *   aspect: string?,                // link to aspect
  *   tags: string[],
  *   estimatedHours: number?,
  *   actualHours: number?,
@@ -153,7 +155,13 @@ export class TasksStore {
       result = result.filter(t => t.assignedTo === filters.assignedTo)
     }
     if (filters.projectId) {
-      result = result.filter(t => t.projectId === filters.projectId)
+      result = result.filter(t => t.projectId === filters.projectId || t.project === filters.projectId)
+    }
+    if (filters.project) {
+      result = result.filter(t => t.project === filters.project)
+    }
+    if (filters.aspect) {
+      result = result.filter(t => t.aspect === filters.aspect)
     }
     if (filters.priority) {
       result = result.filter(t => t.priority === filters.priority)
@@ -198,6 +206,8 @@ export class TasksStore {
       createdBy: taskData.createdBy || null,
       parentId: taskData.parentId || null,
       projectId: taskData.projectId || null,
+      project: taskData.project || null,
+      aspect: taskData.aspect || null,
       tags: Array.isArray(taskData.tags) ? taskData.tags : [],
       estimatedHours: taskData.estimatedHours || null,
       actualHours: 0,
@@ -250,6 +260,10 @@ export class TasksStore {
     // Normalize critical fields
     if (updates.lane) task.lane = normalizeLane(updates.lane)
     if (updates.priority) task.priority = normalizePriority(updates.priority)
+    
+    // Ensure optional fields are set
+    if (!task.project) task.project = null
+    if (!task.aspect) task.aspect = null
 
     await this.save()
     return task

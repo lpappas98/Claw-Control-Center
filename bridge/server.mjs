@@ -1011,6 +1011,16 @@ app.get('/api/tasks', async (req, res) => {
     filtered = filtered.filter(t => t.owner === req.query.owner)
   }
   
+  // Filter by project if provided
+  if (req.query.project) {
+    filtered = filtered.filter(t => t.project === req.query.project)
+  }
+  
+  // Filter by aspect if provided
+  if (req.query.aspect) {
+    filtered = filtered.filter(t => t.aspect === req.query.aspect)
+  }
+  
   // Filter by status (legacy support - map to lane)
   if (req.query.status) {
     filtered = filtered.filter(t => t.lane === req.query.status)
