@@ -64,6 +64,7 @@ import { getAspectsStore, loadAspects, saveAspects } from './aspectsStore.mjs'
 import logger from './logger.mjs'
 import { createHealthChecker } from './healthChecks.mjs'
 import { analyzeIntake } from './openaiIntegration.mjs'
+import { initializeTaskRouter, runTaskRouterHealthMonitor } from './initializeTaskRouter.mjs'
 
 const execFileAsync = promisify(execFile)
 const healthChecker = createHealthChecker()
@@ -194,6 +195,16 @@ await aspectsStore.load()
 // Initialize routine executor
 const routineExecutor = getRoutineExecutor(routinesStore, newTasksStore, agentsStore, notificationsStore)
 routineExecutor.start()
+
+// Initialize TaskRouter (push-based agent execution model)
+const taskRouter = await initializeTaskRouter(app, newTasksStore, agentsStore)
+
+// Start health monitor cron (every 5 minutes)
+let healthMonitorCronSet = false
+setInterval(async () => {
+  await runTaskRouterHealthMonitor(taskRouter, newTasksStore)
+}, 5 * 60 * 1000) // 5 minutes
+healthMonitorCronSet = true
 
 // Seed initial project if it doesn't exist
 async function seedInitialProject() {
@@ -1090,6 +1101,10 @@ app.post('/api/tasks', async (req, res) => {
   }
 
   res.json(next)
+  
+  // Trigger TaskRouter for push-based agent execution
+  if (global.onTaskCreated) global.onTaskCreated(next)
+  
   // Broadcast task update
   if (global.broadcastWS) global.broadcastWS("task-updated", next)
 })
@@ -1175,6 +1190,10 @@ app.put('/api/tasks/:id', async (req, res) => {
   }
 
   res.json(next)
+  
+  // Trigger TaskRouter if task entered queued state
+  if (global.onTaskUpdated) global.onTaskUpdated(next, before)
+  
   // Broadcast task update
   if (global.broadcastWS) global.broadcastWS("task-updated", next)
 })
