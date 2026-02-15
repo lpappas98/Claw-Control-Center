@@ -23,6 +23,7 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY package*.json ./
 COPY bridge ./bridge/
 COPY agents ./agents/
+COPY .clawhub ./.clawhub/
 
 # Create clawhub data directory
 RUN mkdir -p /data/.clawhub && chmod 755 /data
@@ -35,6 +36,9 @@ RUN addgroup -g 1001 -S nodejs && \
 RUN chown -R nodejs:nodejs /app /data
 
 USER nodejs
+
+# Set OPENCLAW_WORKSPACE to /app so server looks for data in the correct location
+ENV OPENCLAW_WORKSPACE=/app
 
 # Health check endpoint will be available at port 8787
 EXPOSE 8787
