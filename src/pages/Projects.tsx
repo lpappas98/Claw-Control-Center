@@ -1,101 +1,510 @@
-import React, { useMemo, useState } from 'react'
-import { Alert } from "@/components/ui/alert"
-import { Button } from "@/components/ui/button"
-import type { Adapter } from '../adapters/adapter'
-import { Badge } from '../components/Badge'
-import { FeatureDetailPage } from './FeatureDetailPage'
-
-function FeedItem({
-  actor,
-  text,
-  meta,
-  tone,
-}: {
-  actor: string
-  text: string
-  meta?: string
-  tone?: 'clean' | 'warn' | 'error'
-}) {
-  return (
-    <div className={`feed-item ${tone ?? 'clean'}`}>
-      <div className={`feed-head ${tone ?? 'clean'}`}>
-        <div className="feed-actor">{actor}</div>
-        <div className="muted">·</div>
-        <div className="feed-msg">{text}</div>
-      </div>
-      {meta ? <div className="muted" style={{ fontSize: 12 }}>{meta}</div> : null}
-    </div>
-  )
-}
-
-type ProjectTab = 'Overview' | 'Tree' | 'Kanban'
-
-type ProjectLink = { label: string; url: string }
-
-type FeatureNode = {
-  id: string
-  title: string
-  summary?: string
-  status: 'planned' | 'in_progress' | 'blocked' | 'done'
-  priority: 'p0' | 'p1' | 'p2'
-  tags?: string[]
-  owner?: string
-  children?: FeatureNode[]
-  dependsOn?: string[]
-  sources?: { kind: 'idea' | 'question' | 'requirement'; id: string }[]
-}
-
-type KanbanColumnId = 'todo' | 'in_progress' | 'blocked' | 'done'
-
-type KanbanCard = {
-  id: string
-  title: string
-  featureId?: string
-  owner?: string
-  due?: string
-  priority: 'p0' | 'p1' | 'p2'
-  column: KanbanColumnId
-}
-
-type IntakeIdea = { id: string; at: string; author: 'human' | 'ai'; text: string }
-
-type IntakeQuestion = {
-  id: string
-  category: string
-  prompt: string
-  answer: { text: string; at: string; author: 'human' | 'ai' } | null
-}
-
-type ProjectIntake = {
-  idea: IntakeIdea[]
-  analysis: { id: string; at: string; type: 'software' | 'ops' | 'hybrid'; tags: string[]; risks: string[]; summary: string }[]
-  questions: IntakeQuestion[]
-  requirements: {
-    id: string
-    at: string
-    source: 'human' | 'ai'
-    kind: 'goal' | 'constraint' | 'non_goal'
-    text: string
-    citations?: { kind: 'idea' | 'question'; id: string }[]
-  }[]
-}
+import React, { useState, useEffect, useMemo } from 'react'
 
 type Project = {
   id: string
   name: string
-  summary: string
+  tagline: string
   status: 'active' | 'paused' | 'archived'
-  tags: string[]
   owner: string
+  tags: string[]
+  description: string
+  links: { label: string; url: string }[]
+  stats: { open: number; blocked: number; done: number; total: number }
   updatedAt: string
-  links: ProjectLink[]
-  tree: FeatureNode[]
-  cards: KanbanCard[]
-  activity: { id: string; at: string; actor: string; text: string }[]
-  intake?: ProjectIntake
 }
 
-function fmtAgo(iso: string) {
+type Aspect = {
+  id: string
+  projectId: string
+  name: string
+  desc: string
+  priority: 'P0' | 'P1' | 'P2' | 'P3'
+  status: 'planned' | 'in_progress' | 'blocked' | 'done'
+  progress: number
+  createdAt: string
+  updatedAt: string
+}
+
+type ProjectTab = 'Overview' | 'Kanban'
+
+// ─── ProjectHeader ────────────────────────────────────────────
+function ProjectHeader({ project }: { project: Project }) {
+  return (
+    <div style={{ padding: '20px', borderBottom: '1px solid #334155' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, marginBottom: 16 }}>
+        <div style={{ flex: 1 }}>
+          <h2 style={{ margin: '0 0 4px 0', fontSize: 24, fontWeight: 600 }}>{project.name}</h2>
+          <p style={{ margin: '0 0 8px 0', color: '#cbd5e1', fontSize: 14 }}>{project.tagline}</p>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+            <span style={{ padding: '4px 8px', borderRadius: 4, background: project.status === 'active' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)', color: project.status === 'active' ? '#10b981' : '#ef4444', fontSize: 12, fontWeight: 500 }}>
+              {project.status.toUpperCase()}
+            </span>
+            {project.tags.map((tag) => (
+              <span key={tag} style={{ padding: '4px 8px', borderRadius: 4, background: 'rgba(139, 92, 246, 0.1)', color: '#c084fc', fontSize: 12 }}>
+                {tag}
+              </span>
+            ))}
+          </div>
+        </div>
+        <div style={{ textAlign: 'right', fontSize: 12, color: '#94a3b8' }}>
+          <div>Owner: <strong>{project.owner}</strong></div>
+          <div style={{ marginTop: 4 }}>Updated {formatAgo(project.updatedAt)}</div>
+        </div>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 12 }}>
+        <div style={{ textAlign: 'center', padding: '12px', background: '#1e293b', borderRadius: 8 }}>
+          <div style={{ fontSize: 20, fontWeight: 600, color: '#fff' }}>{project.stats.open}</div>
+          <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 4 }}>Open</div>
+        </div>
+        <div style={{ textAlign: 'center', padding: '12px', background: '#1e293b', borderRadius: 8 }}>
+          <div style={{ fontSize: 20, fontWeight: 600, color: '#fca5a5' }}>{project.stats.blocked}</div>
+          <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 4 }}>Blocked</div>
+        </div>
+        <div style={{ textAlign: 'center', padding: '12px', background: '#1e293b', borderRadius: 8 }}>
+          <div style={{ fontSize: 20, fontWeight: 600, color: '#86efac' }}>{project.stats.done}</div>
+          <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 4 }}>Done</div>
+        </div>
+        <div style={{ textAlign: 'center', padding: '12px', background: '#1e293b', borderRadius: 8 }}>
+          <div style={{ fontSize: 20, fontWeight: 600, color: '#fbbf24' }}>{Math.round((project.stats.done / project.stats.total) * 100)}%</div>
+          <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 4 }}>Progress</div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ─── AspectCard ───────────────────────────────────────────────
+function AspectCard({ aspect }: { aspect: Aspect }) {
+  const statusColor = aspect.status === 'done' ? '#10b981' : aspect.status === 'in_progress' ? '#60a5fa' : aspect.status === 'blocked' ? '#ef4444' : '#9ca3af'
+  const priorityColor = aspect.priority === 'P0' ? '#ef4444' : aspect.priority === 'P1' ? '#fb923c' : aspect.priority === 'P2' ? '#facc15' : '#94a3b8'
+
+  return (
+    <div style={{ padding: 16, background: '#1e293b', borderRadius: 8, border: '1px solid #334155' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
+        <h4 style={{ margin: 0, fontSize: 14, fontWeight: 600, color: '#fff' }}>{aspect.name}</h4>
+        <span style={{ padding: '2px 8px', borderRadius: 3, background: priorityColor + '20', color: priorityColor, fontSize: 11, fontWeight: 600 }}>
+          {aspect.priority}
+        </span>
+      </div>
+      <p style={{ margin: '0 0 8px 0', fontSize: 13, color: '#cbd5e1', lineHeight: 1.4 }}>{aspect.desc}</p>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
+        <span style={{ padding: '2px 8px', borderRadius: 3, background: statusColor + '20', color: statusColor, fontSize: 11, fontWeight: 500 }}>
+          {aspect.status}
+        </span>
+        {aspect.progress > 0 && (
+          <div style={{ fontSize: 11, color: '#94a3b8' }}>
+            {aspect.progress}%
+          </div>
+        )}
+      </div>
+      {aspect.progress > 0 && (
+        <div style={{ marginTop: 8, height: 4, background: '#334155', borderRadius: 2, overflow: 'hidden' }}>
+          <div style={{ height: '100%', background: '#60a5fa', width: `${aspect.progress}%` }} />
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ─── Overview Tab ─────────────────────────────────────────────
+function OverviewTab({ project, aspects }: { project: Project; aspects: Aspect[] }) {
+  const [description, setDescription] = useState(project.description)
+  const [isSavingDesc, setIsSavingDesc] = useState(false)
+
+  const saveDescription = async () => {
+    setIsSavingDesc(true)
+    try {
+      // Call PUT /api/projects/:id
+      await fetch(`http://localhost:8787/api/projects/${project.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ description }),
+      })
+    } catch (err) {
+      console.error('Failed to save description:', err)
+    } finally {
+      setIsSavingDesc(false)
+    }
+  }
+
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: 20, padding: 20 }}>
+      {/* Main content */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+        {/* Aspects grid */}
+        <section>
+          <h3 style={{ margin: '0 0 12px 0', fontSize: 16, fontWeight: 600 }}>Aspects ({aspects.length})</h3>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12 }}>
+            {aspects.length > 0 ? (
+              aspects.map((aspect) => <AspectCard key={aspect.id} aspect={aspect} />)
+            ) : (
+              <div style={{ gridColumn: '1 / -1', padding: 20, textAlign: 'center', color: '#94a3b8', background: '#1e293b', borderRadius: 8 }}>
+                No aspects yet
+              </div>
+            )}
+          </div>
+        </section>
+      </div>
+
+      {/* Right sidebar */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+        {/* Description */}
+        <section>
+          <h4 style={{ margin: '0 0 8px 0', fontSize: 13, fontWeight: 600, color: '#cbd5e1' }}>Description</h4>
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            style={{
+              width: '100%',
+              padding: 8,
+              background: '#1e293b',
+              border: '1px solid #334155',
+              borderRadius: 6,
+              color: '#fff',
+              fontSize: 12,
+              fontFamily: 'inherit',
+              resize: 'vertical',
+              minHeight: 80,
+            }}
+          />
+          <button
+            onClick={saveDescription}
+            disabled={isSavingDesc}
+            style={{
+              marginTop: 8,
+              padding: '6px 12px',
+              background: '#3b82f6',
+              color: '#fff',
+              border: 'none',
+              borderRadius: 4,
+              fontSize: 12,
+              fontWeight: 500,
+              cursor: 'pointer',
+              opacity: isSavingDesc ? 0.6 : 1,
+            }}
+          >
+            {isSavingDesc ? 'Saving...' : 'Save'}
+          </button>
+        </section>
+
+        {/* Quick Links */}
+        <section>
+          <h4 style={{ margin: '0 0 8px 0', fontSize: 13, fontWeight: 600, color: '#cbd5e1' }}>Quick Links</h4>
+          {project.links.length > 0 ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {project.links.map((link) => (
+                <a
+                  key={link.url}
+                  href={link.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{
+                    padding: '8px 12px',
+                    background: '#1e293b',
+                    border: '1px solid #334155',
+                    borderRadius: 4,
+                    color: '#60a5fa',
+                    textDecoration: 'none',
+                    fontSize: 12,
+                    fontWeight: 500,
+                    transition: 'background 0.2s',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = '#334155'
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = '#1e293b'
+                  }}
+                >
+                  {link.label} →
+                </a>
+              ))}
+            </div>
+          ) : (
+            <div style={{ fontSize: 12, color: '#94a3b8' }}>No links added yet</div>
+          )}
+          <button
+            onClick={() => alert('(stub) Add link modal')}
+            style={{
+              marginTop: 8,
+              padding: '6px 12px',
+              background: '#1e293b',
+              border: '1px solid #334155',
+              borderRadius: 4,
+              color: '#cbd5e1',
+              fontSize: 12,
+              fontWeight: 500,
+              cursor: 'pointer',
+            }}
+          >
+            + Add Link
+          </button>
+        </section>
+
+        {/* Activity Feed */}
+        <section>
+          <h4 style={{ margin: '0 0 8px 0', fontSize: 13, fontWeight: 600, color: '#cbd5e1' }}>Activity</h4>
+          <div style={{ fontSize: 11, color: '#94a3b8' }}>
+            (Activity feed will be populated from /api/activity endpoint)
+          </div>
+        </section>
+      </div>
+    </div>
+  )
+}
+
+// ─── Kanban Tab ───────────────────────────────────────────────
+function KanbanTab({ projectId }: { projectId: string }) {
+  const [tasks, setTasks] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchTasks = async () => {
+      try {
+        const res = await fetch(`http://localhost:8787/api/tasks?project=${projectId}`)
+        const data = await res.json()
+        setTasks(data || [])
+      } catch (err) {
+        console.error('Failed to fetch tasks:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchTasks()
+  }, [projectId])
+
+  const columns = [
+    { id: 'proposed', title: 'Proposed', color: '#94a3b8' },
+    { id: 'queued', title: 'Queued', color: '#fbbf24' },
+    { id: 'development', title: 'Development', color: '#60a5fa' },
+    { id: 'review', title: 'Review', color: '#a78bfa' },
+    { id: 'done', title: 'Done', color: '#10b981' },
+  ]
+
+  const tasksByColumn = useMemo(() => {
+    const byCol: Record<string, any[]> = {}
+    columns.forEach((col) => {
+      byCol[col.id] = tasks.filter((t) => t.lane === col.id)
+    })
+    return byCol
+  }, [tasks])
+
+  if (loading) {
+    return <div style={{ padding: 20, color: '#94a3b8' }}>Loading tasks...</div>
+  }
+
+  return (
+    <div style={{ padding: 20, overflowX: 'auto' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: `repeat(${columns.length}, 1fr)`, gap: 16, minWidth: 'max-content' }}>
+        {columns.map((col) => {
+          const colTasks = tasksByColumn[col.id] || []
+          return (
+            <div key={col.id} style={{ minWidth: 300 }}>
+              <h4 style={{ margin: '0 0 12px 0', fontSize: 14, fontWeight: 600, color: col.color }}>
+                {col.title} ({colTasks.length})
+              </h4>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {colTasks.map((task) => (
+                  <div
+                    key={task.id}
+                    style={{
+                      padding: 12,
+                      background: '#1e293b',
+                      border: `1px solid ${col.color}30`,
+                      borderRadius: 6,
+                      fontSize: 12,
+                    }}
+                  >
+                    <div style={{ fontWeight: 500, color: '#fff', marginBottom: 4 }}>{task.title}</div>
+                    <div style={{ color: '#94a3b8', fontSize: 11 }}>
+                      {task.priority ? `${task.priority} • ` : ''}{task.owner ? `@${task.owner}` : 'Unassigned'}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+// ─── Main Projects Component ───────────────────────────────────
+function ProjectsPage() {
+  const [projects, setProjects] = useState<Project[]>([])
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null)
+  const [aspects, setAspects] = useState<Aspect[]>([])
+  const [tab, setTab] = useState<ProjectTab>('Overview')
+  const [loading, setLoading] = useState(true)
+
+  const selectedProject = useMemo(() => projects.find((p) => p.id === selectedProjectId) || projects[0], [projects, selectedProjectId])
+
+  // Load projects
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        const res = await fetch('http://localhost:8787/api/projects')
+        const data = await res.json()
+        if (Array.isArray(data) && data.length > 0) {
+          setProjects(data)
+          setSelectedProjectId(data[0].id)
+        }
+      } catch (err) {
+        console.error('Failed to fetch projects:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchProjects()
+  }, [])
+
+  // Load aspects for selected project
+  useEffect(() => {
+    const fetchAspects = async () => {
+      if (!selectedProject) return
+      try {
+        // Try /api/aspects first, then /api/aspects-hub
+        let res = await fetch(`http://localhost:8787/api/aspects?projectId=${selectedProject.id}`)
+        if (res.status === 404) {
+          res = await fetch(`http://localhost:8787/api/aspects-hub?projectId=${selectedProject.id}`)
+        }
+        if (res.ok) {
+          const data = await res.json()
+          setAspects(Array.isArray(data) ? data : [])
+        }
+      } catch (err) {
+        console.error('Failed to fetch aspects:', err)
+        setAspects([])
+      }
+    }
+    fetchAspects()
+  }, [selectedProject])
+
+  if (loading) {
+    return <div style={{ padding: 40, color: '#94a3b8', textAlign: 'center' }}>Loading projects...</div>
+  }
+
+  if (!selectedProject) {
+    return (
+      <div style={{ padding: 40, color: '#94a3b8', textAlign: 'center' }}>
+        No projects found. Create one to get started.
+      </div>
+    )
+  }
+
+  return (
+    <div style={{ display: 'flex', height: '100vh', background: '#0f172a', color: '#e2e8f0', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+      {/* Left sidebar */}
+      <div
+        style={{
+          width: 220,
+          background: '#1e293b',
+          borderRight: '1px solid #334155',
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'auto',
+        }}
+      >
+        <div style={{ padding: 16, borderBottom: '1px solid #334155' }}>
+          <h3 style={{ margin: '0 0 12px 0', fontSize: 13, fontWeight: 600, color: '#94a3b8' }}>PROJECTS</h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            {projects.map((p) => (
+              <button
+                key={p.id}
+                onClick={() => {
+                  setSelectedProjectId(p.id)
+                  setTab('Overview')
+                }}
+                style={{
+                  padding: '8px 12px',
+                  background: p.id === selectedProjectId ? '#334155' : 'transparent',
+                  border: 'none',
+                  borderRadius: 4,
+                  color: '#e2e8f0',
+                  textAlign: 'left',
+                  cursor: 'pointer',
+                  fontSize: 13,
+                  fontWeight: p.id === selectedProjectId ? 600 : 400,
+                  transition: 'background 0.2s',
+                }}
+                onMouseEnter={(e) => {
+                  if (p.id !== selectedProjectId) {
+                    e.currentTarget.style.background = '#334155' + '80'
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (p.id !== selectedProjectId) {
+                    e.currentTarget.style.background = 'transparent'
+                  }
+                }}
+              >
+                <div>{p.name}</div>
+                <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 2 }}>
+                  {p.status === 'active' ? '🟢' : '🔴'} {p.status}
+                </div>
+              </button>
+            ))}
+          </div>
+          <button
+            onClick={() => alert('(stub) New project modal')}
+            style={{
+              marginTop: 8,
+              width: '100%',
+              padding: '8px 12px',
+              background: '#334155',
+              border: 'none',
+              borderRadius: 4,
+              color: '#e2e8f0',
+              cursor: 'pointer',
+              fontSize: 13,
+              fontWeight: 500,
+            }}
+          >
+            + New
+          </button>
+        </div>
+      </div>
+
+      {/* Main content */}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <ProjectHeader project={selectedProject} />
+
+        {/* Tabs */}
+        <div style={{ display: 'flex', borderBottom: '1px solid #334155', background: '#0f172a', paddingLeft: 20 }}>
+          {(['Overview', 'Kanban'] as const).map((t) => (
+            <button
+              key={t}
+              onClick={() => setTab(t)}
+              style={{
+                padding: '12px 20px',
+                background: 'transparent',
+                border: 'none',
+                color: tab === t ? '#60a5fa' : '#94a3b8',
+                borderBottom: tab === t ? '2px solid #60a5fa' : 'none',
+                cursor: 'pointer',
+                fontSize: 14,
+                fontWeight: tab === t ? 600 : 400,
+                transition: 'color 0.2s',
+              }}
+            >
+              {t}
+            </button>
+          ))}
+        </div>
+
+        {/* Tab content */}
+        <div style={{ flex: 1, overflow: 'auto', background: '#0f172a' }}>
+          {tab === 'Overview' && <OverviewTab project={selectedProject} aspects={aspects} />}
+          {tab === 'Kanban' && <KanbanTab projectId={selectedProject.id} />}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function formatAgo(iso: string): string {
   const ms = Date.now() - new Date(iso).getTime()
   if (!Number.isFinite(ms) || ms < 0) return '—'
   const min = Math.round(ms / 60_000)
@@ -107,1347 +516,4 @@ function fmtAgo(iso: string) {
   return `${d}d ago`
 }
 
-function flattenTree(nodes: FeatureNode[]): FeatureNode[] {
-  const out: FeatureNode[] = []
-  const walk = (n: FeatureNode) => {
-    out.push(n)
-    n.children?.forEach(walk)
-  }
-  nodes.forEach(walk)
-  return out
-}
-
-function findInTree(nodes: FeatureNode[], id: string): FeatureNode | null {
-  for (const n of nodes) {
-    if (n.id === id) return n
-    const hit = n.children?.length ? findInTree(n.children, id) : null
-    if (hit) return hit
-  }
-  return null
-}
-
-function nodeDotClass(status: FeatureNode['status']): string {
-  if (status === 'done') return 'active'
-  if (status === 'in_progress') return 'waiting'
-  if (status === 'blocked') return 'stale'
-  return 'offline'
-}
-
-function PriorityPill({ p }: { p: KanbanCard['priority'] | FeatureNode['priority'] }) {
-  // Keep the existing color coding by mapping into Badge classes,
-  // but show explicit priority labels (P0/P1/P2) instead of "ok/warn/down".
-  const cls = p === 'p0' ? 'down' : p === 'p1' ? 'warn' : 'ok'
-  return <span className={`badge ${cls}`}>{p.toUpperCase()}</span>
-}
-
-function fakeProjects(): Project[] {
-  const now = Date.now()
-  const iso = (minsAgo: number) => new Date(now - minsAgo * 60_000).toISOString()
-
-  const tree: FeatureNode[] = [
-    {
-      id: 'feat-auth',
-      title: 'Auth + identities',
-      summary: 'Local auth, sessions, and role-based permissions.',
-      status: 'in_progress',
-      priority: 'p0',
-      tags: ['security'],
-      owner: 'Logan',
-      children: [
-        {
-          id: 'feat-auth-login',
-          title: 'Login / unlock flow',
-          summary: 'Quick unlock for local instance + optional passcode.',
-          status: 'planned',
-          priority: 'p1',
-          dependsOn: ['feat-auth'],
-        },
-        {
-          id: 'feat-auth-perms',
-          title: 'Tool permissions matrix',
-          summary: 'Allow/deny rules for exec/browser/messaging, etc.',
-          status: 'planned',
-          priority: 'p0',
-          dependsOn: ['feat-auth'],
-        },
-      ],
-    },
-    {
-      id: 'feat-projects',
-      title: 'Projects hub UX',
-      summary: 'Overview / Tree / Kanban with deep feature specs.',
-      status: 'planned',
-      priority: 'p0',
-      tags: ['ux'],
-      children: [
-        {
-          id: 'feat-projects-overview',
-          title: 'Project overview dashboard',
-          summary: 'High-signal project homepage: priorities, links, activity.',
-          status: 'planned',
-          priority: 'p0',
-          dependsOn: ['feat-projects'],
-        },
-        {
-          id: 'feat-projects-tree',
-          title: 'Feature tree map',
-          summary: 'Hierarchy + dependency view with feature spec pages.',
-          status: 'planned',
-          priority: 'p0',
-          dependsOn: ['feat-projects'],
-        },
-        {
-          id: 'feat-projects-kanban',
-          title: 'Kanban board',
-          summary: 'Execution view; connect cards to features.',
-          status: 'planned',
-          priority: 'p1',
-          dependsOn: ['feat-projects'],
-        },
-      ],
-    },
-    {
-      id: 'feat-bridge',
-      title: 'Bridge + local status',
-      summary: 'Expose health + actions via the local bridge.',
-      status: 'blocked',
-      priority: 'p1',
-      tags: ['backend'],
-      children: [
-        {
-          id: 'feat-bridge-jobs',
-          title: 'Jobs / cron visibility',
-          summary: 'Show scheduled jobs and last runs.',
-          status: 'planned',
-          priority: 'p2',
-          dependsOn: ['feat-bridge'],
-        },
-      ],
-    },
-  ]
-
-  const cards: KanbanCard[] = [
-    { id: 'c-1', title: 'Design Settings nav + sections', priority: 'p0', column: 'in_progress', owner: 'Logan', featureId: 'feat-auth-perms', due: 'Fri' },
-    { id: 'c-2', title: 'Tree view: focus + search + filters', priority: 'p0', column: 'todo', owner: 'TARS', featureId: 'feat-projects-tree' },
-    { id: 'c-3', title: 'Project overview: “Next up” block', priority: 'p1', column: 'todo', owner: 'TARS', featureId: 'feat-projects-overview' },
-    { id: 'c-4', title: 'Bridge: expose service health', priority: 'p2', column: 'blocked', owner: 'TARS', featureId: 'feat-bridge' },
-    { id: 'c-5', title: 'Kanban: drag + drop interactions', priority: 'p1', column: 'todo', owner: 'TARS', featureId: 'feat-projects-kanban' },
-    { id: 'c-6', title: 'Write acceptance criteria template', priority: 'p2', column: 'done', owner: 'TARS', featureId: 'feat-projects' },
-  ]
-
-  return [
-    {
-      id: 'p-control-center',
-      name: 'Claw Control Center',
-      summary: 'Local-first control surface for OpenClaw + projects.',
-      status: 'active',
-      tags: ['local', 'operator', 'ux'],
-      owner: 'Logan',
-      updatedAt: iso(32),
-      links: [
-        { label: 'Repo', url: 'https://github.com/openclaw/openclaw' },
-        { label: 'Docs', url: 'https://docs.openclaw.ai' },
-        { label: 'Figma', url: 'https://figma.com' },
-      ],
-      tree,
-      cards,
-      activity: [
-        { id: 'a-1', at: iso(14), actor: 'Logan', text: 'Moved “Design Settings nav + sections” → In progress' },
-        { id: 'a-2', at: iso(54), actor: 'TARS', text: 'Created feature: “Feature tree map”' },
-        { id: 'a-3', at: iso(160), actor: 'Logan', text: 'Updated project summary and links' },
-      ],
-    },
-    {
-      id: 'p-task-manager',
-      name: 'Task Manager',
-      summary: 'Simple kanban + quick capture app (reference UI).',
-      status: 'paused',
-      tags: ['reference', 'kanban'],
-      owner: 'Logan',
-      updatedAt: iso(240),
-      links: [{ label: 'Mock repo', url: 'https://example.com' }],
-      tree: [
-        {
-          id: 'feat-capture',
-          title: 'Fast capture',
-          summary: 'One-line add, keyboard-first.',
-          status: 'done',
-          priority: 'p1',
-        },
-        {
-          id: 'feat-board',
-          title: 'Board view',
-          summary: 'Columns, drag/drop, swimlanes.',
-          status: 'in_progress',
-          priority: 'p0',
-        },
-      ],
-      cards: [
-        { id: 'tc-1', title: 'Polish column headers', priority: 'p2', column: 'todo', owner: 'Logan' },
-        { id: 'tc-2', title: 'Add keyboard shortcuts', priority: 'p1', column: 'in_progress', owner: 'Logan' },
-      ],
-      activity: [{ id: 'ta-1', at: iso(200), actor: 'Logan', text: 'Paused project' }],
-    },
-  ]
-}
-
-function TabBar({ tab, setTab }: { tab: ProjectTab; setTab: (t: ProjectTab) => void }) {
-  return (
-    <div className="projects-tabbar" role="tablist" aria-label="Project view">
-      {(['Overview', 'Tree', 'Kanban'] as const).map((t) => (
-        <Button
-          key={t}
-          type="button"
-          role="tab"
-          aria-selected={tab === t}
-          className={`projects-tab ${tab === t ? 'active' : ''}`}
-          onClick={() => setTab(t)}
-        >
-          {t}
-        </Button>
-      ))}
-    </div>
-  )
-}
-
-function FeatureDrawer({
-  feature,
-  project,
-  onClose,
-}: {
-  feature: FeatureNode
-  project: Project
-  onClose: () => void
-}) {
-  const [innerTab, setInnerTab] = useState<'Spec' | 'Work' | 'Activity'>('Spec')
-
-  const linkedCards = useMemo(
-    () => project.cards.filter((c) => c.featureId === feature.id),
-    [project.cards, feature.id],
-  )
-
-  const deps = useMemo(() => {
-    const byId = new Map(flattenTree(project.tree).map((n) => [n.id, n] as const))
-    return (feature.dependsOn ?? []).map((id) => byId.get(id)).filter(Boolean) as FeatureNode[]
-  }, [feature.dependsOn, project.tree])
-
-  return (
-    <div className="drawer-backdrop" role="presentation" onMouseDown={(e) => (e.target === e.currentTarget ? onClose() : null)}>
-      <aside className="drawer" role="dialog" aria-modal="true" aria-label={`Feature details ${feature.title}`} onMouseDown={(e) => e.stopPropagation()}>
-        <div className="drawer-header">
-          <div style={{ minWidth: 0 }}>
-            <div className="muted" style={{ fontSize: 12 }}>
-              feature <code>{feature.id}</code>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-              <h3 style={{ margin: '6px 0 0', lineHeight: 1.15 }}>{feature.title}</h3>
-              <span className={`dot ${nodeDotClass(feature.status)}`} title={feature.status} />
-              <PriorityPill p={feature.priority} />
-            </div>
-            {feature.summary ? <div className="muted" style={{ marginTop: 6 }}>{feature.summary}</div> : null}
-          </div>
-          <div className="stack-h" style={{ justifyContent: 'flex-end' }}>
-            <Button variant="ghost" type="button" onClick={onClose}>
-              Close
-            </Button>
-          </div>
-        </div>
-
-        <div className="drawer-tabs" role="tablist" aria-label="Feature details">
-          {(['Spec', 'Work', 'Activity'] as const).map((t) => (
-            <Button
-              key={t}
-              type="button"
-              role="tab"
-              aria-selected={innerTab === t}
-              className={`drawer-tab ${innerTab === t ? 'active' : ''}`}
-              onClick={() => setInnerTab(t)}
-            >
-              {t}
-            </Button>
-          ))}
-        </div>
-
-        <div className="drawer-body">
-          {innerTab === 'Spec' ? (
-            <div className="stack">
-              <div className="panel" style={{ padding: 14 }}>
-                <h4 style={{ marginTop: 0 }}>Brief</h4>
-                <div className="stack">
-                  <div className="field">
-                    <label className="muted">Problem</label>
-                    <textarea className="input" rows={3} defaultValue={`(fake) Users need ${feature.title.toLowerCase()} to ship reliably without manual steps.`} />
-                  </div>
-                  <div className="field">
-                    <label className="muted">Solution</label>
-                    <textarea className="input" rows={3} defaultValue={`(fake) Provide a clear UI flow, safe defaults, and obvious status feedback.`} />
-                  </div>
-                  <div className="field">
-                    <label className="muted">Non-goals</label>
-                    <textarea className="input" rows={2} defaultValue={`(fake) Not building team workflows; single-user local mode first.`} />
-                  </div>
-                </div>
-              </div>
-
-              <div className="panel" style={{ padding: 14 }}>
-                <h4 style={{ marginTop: 0 }}>Acceptance criteria</h4>
-                <ul className="muted" style={{ margin: 0, paddingLeft: 18 }}>
-                  <li>Feature has a clear “happy path” documented.</li>
-                  <li>Edge cases are captured as open questions or explicit behavior.</li>
-                  <li>Linked work items exist in Kanban.</li>
-                </ul>
-              </div>
-
-              <div className="panel" style={{ padding: 14 }}>
-                <h4 style={{ marginTop: 0 }}>Sources</h4>
-                {feature.sources?.length ? (
-                  <div className="muted">
-                    {feature.sources.map((s) => (
-                      <code key={`${s.kind}:${s.id}`} style={{ marginRight: 10 }}>
-                        {s.kind}:{s.id}
-                      </code>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="muted">No sources linked yet. (Intake answers will show up here.)</div>
-                )}
-              </div>
-
-              <div className="panel" style={{ padding: 14 }}>
-                <h4 style={{ marginTop: 0 }}>Dependencies</h4>
-                {deps.length ? (
-                  <div className="stack" style={{ gap: 8 }}>
-                    {deps.map((d) => (
-                      <div key={d.id} className="row" style={{ margin: 0 }}>
-                        <div className="row-main">
-                          <div className="row-title">
-                            <span className={`dot ${nodeDotClass(d.status)}`} />
-                            <strong>{d.title}</strong>
-                            <PriorityPill p={d.priority} />
-                          </div>
-                          {d.summary ? <div className="muted">{d.summary}</div> : null}
-                        </div>
-                        <div className="row-side">
-                          <span className="muted">depends on</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="muted">No dependencies listed.</div>
-                )}
-              </div>
-            </div>
-          ) : null}
-
-          {innerTab === 'Work' ? (
-            <div className="stack">
-              <div className="panel" style={{ padding: 14 }}>
-                <h4 style={{ marginTop: 0 }}>Linked work</h4>
-                {linkedCards.length ? (
-                  <div className="table-like">
-                    {linkedCards.map((c) => (
-                      <div key={c.id} className="row" style={{ margin: 0 }}>
-                        <div className="row-main">
-                          <div className="row-title">
-                            <strong>{c.title}</strong>
-                            <PriorityPill p={c.priority} />
-                          </div>
-                          <div className="muted">Owner: {c.owner ?? '—'} · Due: {c.due ?? '—'}</div>
-                        </div>
-                        <div className="row-side">
-                          <Badge kind={c.column === 'done' ? 'ok' : c.column === 'blocked' ? 'down' : c.column === 'in_progress' ? 'warn' : 'unknown'} />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="muted">No linked cards yet.</div>
-                )}
-              </div>
-
-              <div className="panel" style={{ padding: 14 }}>
-                <h4 style={{ marginTop: 0 }}>Checklist</h4>
-                <div className="muted">(fake) Add subtasks here. In the real build this could feed Kanban cards or vice-versa.</div>
-              </div>
-            </div>
-          ) : null}
-
-          {innerTab === 'Activity' ? (
-            <div className="stack">
-              <div className="panel" style={{ padding: 14 }}>
-                <h4 style={{ marginTop: 0 }}>Recent activity</h4>
-                <div className="feed-grid" style={{ gridTemplateColumns: '1fr' }}>
-                  {project.activity.slice(0, 8).map((a) => (
-                    <FeedItem key={a.id} actor={a.actor} text={a.text} meta={fmtAgo(a.at)} />
-                  ))}
-                </div>
-              </div>
-            </div>
-          ) : null}
-        </div>
-      </aside>
-    </div>
-  )
-}
-
-function TreeView({ project, onOpen }: { project: Project; onOpen: (n: FeatureNode) => void }) {
-  const [query, setQuery] = useState('')
-  const [showDeps, setShowDeps] = useState(false)
-
-  const all = useMemo(() => flattenTree(project.tree), [project.tree])
-
-  const matches = useMemo(() => {
-    const q = query.trim().toLowerCase()
-    if (!q) return new Set<string>()
-    const ids = all
-      .filter((n) => `${n.title} ${n.summary ?? ''} ${n.tags?.join(' ') ?? ''}`.toLowerCase().includes(q))
-      .map((n) => n.id)
-    return new Set(ids)
-  }, [all, query])
-
-  const isVisible = (n: FeatureNode): boolean => {
-    if (!query.trim()) return true
-    if (matches.has(n.id)) return true
-    return !!n.children?.some(isVisible)
-  }
-
-  const epics = useMemo(() => project.tree.filter(isVisible), [project.tree, query])
-
-  return (
-    <div className="stack" style={{ gap: 12 }}>
-      <div className="tree-toolbar">
-        <input className="input" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search nodes…" />
-        <label className="field inline" style={{ margin: 0 }}>
-          <input type="checkbox" checked={showDeps} onChange={(e) => setShowDeps(e.target.checked)} />
-          <span className="muted">Show dependencies</span>
-        </label>
-        <Button variant="default" type="button" onClick={() => alert('(wireframe) Add new node')}>
-          + Add node
-        </Button>
-      </div>
-
-      <div className="panel" style={{ padding: 14 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', alignItems: 'baseline' }}>
-          <div>
-            <h3 style={{ margin: 0 }}>Tree</h3>
-          </div>
-          <div className="muted">{all.length} node(s)</div>
-        </div>
-
-        {/* Initiative → Epics/Sections → Stories/Tasks */}
-        <div className="tree-org" style={{ marginTop: 14 }}>
-          <div className="tree-org-root">
-            <Button type="button" className="tree-box root" onClick={() => alert('(wireframe) Project settings')} title="Project">
-              <div className="tree-box-title">{project.name}</div>
-              <div className="muted" style={{ fontSize: 12 }}>initiative</div>
-            </Button>
-          </div>
-
-          <div className="tree-org-epics" style={{ ['--cols' as never]: String(Math.max(1, epics.length)) }}>
-            {epics.map((e, idx) => {
-              const highlight = matches.has(e.id)
-              const tone = idx % 3 === 0 ? 'tone-a' : idx % 3 === 1 ? 'tone-b' : 'tone-c'
-              return (
-                <div key={e.id} className="tree-org-col">
-                  <Button
-                    type="button"
-                    className={`tree-box epic ${tone} ${highlight ? 'highlight' : ''}`}
-                    onClick={() => onOpen(e)}
-                    title="Open section/epic"
-                  >
-                    <div className="tree-box-top">
-                      <span className={`dot ${nodeDotClass(e.status)}`} />
-                      <PriorityPill p={e.priority} />
-                    </div>
-                    <div className="tree-box-title">{e.title}</div>
-                    {e.summary ? <div className="muted tree-box-summary">{e.summary}</div> : <div className="muted tree-box-summary">—</div>}
-                  </Button>
-
-                  <div className="tree-org-children">
-                    {(e.children ?? []).filter(isVisible).map((c) => {
-                      const ch = matches.has(c.id)
-                      return (
-                        <div key={c.id} className="tree-org-child">
-                          <Button
-                            type="button"
-                            className={`tree-mini ${ch ? 'highlight' : ''}`}
-                            onClick={() => onOpen(c)}
-                            title="Open task/feature"
-                          >
-                            <div className="tree-mini-head">
-                              <span className={`dot ${nodeDotClass(c.status)}`} />
-                              <PriorityPill p={c.priority} />
-                            </div>
-                            <div className="tree-mini-title">{c.title}</div>
-                            {showDeps && c.dependsOn?.length ? (
-                              <div className="muted" style={{ fontSize: 12, marginTop: 6 }}>deps: {c.dependsOn.length}</div>
-                            ) : null}
-                          </Button>
-
-                          {(c.children ?? []).filter(isVisible).length ? (
-                            <div className="tree-org-subtasks">
-                              {(c.children ?? []).filter(isVisible).map((s) => {
-                                const sh = matches.has(s.id)
-                                return (
-                                  <Button
-                                    key={s.id}
-                                    type="button"
-                                    className={`tree-sub ${sh ? 'highlight' : ''}`}
-                                    onClick={() => onOpen(s)}
-                                    title="Open subtask"
-                                  >
-                                    <span className={`dot ${nodeDotClass(s.status)}`} />
-                                    <span style={{ fontWeight: 800 }}>{s.title}</span>
-                                  </Button>
-                                )
-                              })}
-                            </div>
-                          ) : null}
-                        </div>
-                      )
-                    })}
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function KanbanBoard({ project, onOpenFeature }: { project: Project; onOpenFeature: (n: FeatureNode) => void }) {
-  const [cards, setCards] = useState<KanbanCard[]>(() => project.cards)
-
-  const byCol = useMemo(() => {
-    const cols: Record<KanbanColumnId, KanbanCard[]> = { todo: [], in_progress: [], blocked: [], done: [] }
-    for (const c of cards) cols[c.column].push(c)
-    return cols
-  }, [cards])
-
-  const columns: { id: KanbanColumnId; title: string; hint: string }[] = [
-    { id: 'todo', title: 'To do', hint: 'Not started' },
-    { id: 'in_progress', title: 'In progress', hint: 'Working' },
-    { id: 'blocked', title: 'Blocked', hint: 'Waiting on deps' },
-    { id: 'done', title: 'Done', hint: 'Shipped' },
-  ]
-
-  const onDrop = (col: KanbanColumnId, ev: React.DragEvent) => {
-    ev.preventDefault()
-    const id = ev.dataTransfer.getData('text/kanban-card')
-    if (!id) return
-    setCards((prev) => prev.map((c) => (c.id === id ? { ...c, column: col } : c)))
-  }
-
-  const openFeatureForCard = (c: KanbanCard) => {
-    if (!c.featureId) return
-    const n = findInTree(project.tree, c.featureId)
-    if (n) onOpenFeature(n)
-  }
-
-  return (
-    <div className="stack" style={{ gap: 12 }}>
-      <div className="panel" style={{ padding: 14 }}>
-        <div className="panel-header" style={{ padding: 0, marginBottom: 10 }}>
-          <div>
-            <h3 style={{ margin: 0 }}>Kanban</h3>
-            <div className="muted">Drag cards between columns. Cards can link to a feature spec.</div>
-          </div>
-          <div className="stack-h">
-            <Button
-              variant="default"
-              type="button"
-              onClick={() =>
-                setCards((prev) => [
-                  { id: `c-${Math.random().toString(16).slice(2, 6)}`, title: 'New task (wireframe)', priority: 'p2', column: 'todo', owner: 'Logan' },
-                  ...prev,
-                ])
-              }
-            >
-              + Add card
-            </Button>
-          </div>
-        </div>
-
-        <div className="kanban-grid">
-          {columns.map((col) => (
-            <div key={col.id} className="kanban-col" onDragOver={(e) => e.preventDefault()} onDrop={(e) => onDrop(col.id, e)}>
-              <div className="kanban-col-head">
-                <div>
-                  <strong>{col.title}</strong>
-                  <div className="muted" style={{ fontSize: 12 }}>{col.hint}</div>
-                </div>
-                <span className="muted">{byCol[col.id].length}</span>
-              </div>
-
-              <div className="kanban-cards">
-                {byCol[col.id].map((c) => (
-                  <div
-                    key={c.id}
-                    className="kanban-card"
-                    draggable
-                    onDragStart={(e) => e.dataTransfer.setData('text/kanban-card', c.id)}
-                    title="Drag to move"
-                  >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'baseline' }}>
-                      <strong style={{ lineHeight: 1.2 }}>{c.title}</strong>
-                      <PriorityPill p={c.priority} />
-                    </div>
-                    <div className="muted" style={{ marginTop: 6, fontSize: 12 }}>
-                      {c.owner ? `@${c.owner}` : '—'} {c.due ? `· due ${c.due}` : ''}
-                    </div>
-                    {c.featureId ? (
-                      <Button variant="ghost" type="button" style={{ marginTop: 10, width: '100%' }} onClick={() => openFeatureForCard(c)}>
-                        Open linked feature
-                      </Button>
-                    ) : (
-                      <div className="muted" style={{ marginTop: 10, fontSize: 12 }}>
-                        No feature link
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function Overview({ project }: { project: Project }) {
-  const topFeatures = useMemo(() => flattenTree(project.tree).slice(0, 6), [project.tree])
-
-  return (
-    <div className="stack" style={{ gap: 12 }}>
-      <section className="panel" style={{ padding: 14 }}>
-        <div className="panel-header" style={{ padding: 0, marginBottom: 10 }}>
-          <div>
-            <h3 style={{ margin: 0 }}>Product details</h3>
-          </div>
-          <div className="stack-h">
-            <span className={`pill ${project.status === 'active' ? 'sev-low' : project.status === 'paused' ? 'sev-medium' : 'sev-high'}`}>{project.status}</span>
-            <span className="muted">updated {fmtAgo(project.updatedAt)}</span>
-          </div>
-        </div>
-
-        <div className="grid-3">
-          <div className="stat-card">
-            <div className="stat-title">Owner</div>
-            <div className="stat-value"><strong>{project.owner}</strong></div>
-            <div className="muted">single-user local mode</div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-title">Tags</div>
-            <div className="stat-value"><strong>{project.tags.join(' · ')}</strong></div>
-            <div className="muted">(fake) configurable</div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-title">Work</div>
-            <div className="stat-value"><strong>{project.cards.filter((c) => c.column !== 'done').length}</strong> open</div>
-            <div className="muted">{project.cards.filter((c) => c.column === 'blocked').length} blocked</div>
-          </div>
-        </div>
-
-        <div className="field" style={{ marginTop: 12 }}>
-          <label className="muted">Description</label>
-          <textarea className="input" rows={6} defaultValue={project.summary + '\n\n(fake) Success looks like: fast orientation, clear feature specs, and smooth execution via Kanban.'} />
-        </div>
-      </section>
-
-      <section className="panel" style={{ padding: 14 }}>
-        <div className="panel-header" style={{ padding: 0, marginBottom: 10 }}>
-          <div>
-            <h3 style={{ margin: 0 }}>Key features + links</h3>
-          </div>
-          <div className="stack-h">
-            {project.links.map((l) => (
-              <a key={l.url} href={l.url} target="_blank" rel="noreferrer" variant="ghost" style={{ textDecoration: 'none' }}>
-                {l.label}
-              </a>
-            ))}
-          </div>
-        </div>
-
-        <div className="feed-grid">
-          {topFeatures.map((f) => (
-            <div key={f.id} className="feed-item clean">
-              <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'baseline' }}>
-                <strong>{f.title}</strong>
-                <PriorityPill p={f.priority} />
-              </div>
-              <div className="muted" style={{ marginTop: 6 }}>{f.summary ?? '—'}</div>
-              <div className="muted" style={{ marginTop: 8, fontSize: 12 }}>
-                <span className={`dot ${nodeDotClass(f.status)}`} /> <span style={{ marginLeft: 6 }}>{f.status}</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section className="panel" style={{ padding: 14 }}>
-        <div className="panel-header" style={{ padding: 0, marginBottom: 10 }}>
-          <div>
-            <h3 style={{ margin: 0 }}>Activity</h3>
-          </div>
-        </div>
-
-        <div className="feed-grid" style={{ gridTemplateColumns: '1fr' }}>
-          {project.activity.map((a) => (
-            <FeedItem key={a.id} actor={a.actor} text={a.text} meta={fmtAgo(a.at)} />
-          ))}
-        </div>
-      </section>
-    </div>
-  )
-}
-
-function NewProjectWizard({
-  onClose,
-  onCreate,
-}: {
-  onClose: () => void
-  onCreate: (p: Project) => void
-}) {
-  const [mode, setMode] = useState<'choose' | 'import' | 'idea' | 'analysis' | 'questions' | 'review'>('choose')
-  const [projectName, setProjectName] = useState('')
-  const [projectDesc, setProjectDesc] = useState('')
-  const [ideaText, setIdeaText] = useState('')
-
-  const [gitUrl, setGitUrl] = useState('')
-  const [files, setFiles] = useState<File[]>([])
-
-  const [analysis, setAnalysis] = useState<ProjectIntake['analysis'][number] | null>(null)
-  const [questions, setQuestions] = useState<IntakeQuestion[]>([])
-
-  const nowIso = () => new Date().toISOString()
-  const id = () => Math.random().toString(16).slice(2, 10)
-
-  const classify = (idea: string) => {
-    const t = idea.toLowerCase()
-    const hasSoftware = /(api|backend|frontend|mobile|web|database|repo|github|auth)/.test(t)
-    const hasOps = /(checklist|sop|process|warehouse|home|garden|equipment|maintenance|schedule|inventory)/.test(t)
-    const type: 'software' | 'ops' | 'hybrid' = hasSoftware && hasOps ? 'hybrid' : hasSoftware ? 'software' : hasOps ? 'ops' : 'hybrid'
-
-    const tags = Array.from(
-      new Set(
-        [
-          hasSoftware ? 'software' : null,
-          hasOps ? 'ops' : null,
-          t.includes('mobile') ? 'mobile' : null,
-          t.includes('web') ? 'web' : null,
-          t.includes('api') ? 'api' : null,
-          t.includes('local') ? 'local-first' : null,
-        ].filter(Boolean) as string[],
-      ),
-    )
-
-    const risks = [
-      /(payment|stripe|billing)/.test(t) ? 'payments' : null,
-      /(email|sms|push)/.test(t) ? 'notifications' : null,
-      /(pii|personal data|privacy)/.test(t) ? 'pii/privacy' : null,
-      /(multi-user|team|collabor)/.test(t) ? 'multi-user' : null,
-    ].filter(Boolean) as string[]
-
-    return { type, tags: tags.length ? tags : ['hybrid'], risks }
-  }
-
-  const generateQuestions = (type: 'software' | 'ops' | 'hybrid'): IntakeQuestion[] => {
-    const base: Array<{ category: string; prompt: string }> = [
-      { category: 'Outcome', prompt: 'What does success look like for this project (measurable or concrete)?' },
-      { category: 'Users', prompt: 'Who is this for? List the primary user(s)/actor(s).' },
-      { category: 'Workflow', prompt: 'Describe the main workflow in 3–6 steps.' },
-      { category: 'Scope', prompt: 'What are the non-goals (explicitly out of scope for v1)?' },
-      { category: 'Constraints', prompt: 'Any constraints: timeline, budget, offline/local-only, devices, performance?' },
-      { category: 'Risks', prompt: 'What are the biggest unknowns or risks we should validate early?' },
-    ]
-
-    const software: Array<{ category: string; prompt: string }> = [
-      { category: 'Platform', prompt: 'What platforms: web, mobile, desktop? Single-user or multi-user?' },
-      { category: 'Data', prompt: 'What are the core objects/data entities? (e.g., Trip, List, Item, Profile)' },
-      { category: 'Integrations', prompt: 'Any integrations (GitHub, maps, payments, auth, etc.)?' },
-      { category: 'Permissions', prompt: 'Any roles/permissions/sharing rules?' },
-    ]
-
-    const ops: Array<{ category: string; prompt: string }> = [
-      { category: 'SOP', prompt: 'What is the standard process/checklist? List steps and decision points.' },
-      { category: 'Assets', prompt: 'What assets/locations are involved (tools, rooms, machines, sites)?' },
-      { category: 'Schedule', prompt: 'Does this recur on a schedule? What triggers it?' },
-      { category: 'Safety', prompt: 'Any safety rules, stop conditions, or escalation paths?' },
-    ]
-
-    const extra = type === 'software' ? software : type === 'ops' ? ops : [...software.slice(0, 2), ...ops.slice(0, 2)]
-
-    const picked = [...base, ...extra].slice(0, 10)
-
-    return picked.map((q, idx) => ({
-      id: `q-${idx + 1}`,
-      category: q.category,
-      prompt: q.prompt,
-      answer: null,
-    }))
-  }
-
-  const makeSeedTree = (type: 'software' | 'ops' | 'hybrid', citations: { kind: 'idea' | 'question'; id: string }[]): FeatureNode[] => {
-    const src = (kind: 'idea' | 'question', id: string) => [{ kind, id } as const]
-
-    const common: FeatureNode[] = [
-      {
-        id: 'sec-foundation',
-        title: 'Foundation',
-        summary: 'Core setup, constraints, and first principles for the project.',
-        status: 'planned',
-        priority: 'p0',
-        sources: src('idea', 'idea-1'),
-        children: [
-          {
-            id: 'feat-scope',
-            title: 'Scope + non-goals',
-            summary: 'Capture v1 boundaries so execution doesn’t sprawl.',
-            status: 'planned',
-            priority: 'p0',
-            sources: src('question', 'q-4'),
-          },
-          {
-            id: 'feat-constraints',
-            title: 'Constraints',
-            summary: 'Make constraints explicit (time, budget, offline/local-first).',
-            status: 'planned',
-            priority: 'p0',
-            sources: src('question', 'q-5'),
-          },
-        ],
-      },
-    ]
-
-    if (type === 'software') {
-      return [
-        ...common,
-        {
-          id: 'sec-backend',
-          title: 'Backend',
-          summary: 'APIs, data model, and services.',
-          status: 'planned',
-          priority: 'p0',
-          sources: citations.map((c) => ({ kind: c.kind, id: c.id })),
-          children: [
-            { id: 'feat-endpoints', title: 'Key endpoints', summary: 'Define core endpoints + contracts.', status: 'planned', priority: 'p0', sources: src('question', 'q-8') },
-            { id: 'feat-data', title: 'Data model', summary: 'Entities + relationships.', status: 'planned', priority: 'p0', sources: src('question', 'q-8') },
-          ],
-        },
-        {
-          id: 'sec-app',
-          title: 'App sections',
-          summary: 'Major UI surfaces / modules.',
-          status: 'planned',
-          priority: 'p1',
-          sources: src('question', 'q-3'),
-          children: [
-            { id: 'feat-section-1', title: 'Primary section', summary: 'Main user workflow UI.', status: 'planned', priority: 'p0', sources: src('question', 'q-3') },
-            { id: 'feat-section-2', title: 'Profile / settings', summary: 'Preferences, account, configuration.', status: 'planned', priority: 'p2', sources: src('question', 'q-7') },
-          ],
-        },
-      ]
-    }
-
-    if (type === 'ops') {
-      return [
-        ...common,
-        {
-          id: 'sec-process',
-          title: 'Process / SOP',
-          summary: 'Steps, checklists, and decision points.',
-          status: 'planned',
-          priority: 'p0',
-          sources: src('question', 'q-7'),
-          children: [
-            { id: 'feat-checklist', title: 'Checklist', summary: 'Operator checklist steps.', status: 'planned', priority: 'p0', sources: src('question', 'q-7') },
-            { id: 'feat-escalation', title: 'Escalation / stop conditions', summary: 'What to do when something goes wrong.', status: 'planned', priority: 'p1', sources: src('question', 'q-10') },
-          ],
-        },
-        {
-          id: 'sec-schedule',
-          title: 'Scheduling',
-          summary: 'Triggers, cadence, reminders.',
-          status: 'planned',
-          priority: 'p1',
-          sources: src('question', 'q-9'),
-        },
-      ]
-    }
-
-    // hybrid
-    return [
-      ...common,
-      {
-        id: 'sec-backend',
-        title: 'Backend / automation',
-        summary: 'APIs, agents, automations, and integrations.',
-        status: 'planned',
-        priority: 'p0',
-        sources: src('question', 'q-8'),
-      },
-      {
-        id: 'sec-app',
-        title: 'App sections',
-        summary: 'Primary user surfaces + configuration.',
-        status: 'planned',
-        priority: 'p1',
-        sources: src('question', 'q-3'),
-      },
-      {
-        id: 'sec-process',
-        title: 'Ops / SOP',
-        summary: 'Checklists and safety rules.',
-        status: 'planned',
-        priority: 'p1',
-        sources: src('question', 'q-7'),
-      },
-    ]
-  }
-
-  const canContinueIdea = ideaText.trim().length >= 20
-
-  const startIdea = () => {
-    setMode('idea')
-    if (!projectName.trim()) setProjectName('New project')
-  }
-
-  const runAnalysis = () => {
-    const c = classify(ideaText)
-    const a = {
-      id: `ana-${id()}`,
-      at: nowIso(),
-      type: c.type,
-      tags: c.tags,
-      risks: c.risks,
-      summary: `(mock) Detected ${c.type} project. Generated questions are tailored to your description.`,
-    } as const
-    setAnalysis(a)
-    setQuestions(generateQuestions(a.type))
-    setMode('analysis')
-  }
-
-  const createProject = () => {
-    const createdAt = nowIso()
-
-    const intake: ProjectIntake = {
-      idea: [{ id: 'idea-1', at: createdAt, author: 'human', text: ideaText.trim() }],
-      analysis: analysis ? [analysis] : [],
-      questions,
-      requirements: [],
-    }
-
-    const p: Project = {
-      id: `p-${id()}`,
-      name: projectName.trim() || 'New project',
-      summary: ideaText.trim().slice(0, 140) + (ideaText.trim().length > 140 ? '…' : ''),
-      status: 'active',
-      tags: analysis?.tags ?? ['hybrid'],
-      owner: 'Logan',
-      updatedAt: createdAt,
-      links: [],
-      intake,
-      tree: makeSeedTree(analysis?.type ?? 'hybrid', [{ kind: 'idea', id: 'idea-1' }]),
-      cards: [
-        { id: `c-${id()}`, title: 'Review intake answers + confirm scope', priority: 'p0', column: 'todo', owner: 'Logan', featureId: 'feat-scope' },
-        { id: `c-${id()}`, title: 'Turn tree nodes into detailed feature specs', priority: 'p1', column: 'todo', owner: 'TARS', featureId: 'sec-app' },
-      ],
-      activity: [{ id: `a-${id()}`, at: createdAt, actor: 'Logan', text: 'Created project via intake wizard' }],
-    }
-
-    onCreate(p)
-  }
-
-  const fileCount = files.length
-
-  const onDropFiles = (ev: React.DragEvent) => {
-    ev.preventDefault()
-    const picked = Array.from(ev.dataTransfer.files ?? [])
-    if (picked.length) setFiles(picked)
-  }
-
-  return (
-    <div className="modal-backdrop" role="presentation" onMouseDown={(e) => (e.target === e.currentTarget ? onClose() : null)}>
-      <div className="modal newproj-modal" role="dialog" aria-modal="true" aria-label="New project" onMouseDown={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <div style={{ minWidth: 0 }}>
-            <div className="muted" style={{ fontSize: 12 }}>new project</div>
-            <h3 style={{ margin: '6px 0 0' }}>Create project</h3>
-          </div>
-          <div className="stack-h">
-            <Button variant="ghost" type="button" onClick={onClose}>Close</Button>
-          </div>
-        </div>
-
-        <div className="modal-body">
-          {mode === 'choose' ? (
-            <div className="wizard">
-              <div className="wizard-step">
-                <div className="wizard-title">
-                  <h4 style={{ margin: 0 }}>Start</h4>
-                </div>
-                <div className="muted" style={{ marginTop: 8 }}>Choose how you want to create this project.</div>
-                <div className="wizard-actions" style={{ justifyContent: 'flex-start' }}>
-                  <Button variant="default" type="button" onClick={() => setMode('import')}>Import project</Button>
-                  <Button variant="ghost" type="button" onClick={startIdea}>Start from idea</Button>
-                </div>
-              </div>
-            </div>
-          ) : null}
-
-          {mode === 'import' ? (
-            <div className="wizard">
-              <div className="wizard-step">
-                <div className="wizard-title">
-                  <h4 style={{ margin: 0 }}>Import project</h4>
-                </div>
-
-                <div className="form">
-                  <div className="form-row-2">
-                    <div className="field">
-                      <label className="muted">Project name</label>
-                      <input className="input" value={projectName} onChange={(e) => setProjectName(e.target.value)} placeholder="e.g. Trips App" />
-                    </div>
-                    <div className="field">
-                      <label className="muted">Git repo URL (optional)</label>
-                      <input className="input" value={gitUrl} onChange={(e) => setGitUrl(e.target.value)} placeholder="https://github.com/user/repo" />
-                      <div className="form-help">Use this if you want to import from Git instead of a local folder.</div>
-                    </div>
-                  </div>
-
-                  <div className="field">
-                    <label className="muted">Description (optional)</label>
-                    <textarea className="input" rows={3} value={projectDesc} onChange={(e) => setProjectDesc(e.target.value)} placeholder="Short description…" />
-                  </div>
-
-                  <div className="dropzone" onDragOver={(e) => e.preventDefault()} onDrop={onDropFiles}>
-                    <div className="dropzone-inner">
-                      <strong>Drag & drop a folder here</strong>
-                      <div className="muted">or</div>
-                      <label variant="ghost" style={{ display: 'inline-block' }}>
-                        Browse / pick folder…
-                        <input
-                          type="file"
-                          multiple
-                          // @ts-ignore non-standard, but supported by Chromium
-                          {...({ webkitdirectory: true } as any)}
-                          style={{ display: 'none' }}
-                          onChange={(e) => setFiles(Array.from(e.target.files ?? []))}
-                        />
-                      </label>
-                      <div className="muted">Selected: <strong>{fileCount}</strong> file(s)</div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="wizard-actions">
-                  <Button variant="ghost" type="button" onClick={() => setMode('choose')}>Back</Button>
-                  <Button
-                    variant="default"
-                    type="button"
-                    disabled={!projectName.trim() || (!fileCount && !gitUrl.trim())}
-                    onClick={() => {
-                      const createdAt = nowIso()
-                      onCreate({
-                        id: `p-${id()}`,
-                        name: projectName.trim(),
-                        summary: projectDesc.trim() || (gitUrl.trim() ? `(mock) Imported from ${gitUrl.trim()}` : '(mock) Imported from local folder'),
-                        status: 'active',
-                        tags: [gitUrl.trim() ? 'git' : 'folder', 'imported'],
-                        owner: 'Logan',
-                        updatedAt: createdAt,
-                        links: gitUrl.trim() ? [{ label: 'Repo', url: gitUrl.trim() }] : [],
-                        intake: {
-                          idea: [{ id: 'idea-1', at: createdAt, author: 'human', text: gitUrl.trim() ? `(import) ${gitUrl.trim()}` : '(import) Local folder import.' }],
-                          analysis: [],
-                          questions: [],
-                          requirements: [],
-                        },
-                        tree: [
-                          { id: 'sec-repo', title: 'Imported project', summary: 'Next: analyze repo + generate questions.', status: 'planned', priority: 'p0', children: [] },
-                        ],
-                        cards: [{ id: `c-${id()}`, title: 'Run import analysis + generate questions', priority: 'p0', column: 'todo', owner: 'TARS', featureId: 'sec-repo' }],
-                        activity: [{ id: `a-${id()}`, at: createdAt, actor: 'Logan', text: 'Created project from import' }],
-                      })
-                    }}
-                  >
-                    Create
-                  </Button>
-                </div>
-              </div>
-            </div>
-          ) : null}
-
-          {mode === 'idea' ? (
-            <div className="wizard">
-              <div className="wizard-step">
-                <div className="wizard-title">
-                  <h4 style={{ margin: 0 }}>Idea</h4>
-                </div>
-
-                <div className="form">
-                  <div className="field">
-                    <label className="muted">Project name</label>
-                    <input className="input" value={projectName} onChange={(e) => setProjectName(e.target.value)} placeholder="e.g. Trips App" />
-                  </div>
-
-                  <div className="field">
-                    <label className="muted">Describe your idea</label>
-                    <textarea
-                      className="input"
-                      rows={8}
-                      value={ideaText}
-                      onChange={(e) => setIdeaText(e.target.value)}
-                      placeholder="What are we building? Who is it for? What problem does it solve?"
-                    />
-                    <div className="form-help">Tip: include the user, the workflow, and what “done” looks like.</div>
-                  </div>
-                </div>
-
-                <div className="wizard-actions">
-                  <Button variant="ghost" type="button" onClick={() => setMode('choose')}>Back</Button>
-                  <Button variant="default" type="button" disabled={!canContinueIdea} onClick={runAnalysis}>
-                    Analyze →
-                  </Button>
-                </div>
-              </div>
-            </div>
-          ) : null}
-
-          {mode === 'analysis' ? (
-            <div className="stack">
-              <div className="panel" style={{ padding: 14 }}>
-                <h4 style={{ marginTop: 0 }}>Analysis (mock)</h4>
-                <div className="grid-3">
-                  <div className="stat-card">
-                    <div className="stat-title">Type</div>
-                    <div className="stat-value"><strong>{analysis?.type ?? '—'}</strong></div>
-                    <div className="muted">detected from idea</div>
-                  </div>
-                  <div className="stat-card">
-                    <div className="stat-title">Tags</div>
-                    <div className="stat-value"><strong>{(analysis?.tags ?? []).join(' · ') || '—'}</strong></div>
-                    <div className="muted">editable later</div>
-                  </div>
-                  <div className="stat-card">
-                    <div className="stat-title">Risks</div>
-                    <div className="stat-value"><strong>{analysis?.risks.length ? analysis?.risks.join(', ') : 'none'}</strong></div>
-                    <div className="muted">first pass</div>
-                  </div>
-                </div>
-                <Alert style={{ marginTop: 12 }}>
-                  <strong>Summary</strong>
-                  <div className="muted" style={{ marginTop: 6 }}>{analysis?.summary}</div>
-                </Alert>
-
-                <div className="stack-h" style={{ marginTop: 14, justifyContent: 'flex-end' }}>
-                  <Button variant="ghost" type="button" onClick={() => setMode('idea')}>Back</Button>
-                  <Button variant="default" type="button" onClick={() => setMode('questions')}>
-                    Questions →
-                  </Button>
-                </div>
-              </div>
-            </div>
-          ) : null}
-
-          {mode === 'questions' ? (
-            <div className="stack">
-              <div className="panel" style={{ padding: 14 }}>
-                <h4 style={{ marginTop: 0 }}>Clarifying questions</h4>
-                <div className="muted">These are generated based on your idea (mocked for now). Answers are stored and referenced later.</div>
-
-                <div className="table-like" style={{ marginTop: 12 }}>
-                  {questions.map((q) => (
-                    <div key={q.id} className="row" style={{ margin: 0 }}>
-                      <div className="row-main">
-                        <div className="row-title">
-                          <strong>{q.prompt}</strong>
-                          <span className="pill">{q.category}</span>
-                          <span className="muted"><code>{q.id}</code></span>
-                        </div>
-                        <textarea
-                          className="input"
-                          rows={3}
-                          value={q.answer?.text ?? ''}
-                          onChange={(e) =>
-                            setQuestions((prev) =>
-                              prev.map((x) => (x.id === q.id ? { ...x, answer: { text: e.target.value, at: nowIso(), author: 'human' } } : x)),
-                            )
-                          }
-                          placeholder="Your answer…"
-                          style={{ width: '100%', marginTop: 8, resize: 'vertical' }}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="stack-h" style={{ marginTop: 14, justifyContent: 'flex-end' }}>
-                  <Button variant="ghost" type="button" onClick={() => setMode('analysis')}>Back</Button>
-                  <Button variant="default" type="button" onClick={() => setMode('review')}>
-                    Review →
-                  </Button>
-                </div>
-              </div>
-            </div>
-          ) : null}
-
-          {mode === 'review' ? (
-            <div className="stack">
-              <div className="panel" style={{ padding: 14 }}>
-                <h4 style={{ marginTop: 0 }}>Review</h4>
-                <Alert>
-                  <strong>What will be stored</strong>
-                  <ul className="muted" style={{ margin: '8px 0 0', paddingLeft: 18 }}>
-                    <li>Idea (verbatim)</li>
-                    <li>Analysis output (versioned)</li>
-                    <li>Generated questions + all answers (verbatim)</li>
-                    <li>Generated tree + linked sources (citations)</li>
-                  </ul>
-                </Alert>
-
-                <div className="stack-h" style={{ marginTop: 14, justifyContent: 'flex-end' }}>
-                  <Button variant="ghost" type="button" onClick={() => setMode('questions')}>Back</Button>
-                  <Button variant="default" type="button" onClick={createProject}>
-                    Create project
-                  </Button>
-                </div>
-              </div>
-            </div>
-          ) : null}
-        </div>
-      </div>
-    </div>
-  )
-}
-
-export function Projects({ adapter: _adapter }: { adapter: Adapter }) {
-  const [projects, setProjects] = useState<Project[]>(() => fakeProjects())
-  const [activeId, setActiveId] = useState(projects[0]?.id ?? null)
-  const [tab, setTab] = useState<ProjectTab>('Overview')
-  const [drawer, setDrawer] = useState<FeatureNode | null>(null)
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
-  const [showNewProject, setShowNewProject] = useState(false)
-  const [selectedFeatureId, setSelectedFeatureId] = useState<string | null>(null)
-
-  const active = useMemo(() => projects.find((p) => p.id === activeId) ?? projects[0] ?? null, [projects, activeId])
-
-  // If a feature is selected, show the feature detail page
-  if (selectedFeatureId && active) {
-    return (
-      <FeatureDetailPage
-        projectId={active.id}
-        featureId={selectedFeatureId}
-        onBack={() => setSelectedFeatureId(null)}
-      />
-    )
-  }
-
-  return (
-    <main className={`projects-layout ${sidebarCollapsed ? 'collapsed' : ''}`}>
-      <aside className="projects-sidebar" aria-hidden={sidebarCollapsed} style={sidebarCollapsed ? { display: 'none' } : undefined}>
-        <div className="panel" style={{ padding: 14 }}>
-          <div className="panel-header" style={{ padding: 0, marginBottom: 10 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'baseline' }}>
-              <h2 style={{ margin: 0 }}>Projects</h2>
-              <Button variant="ghost" type="button" onClick={() => setSidebarCollapsed(true)} title="Collapse sidebar">
-                Hide
-              </Button>
-            </div>
-          </div>
-
-          <div className="projects-list" style={{ marginTop: 12 }}>
-            {projects.map((p) => (
-              <Button
-                key={p.id}
-                type="button"
-                className={`project-item ${active?.id === p.id ? 'active' : ''}`}
-                onClick={() => {
-                  setActiveId(p.id)
-                  setTab('Overview')
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'baseline' }}>
-                  <strong style={{ textAlign: 'left' }}>{p.name}</strong>
-                  <span className={`pill ${p.status === 'active' ? 'sev-low' : p.status === 'paused' ? 'sev-medium' : 'sev-high'}`}>{p.status}</span>
-                </div>
-                <div className="muted" style={{ marginTop: 6, textAlign: 'left' }}>{p.summary}</div>
-                <div className="muted" style={{ marginTop: 8, textAlign: 'left', fontSize: 12 }}>updated {fmtAgo(p.updatedAt)}</div>
-              </Button>
-            ))}
-            {!projects.length ? <div className="muted">No matches.</div> : null}
-          </div>
-
-          <div style={{ marginTop: 12, display: 'flex', justifyContent: 'flex-end' }}>
-            <Button
-              variant="default"
-              type="button"
-              onClick={() => setShowNewProject(true)}
-            >
-              New Project
-            </Button>
-          </div>
-        </div>
-      </aside>
-
-      <section className="projects-main">
-        {!active ? (
-          <div className="panel span-4">
-            <h2>Projects</h2>
-            <p className="muted">No project selected.</p>
-          </div>
-        ) : (
-          <div className="panel projects-main-panel">
-            <div className="projects-main-header">
-              <div style={{ minWidth: 0 }}>
-                <div className="muted" style={{ fontSize: 12 }}>project</div>
-                <h2 style={{ margin: '6px 0 0' }}>{active.name}</h2>
-                <div className="muted" style={{ marginTop: 6 }}>{active.summary}</div>
-              </div>
-              <div className="stack-h" style={{ justifyContent: 'flex-end' }}>
-                {sidebarCollapsed ? (
-                  <Button variant="ghost" type="button" onClick={() => setSidebarCollapsed(false)} title="Show sidebar">
-                    Show projects
-                  </Button>
-                ) : null}
-                <Button variant="ghost" type="button" onClick={() => alert('(wireframe) Share/project settings')}>
-                  Settings
-                </Button>
-                {/* Quick add removed */}
-              </div>
-            </div>
-
-            <div className="projects-main-body">
-              {tab === 'Overview' ? <Overview project={active} /> : null}
-              {tab === 'Tree' ? <TreeView project={active} onOpen={(n) => setSelectedFeatureId(n.id)} /> : null}
-              {tab === 'Kanban' ? <KanbanBoard project={active} onOpenFeature={(n) => setDrawer(n)} /> : null}
-            </div>
-
-            <div className="projects-main-footer">
-              <TabBar tab={tab} setTab={setTab} />
-            </div>
-          </div>
-        )}
-      </section>
-
-      {active && drawer ? <FeatureDrawer project={active} feature={drawer} onClose={() => setDrawer(null)} /> : null}
-
-      {showNewProject ? (
-        <NewProjectWizard
-          onClose={() => setShowNewProject(false)}
-          onCreate={(p) => {
-            setProjects((prev) => [p, ...prev])
-            setActiveId(p.id)
-            setTab('Overview')
-            setSidebarCollapsed(false)
-            setShowNewProject(false)
-          }}
-        />
-      ) : null}
-    </main>
-  )
-}
+export default ProjectsPage
