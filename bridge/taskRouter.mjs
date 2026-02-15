@@ -108,8 +108,8 @@ export class TaskRouter {
         return
       }
 
-      // Claim the task
-      const claimed = await this.claimTask(taskId, agentId)
+      // Claim the task (pass task object to avoid store fetch)
+      const claimed = await this.claimTask(taskId, agentId, task)
       if (!claimed) {
         console.log(`[TaskRouter] Could not claim task ${taskId} - another agent got it`)
         return
@@ -215,9 +215,12 @@ export class TaskRouter {
   /**
    * Atomically claim a task for an agent
    */
-  async claimTask(taskId, agentId) {
+  async claimTask(taskId, agentId, task = null) {
     try {
-      const task = await this.tasksStore.get(taskId)
+      // Use provided task object if available to avoid store fetch timing issues
+      if (!task) {
+        task = await this.tasksStore.get(taskId)
+      }
       if (!task) {
         console.log(`[TaskRouter] Claim failed: task ${taskId} not found`)
         return false
