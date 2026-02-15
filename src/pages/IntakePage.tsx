@@ -631,22 +631,8 @@ export default function IntakePage({}: AppProps) {
     try {
       setIsCreatingTasks(true);
 
-      // Create tasks via POST /api/tasks
-      for (const task of analysisResult.tasks) {
-        await fetch("http://localhost:8787/api/tasks", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            title: task.title,
-            lane: "review",
-            priority: task.priority,
-            tag: task.tag,
-            project: selectedProjectId,
-            owner: task.assignee,
-            problem: task.reasoning,
-          }),
-        });
-      }
+      // Tasks are already created by /api/analyze-intake backend
+      // Just reset the form and reload history
 
       // Reset form
       setIntakeText("");
@@ -665,7 +651,7 @@ export default function IntakePage({}: AppProps) {
         }
       }
     } catch (err: any) {
-      setAnalysisError(err.message || "Failed to create tasks");
+      setAnalysisError(err.message || "Failed to reset form");
     } finally {
       setIsCreatingTasks(false);
     }
