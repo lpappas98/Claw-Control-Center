@@ -58,6 +58,8 @@ import { getRoutineExecutor } from './routineExecutor.mjs'
 import { getCalendarIntegration } from './calendarIntegration.mjs'
 import { GitHubIntegration } from './githubIntegration.mjs'
 import { sendTelegramNotification, sendTestNotification, formatTaskNotification, loadTelegramConfig } from './telegramIntegration.mjs'
+import { getProjectsStore, loadProjects, saveProjects } from './projectsStore.mjs'
+import { getAspectsStore, loadAspects, saveAspects } from './aspectsStore.mjs'
 import logger from './logger.mjs'
 import { createHealthChecker } from './healthChecks.mjs'
 
@@ -114,6 +116,8 @@ const NOTIFICATIONS_FILE = process.env.OPERATOR_HUB_NOTIFICATIONS_FILE ?? path.j
 const TEMPLATES_FILE = process.env.OPERATOR_HUB_TEMPLATES_FILE ?? path.join(WORKSPACE, '.clawhub', 'taskTemplates.json')
 const ROUTINES_FILE = process.env.OPERATOR_HUB_ROUTINES_FILE ?? path.join(WORKSPACE, '.clawhub', 'routines.json')
 const CONFIG_FILE = process.env.OPERATOR_HUB_CONFIG_FILE ?? path.join(WORKSPACE, '.clawhub', 'config.json')
+const PROJECTS_FILE = process.env.OPERATOR_HUB_PROJECTS_FILE ?? path.join(WORKSPACE, '.clawhub', 'projects.json')
+const ASPECTS_FILE = process.env.OPERATOR_HUB_ASPECTS_FILE ?? path.join(WORKSPACE, '.clawhub', 'aspects.json')
 
 // Load GitHub config
 async function loadGitHubConfig() {
@@ -171,6 +175,8 @@ const newTasksStore = getTasksStore(NEW_TASKS_FILE)
 const notificationsStore = getNotificationsStore(NOTIFICATIONS_FILE)
 const templatesStore = getTaskTemplatesStore(TEMPLATES_FILE)
 const routinesStore = getRoutinesStore(ROUTINES_FILE)
+const projectsStore = getProjectsStore(PROJECTS_FILE)
+const aspectsStore = getAspectsStore(ASPECTS_FILE)
 
 // Ensure stores are loaded
 await agentsStore.load()
@@ -178,10 +184,36 @@ await newTasksStore.load()
 await notificationsStore.load()
 await templatesStore.load()
 await routinesStore.load()
+await projectsStore.load()
+await aspectsStore.load()
 
 // Initialize routine executor
 const routineExecutor = getRoutineExecutor(routinesStore, newTasksStore, agentsStore, notificationsStore)
 routineExecutor.start()
+
+// Seed initial project if it doesn't exist
+async function seedInitialProject() {
+  try {
+    const existing = (await projectsStore.getAll()).find(p => p.name === 'Claw Control Center')
+    if (!existing) {
+      await projectsStore.create({
+        name: 'Claw Control Center',
+        tagline: 'Local-first control surface for OpenClaw',
+        status: 'active',
+        owner: 'Logan',
+        tags: ['core', 'infrastructure'],
+        description: 'Multi-agent task coordination system for OpenClaw',
+        links: [],
+        stats: { open: 0, blocked: 0, done: 0, total: 0 }
+      })
+      logger.info('Seeded initial Claw Control Center project')
+    }
+  } catch (err) {
+    logger.error('Failed to seed initial project', { error: err?.message })
+  }
+}
+
+await seedInitialProject()
 
 let lastGatewayHealth = null
 let lastGatewaySummary = null
@@ -886,6 +918,8 @@ app.post('/api/tasks', async (req, res) => {
     problem: typeof body.problem === 'string' ? body.problem : undefined,
     scope: typeof body.scope === 'string' ? body.scope : undefined,
     acceptanceCriteria: Array.isArray(body.acceptanceCriteria) ? body.acceptanceCriteria.filter((s) => typeof s === 'string') : undefined,
+    project: typeof body.project === 'string' ? body.project : undefined,
+    aspect: typeof body.aspect === 'string' ? body.aspect : undefined,
     createdAt: now,
     updatedAt: now,
     statusHistory: [{ at: now, to: lane, note: 'created' }],
@@ -943,6 +977,8 @@ app.put('/api/tasks/:id', async (req, res) => {
     acceptanceCriteria: Array.isArray(update.acceptanceCriteria)
       ? update.acceptanceCriteria.filter((s) => typeof s === 'string')
       : before.acceptanceCriteria,
+    project: typeof update.project === 'string' ? update.project : before.project,
+    aspect: typeof update.aspect === 'string' ? update.aspect : before.aspect,
     updatedAt: now,
     statusHistory:
       nextLane !== before.lane
@@ -1021,6 +1057,123 @@ app.post('/api/tasks/:id/comment', async (req, res) => {
   res.json({ success: true, comment, task: updated })
   // Broadcast task update
   if (global.broadcastWS) global.broadcastWS("task-updated", updated)
+})
+
+// ---- Projects Hub API (epic-level feature containers) ----
+app.get('/api/projects-hub', async (_req, res) => {
+  const projects = await projectsStore.getAll()
+  res.json(projects)
+})
+
+app.post('/api/projects-hub', async (req, res) => {
+  try {
+    const body = req.body ?? {}
+    const name = typeof body.name === 'string' ? body.name.trim() : ''
+    if (!name) return res.status(400).send('name required')
+
+    const project = await projectsStore.create(body)
+    res.json(project)
+    if (global.broadcastWS) global.broadcastWS("project-created", project)
+  } catch (err) {
+    res.status(400).send(err?.message ?? 'invalid project')
+  }
+})
+
+app.get('/api/projects-hub/:id', async (req, res) => {
+  try {
+    const project = await projectsStore.get(req.params.id)
+    if (!project) return res.status(404).send('project not found')
+    res.json(project)
+  } catch (err) {
+    res.status(400).send(err?.message ?? 'invalid request')
+  }
+})
+
+app.put('/api/projects-hub/:id', async (req, res) => {
+  try {
+    const project = await projectsStore.update(req.params.id, req.body ?? {})
+    if (!project) return res.status(404).send('project not found')
+    res.json(project)
+    if (global.broadcastWS) global.broadcastWS("project-updated", project)
+  } catch (err) {
+    res.status(400).send(err?.message ?? 'invalid request')
+  }
+})
+
+app.delete('/api/projects-hub/:id', async (req, res) => {
+  try {
+    const ok = await projectsStore.delete(req.params.id)
+    if (!ok) return res.status(404).send('project not found')
+    // Clean up aspects for this project
+    await aspectsStore.deleteByProject(req.params.id)
+    res.json({ ok: true })
+    if (global.broadcastWS) global.broadcastWS("project-deleted", { id: req.params.id })
+  } catch (err) {
+    res.status(400).send(err?.message ?? 'invalid request')
+  }
+})
+
+// ---- Aspects Hub API (epic-level sub-features) ----
+app.get('/api/aspects-hub', async (req, res) => {
+  try {
+    const filters = {}
+    if (req.query.projectId) filters.projectId = req.query.projectId
+    if (req.query.status) filters.status = req.query.status
+    if (req.query.priority) filters.priority = req.query.priority
+
+    const aspects = await aspectsStore.getAll(filters)
+    res.json(aspects)
+  } catch (err) {
+    res.status(400).send(err?.message ?? 'invalid request')
+  }
+})
+
+app.post('/api/aspects-hub', async (req, res) => {
+  try {
+    const body = req.body ?? {}
+    const projectId = typeof body.projectId === 'string' ? body.projectId.trim() : ''
+    const name = typeof body.name === 'string' ? body.name.trim() : ''
+    if (!projectId) return res.status(400).send('projectId required')
+    if (!name) return res.status(400).send('name required')
+
+    const aspect = await aspectsStore.create(body)
+    res.json(aspect)
+    if (global.broadcastWS) global.broadcastWS("aspect-created", aspect)
+  } catch (err) {
+    res.status(400).send(err?.message ?? 'invalid aspect')
+  }
+})
+
+app.get('/api/aspects-hub/:id', async (req, res) => {
+  try {
+    const aspect = await aspectsStore.get(req.params.id)
+    if (!aspect) return res.status(404).send('aspect not found')
+    res.json(aspect)
+  } catch (err) {
+    res.status(400).send(err?.message ?? 'invalid request')
+  }
+})
+
+app.put('/api/aspects-hub/:id', async (req, res) => {
+  try {
+    const aspect = await aspectsStore.update(req.params.id, req.body ?? {})
+    if (!aspect) return res.status(404).send('aspect not found')
+    res.json(aspect)
+    if (global.broadcastWS) global.broadcastWS("aspect-updated", aspect)
+  } catch (err) {
+    res.status(400).send(err?.message ?? 'invalid request')
+  }
+})
+
+app.delete('/api/aspects-hub/:id', async (req, res) => {
+  try {
+    const ok = await aspectsStore.delete(req.params.id)
+    if (!ok) return res.status(404).send('aspect not found')
+    res.json({ ok: true })
+    if (global.broadcastWS) global.broadcastWS("aspect-deleted", { id: req.params.id })
+  } catch (err) {
+    res.status(400).send(err?.message ?? 'invalid request')
+  }
 })
 
 // ---- PM/PO Intake Projects ----
