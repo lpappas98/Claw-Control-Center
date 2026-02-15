@@ -70,6 +70,7 @@ export function bridgeAdapter(opts: BridgeAdapterOptions): Adapter {
           label: a.name,
           status: (a.status === 'active' ? 'active' : 'waiting') as WorkerStatus,
           task: a.currentTask?.title || undefined,
+          taskStartedAt: a.currentTask?.startedAt || undefined,
           lastBeatAt: a.currentTask?.startedAt ? new Date(a.currentTask.startedAt).toISOString() : undefined,
           beats: [],
         }))

@@ -39,6 +39,7 @@ export type WorkerHeartbeat = {
   label?: string
   status: WorkerStatus
   task?: string
+  taskStartedAt?: number
   lastBeatAt?: string
   beats: Array<{ at: string }>
 }

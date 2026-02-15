@@ -206,6 +206,22 @@ export function MissionControl({
 
   const blockedTasks = tasks.filter((t) => t.lane === 'blocked')
 
+  // Tick every second for elapsed timers
+  const [now, setNow] = useState(Date.now())
+  useEffect(() => {
+    if (agents.length === 0) return
+    const iv = setInterval(() => setNow(Date.now()), 1000)
+    return () => clearInterval(iv)
+  }, [agents.length])
+
+  const formatElapsed = (startedAt?: number) => {
+    if (!startedAt) return ''
+    const secs = Math.max(0, Math.floor((now - startedAt) / 1000))
+    const m = Math.floor(secs / 60)
+    const s = secs % 60
+    return m > 0 ? `${m}m ${s}s` : `${s}s`
+  }
+
   // All agents in the list are active (idle agents are not shown)
   const workingAgents = agents
   const useCompactMode = workingAgents.length >= 4
@@ -285,9 +301,16 @@ export function MissionControl({
                     <span style={{ fontSize: '11px', color: '#64748b' }}>{agent.role}</span>
                     <div style={{ marginLeft: 'auto', width: '6px', height: '6px', borderRadius: '50%', background: '#34d399', boxShadow: '0 0 6px rgba(52,211,153,0.5)', animation: 'pulse 2s infinite' }} />
                   </div>
-                  <p style={{ fontSize: '12px', color: 'rgba(110,231,183,0.65)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {typeof agent.task === 'object' && agent.task?.title ? agent.task.title : agent.task}
-                  </p>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <p style={{ fontSize: '12px', color: 'rgba(110,231,183,0.65)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
+                      {typeof agent.task === 'object' && agent.task?.title ? agent.task.title : agent.task}
+                    </p>
+                    {agent.taskStartedAt && (
+                      <span style={{ fontSize: '11px', color: '#64748b', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                        {formatElapsed(agent.taskStartedAt)}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}
