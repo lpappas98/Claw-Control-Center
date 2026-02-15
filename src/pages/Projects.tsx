@@ -63,7 +63,7 @@ const ACT_ICON: Record<string, { s: string; c: string }> = {
   review: { s: "◉", c: "#c084fc" }, start: { s: "▶", c: "#fbbf24" },
 };
 
-const TABS = ["Overview", "Tree", "Kanban"];
+const TABS = ["Overview", "Kanban"];
 
 const panel: React.CSSProperties = {
   background: "rgba(15,23,42,0.45)",
@@ -374,179 +374,6 @@ function KanbanTab({ tasks, aspects, onSelectFeature }: {
 }
 
 /* ═══════════════════════════════════════════════════════
-   TREE / MINDMAP TAB
-   ═══════════════════════════════════════════════════════ */
-
-function TreeTab({ project, aspects, tasks, onSelectFeature }: {
-  project: Project; aspects: Aspect[]; tasks: Task[];
-  onSelectFeature: (id: string) => void;
-}) {
-  const [expanded, setExpanded] = useState<Set<string>>(() => new Set(aspects.slice(0, 2).map(a => a.id)));
-  const [zoom, setZoom] = useState(0.85);
-  const [pan, setPan] = useState({ x: 0, y: 0 });
-  const [dragging, setDragging] = useState(false);
-  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
-
-  const toggleExpand = (id: string) => setExpanded(p => { const n = new Set(p); n.has(id) ? n.delete(id) : n.add(id); return n; });
-
-  const handleWheel = useCallback((e: React.WheelEvent) => {
-    e.preventDefault();
-    setZoom(z => Math.max(0.3, Math.min(1.5, z - e.deltaY * 0.001)));
-  }, []);
-
-  const handleDown = useCallback((e: React.MouseEvent) => {
-    if ((e.target as HTMLElement).closest("[data-node]")) return;
-    setDragging(true);
-    setDragStart({ x: e.clientX - pan.x, y: e.clientY - pan.y });
-  }, [pan]);
-
-  const handleMove = useCallback((e: React.MouseEvent) => {
-    if (!dragging) return;
-    setPan({ x: e.clientX - dragStart.x, y: e.clientY - dragStart.y });
-  }, [dragging, dragStart]);
-
-  const handleUp = useCallback(() => setDragging(false), []);
-
-  // Tasks grouped by aspect
-  const tasksByAspect = useMemo(() => {
-    const m: Record<string, Task[]> = {};
-    aspects.forEach(a => { m[a.id] = []; });
-    tasks.forEach(t => {
-      if (t.aspect && m[t.aspect]) m[t.aspect].push(t);
-    });
-    return m;
-  }, [aspects, tasks]);
-
-  const layout = useMemo(() => {
-    const nodes: { id: string; x: number; y: number; type: string; data?: any }[] = [];
-    const edges: { from: string; to: string; color: string }[] = [];
-
-    nodes.push({ id: "root", x: 0, y: 0, type: "root" });
-    const spacing = 130;
-    const startY = -(aspects.length - 1) * spacing / 2;
-
-    aspects.forEach((a, fi) => {
-      const fx = 280;
-      const fy = startY + fi * spacing;
-      const status = a.status || "queued";
-      const st = ST[status] || ST.queued;
-      const aTasks = tasksByAspect[a.id] || [];
-      nodes.push({ id: a.id, x: fx, y: fy, type: "feature", data: { ...a, tasks: aTasks } });
-      edges.push({ from: "root", to: a.id, color: st.color });
-
-      if (expanded.has(a.id)) {
-        const ts = 48;
-        const sy = fy - (aTasks.length - 1) * ts / 2;
-        aTasks.forEach((t, ti) => {
-          nodes.push({ id: t.id, x: fx + 250, y: sy + ti * ts, type: "task", data: t });
-          edges.push({ from: a.id, to: t.id, color: `${(ST[laneToStatus(t.lane)] || ST.queued).color}50` });
-        });
-      }
-    });
-
-    return { nodes, edges };
-  }, [aspects, tasksByAspect, expanded]);
-
-  const xs = layout.nodes.map(n => n.x);
-  const ys = layout.nodes.map(n => n.y);
-  const minX = Math.min(...xs, 0) - 120, maxX = Math.max(...xs, 500) + 220;
-  const minY = Math.min(...ys, 0) - 60, maxY = Math.max(...ys, 100) + 60;
-
-  return (
-    <div style={{ position: "relative", height: 560, overflow: "hidden", borderRadius: 12 }}>
-      {/* Controls */}
-      <div style={{ position: "absolute", top: 12, right: 12, zIndex: 10, display: "flex", gap: 4 }}>
-        {[{ l: "+", fn: () => setZoom(z => Math.min(1.5, z + 0.15)) }, { l: "−", fn: () => setZoom(z => Math.max(0.3, z - 0.15)) }].map(b => (
-          <button key={b.l} onClick={b.fn} style={{ width: 30, height: 30, borderRadius: 8, border: "1px solid rgba(51,65,85,0.4)", background: "rgba(15,23,42,0.8)", color: "#94a3b8", fontSize: 16, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>{b.l}</button>
-        ))}
-        <button onClick={() => { setZoom(0.85); setPan({ x: 0, y: 0 }); }} style={{ height: 30, borderRadius: 8, border: "1px solid rgba(51,65,85,0.4)", background: "rgba(15,23,42,0.8)", color: "#64748b", fontSize: 11, padding: "0 10px", cursor: "pointer", fontFamily: "inherit" }}>Reset</button>
-        <button onClick={() => setExpanded(new Set(aspects.map(a => a.id)))} style={{ height: 30, borderRadius: 8, border: "1px solid rgba(51,65,85,0.4)", background: "rgba(15,23,42,0.8)", color: "#64748b", fontSize: 11, padding: "0 10px", cursor: "pointer", fontFamily: "inherit" }}>Expand all</button>
-        <button onClick={() => setExpanded(new Set())} style={{ height: 30, borderRadius: 8, border: "1px solid rgba(51,65,85,0.4)", background: "rgba(15,23,42,0.8)", color: "#64748b", fontSize: 11, padding: "0 10px", cursor: "pointer", fontFamily: "inherit" }}>Collapse</button>
-      </div>
-      <div style={{ position: "absolute", bottom: 12, left: 12, zIndex: 10, fontSize: 10, color: "#334155" }}>{Math.round(zoom * 100)}% · drag to pan · click features to expand</div>
-
-      <div onWheel={handleWheel} onMouseDown={handleDown} onMouseMove={handleMove} onMouseUp={handleUp} onMouseLeave={handleUp}
-        style={{ width: "100%", height: "100%", cursor: dragging ? "grabbing" : "grab", background: "radial-gradient(circle at 50% 50%, rgba(15,23,42,0.6) 0%, #080c16 100%)", position: "relative" }}>
-        <svg style={{ position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "none" }}>
-          <pattern id="g" width="30" height="30" patternUnits="userSpaceOnUse"><circle cx="15" cy="15" r="0.5" fill="#1e293b" /></pattern>
-          <rect width="100%" height="100%" fill="url(#g)" />
-        </svg>
-
-        <div style={{ position: "absolute", left: "50%", top: "50%", transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`, transformOrigin: "0 0", transition: dragging ? "none" : "transform 0.1s" }}>
-          {/* Edges */}
-          <svg style={{ position: "absolute", left: minX, top: minY, width: maxX - minX, height: maxY - minY, pointerEvents: "none", overflow: "visible" }}>
-            {layout.edges.map((e, i) => {
-              const f = layout.nodes.find(n => n.id === e.from);
-              const t = layout.nodes.find(n => n.id === e.to);
-              if (!f || !t) return null;
-              const x1 = f.x - minX + (f.type === "root" ? 90 : 100);
-              const y1 = f.y - minY;
-              const x2 = t.x - minX;
-              const y2 = t.y - minY;
-              const mx = (x1 + x2) / 2;
-              return <path key={i} d={`M${x1} ${y1} C${mx} ${y1},${mx} ${y2},${x2} ${y2}`} fill="none" stroke={e.color} strokeWidth={f.type === "root" ? 2 : 1} strokeDasharray={t.type === "task" ? "4 3" : "none"} opacity={0.6} />;
-            })}
-          </svg>
-
-          {/* Nodes */}
-          {layout.nodes.map(node => {
-            if (node.type === "root") return (
-              <div key={node.id} style={{ position: "absolute", left: node.x, top: node.y, transform: "translate(0,-50%)", zIndex: 3 }}>
-                <div style={{ background: "linear-gradient(135deg, rgba(59,130,246,0.15), rgba(139,92,246,0.15))", border: "1px solid rgba(59,130,246,0.25)", borderRadius: 14, padding: "14px 20px", textAlign: "center", minWidth: 180 }}>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: "#f1f5f9" }}>{project.name}</div>
-                  <div style={{ fontSize: 11, color: "#64748b", marginTop: 2 }}>{aspects.length} features</div>
-                </div>
-              </div>
-            );
-
-            if (node.type === "feature") {
-              const a = node.data;
-              const status = a.status || "queued";
-              const st = ST[status] || ST.queued;
-              const p = a.priority || "P2";
-              const pc = PC[p] || PC.P2;
-              const aTasks = a.tasks || [];
-              return (
-                <div key={node.id} data-node="true" style={{ position: "absolute", left: node.x, top: node.y, transform: "translate(0,-50%)", cursor: "pointer", zIndex: 2 }}
-                  onClick={() => toggleExpand(a.id)} onDoubleClick={() => onSelectFeature(a.id)}>
-                  <div style={{ background: "rgba(30,41,59,0.5)", border: `1px solid ${st.color}30`, borderLeft: `3px solid ${st.color}`, borderRadius: 10, padding: "10px 14px", minWidth: 160, maxWidth: 200 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
-                      <span style={{ fontSize: 12, fontWeight: 600, color: "#e2e8f0" }}>{a.name}</span>
-                      <span style={{ fontSize: 9, fontWeight: 700, padding: "1px 5px", borderRadius: 3, background: pc.bg, color: pc.text, marginLeft: "auto" }}>{p}</span>
-                    </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                      <span style={{ fontSize: 10, fontWeight: 600, padding: "1px 6px", borderRadius: 4, background: st.bg, color: st.color }}>{st.label}</span>
-                      <span style={{ fontSize: 10, color: "#475569" }}>{aTasks.length} tasks</span>
-                    </div>
-                  </div>
-                  <div style={{ position: "absolute", right: -8, top: "50%", transform: "translateY(-50%)", width: 16, height: 16, borderRadius: 4, background: "rgba(30,41,59,0.8)", border: "1px solid rgba(51,65,85,0.5)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9, color: "#64748b" }}>{expanded.has(a.id) ? "−" : "+"}</div>
-                </div>
-              );
-            }
-
-            // task node
-            const t = node.data as Task;
-            const tst = ST[laneToStatus(t.lane)] || ST.queued;
-            const isDone = t.lane === "done";
-            return (
-              <div key={node.id} data-node="true" style={{ position: "absolute", left: node.x, top: node.y, transform: "translate(0,-50%)", zIndex: 1 }}>
-                <div style={{ background: "rgba(30,41,59,0.35)", border: "1px solid rgba(51,65,85,0.3)", borderRadius: 8, padding: "6px 10px", minWidth: 130, maxWidth: 170, opacity: isDone ? 0.5 : 1 }}>
-                  <p style={{ fontSize: 11, color: isDone ? "#64748b" : "#cbd5e1", margin: 0, lineHeight: 1.3, textDecoration: isDone ? "line-through" : "none", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{t.title}</p>
-                  <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 4 }}>
-                    <span style={{ fontSize: 10, fontWeight: 700, color: (PC[t.priority || "P2"] || PC.P2).text }}>{t.priority || "P2"}</span>
-                    <span style={{ width: 5, height: 5, borderRadius: "50%", background: tst.color }} />
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ═══════════════════════════════════════════════════════
    FEATURE DETAIL VIEW
    ═══════════════════════════════════════════════════════ */
 
@@ -733,15 +560,13 @@ export default function ProjectsApp() {
       </div>
 
       {/* Views */}
-      <div style={{ ...panel, padding: selectedFeature ? "0 16px" : activeTab === "Tree" ? 0 : "0 16px", overflow: "hidden" }}>
+      <div style={{ ...panel, padding: selectedFeature ? "0 16px" : "0 16px", overflow: "hidden" }}>
         {selectedFeature && selectedAspect ? (
           <FeatureDetailView aspect={selectedAspect} tasks={featureTasks} onBack={() => setSelectedFeature(null)} />
         ) : activeTab === "Overview" ? (
           <OverviewTab project={project} aspects={aspects} tasks={tasks} activity={activity} onSelectFeature={setSelectedFeature} />
-        ) : activeTab === "Kanban" ? (
-          <KanbanTab tasks={tasks} aspects={aspects} onSelectFeature={setSelectedFeature} />
         ) : (
-          <TreeTab project={project} aspects={aspects} tasks={tasks} onSelectFeature={setSelectedFeature} />
+          <KanbanTab tasks={tasks} aspects={aspects} onSelectFeature={setSelectedFeature} />
         )}
       </div>
     </div>
