@@ -966,6 +966,23 @@ app.put('/api/tasks/:id', async (req, res) => {
   const nextLane = update.lane !== undefined ? normalizeLane(update.lane) : before.lane
   const nextPriority = update.priority !== undefined ? normalizePriority(update.priority) : before.priority
 
+  // Build statusHistory entry for lane transition
+  let nextStatusHistory = before.statusHistory ?? []
+  if (nextLane !== before.lane) {
+    const historyEntry = {
+      at: now,
+      from: before.lane,
+      to: nextLane,
+    }
+    // Add optional note if provided in request
+    if (typeof update.note === 'string' && update.note.trim()) {
+      historyEntry.note = update.note.trim()
+    } else {
+      historyEntry.note = 'updated'
+    }
+    nextStatusHistory = [historyEntry, ...nextStatusHistory]
+  }
+
   const next = {
     ...before,
     title: typeof update.title === 'string' ? update.title : before.title,
@@ -980,10 +997,7 @@ app.put('/api/tasks/:id', async (req, res) => {
     project: typeof update.project === 'string' ? update.project : before.project,
     aspect: typeof update.aspect === 'string' ? update.aspect : before.aspect,
     updatedAt: now,
-    statusHistory:
-      nextLane !== before.lane
-        ? [{ at: now, from: before.lane, to: nextLane, note: 'updated' }, ...(before.statusHistory ?? [])]
-        : before.statusHistory ?? [],
+    statusHistory: nextStatusHistory,
   }
 
   tasks = [...tasks.slice(0, idx), next, ...tasks.slice(idx + 1)]
