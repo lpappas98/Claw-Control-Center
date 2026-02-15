@@ -87,7 +87,11 @@ export class SubAgentTracker {
         // Also check task lane — if task moved out of development, agent is done
         if (this.tasksStore && entry.taskId) {
           const task = await this.tasksStore.get(entry.taskId)
-          if (task && task.lane !== 'development' && task.lane !== 'queued') {
+          if (!task) {
+            // Task was deleted — agent is done
+            console.log(`[SubAgentTracker] Task ${entry.taskId} deleted — marking ${entry.agentId} complete`)
+            await this.registry.markComplete(entry.childSessionKey, 'completed')
+          } else if (task.lane !== 'development' && task.lane !== 'queued') {
             console.log(`[SubAgentTracker] Task ${entry.taskId} is in ${task.lane} — marking ${entry.agentId} complete`)
             await this.registry.markComplete(entry.childSessionKey, 'completed')
           }
