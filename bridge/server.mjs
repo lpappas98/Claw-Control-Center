@@ -65,6 +65,8 @@ import logger from './logger.mjs'
 import { createHealthChecker } from './healthChecks.mjs'
 import { analyzeIntake } from './openaiIntegration.mjs'
 import { initializeTaskRouter, runTaskRouterHealthMonitor } from './initializeTaskRouter.mjs'
+import { SubAgentRegistry } from './subAgentRegistry.mjs'
+import { SubAgentTracker } from './subAgentTracker.mjs'
 
 const execFileAsync = promisify(execFile)
 const healthChecker = createHealthChecker()
@@ -203,15 +205,52 @@ await aspectsStore.load()
 const routineExecutor = getRoutineExecutor(routinesStore, newTasksStore, agentsStore, notificationsStore)
 routineExecutor.start()
 
-// Initialize TaskRouter (push-based agent execution model)
-const taskRouter = await initializeTaskRouter(app, newTasksStore, agentsStore)
+// Load gateway config for sub-agent spawning
+let gatewayToken = process.env.GATEWAY_TOKEN || ''
+let gatewayUrl = process.env.GATEWAY_URL || 'http://172.18.0.1:18789'
+try {
+  const ocConfig = JSON.parse(await fs.readFile(path.join(os.homedir(), '.openclaw', 'openclaw.json'), 'utf-8'))
+  gatewayToken = ocConfig?.gateway?.auth?.token || gatewayToken
+  const gwPort = ocConfig?.gateway?.port || 18789
+  gatewayUrl = process.env.GATEWAY_URL || `http://172.18.0.1:${gwPort}`
+} catch {
+  // Config not available inside Docker — rely on env vars or .clawhub mount
+  try {
+    // Try reading from mounted .clawhub config
+    const bridgeConfig = JSON.parse(await fs.readFile(path.join(WORKSPACE, '.clawhub', 'config.json'), 'utf-8'))
+    gatewayToken = bridgeConfig?.gatewayToken || gatewayToken
+    gatewayUrl = bridgeConfig?.gatewayUrl || gatewayUrl
+  } catch {}
+}
+
+// Set env vars for initializeTaskRouter
+process.env.GATEWAY_URL = gatewayUrl
+process.env.GATEWAY_TOKEN = gatewayToken
+
+// Initialize SubAgentRegistry
+const SUB_AGENT_REGISTRY_FILE = path.join(WORKSPACE, '.clawhub', 'sub-agent-registry.json')
+const subAgentRegistry = new SubAgentRegistry(SUB_AGENT_REGISTRY_FILE)
+await subAgentRegistry.load()
+
+// Initialize TaskRouter (push-based sub-agent execution model)
+const taskRouter = await initializeTaskRouter(app, newTasksStore, agentsStore, subAgentRegistry)
+
+// Initialize SubAgentTracker (polls gateway every 15s)
+const subAgentTracker = new SubAgentTracker(subAgentRegistry, { gatewayUrl, gatewayToken })
+subAgentTracker.start()
+
+// Make addActivity globally available for TaskRouter
+global.addActivity = (event) => {
+  activity.unshift({ ...event, id: `act-${Date.now()}` })
+  activity = activity.slice(0, 200)
+  activitySaver()
+  if (global.broadcastWS) global.broadcastWS('activity', event)
+}
 
 // Start health monitor cron (every 5 minutes)
-let healthMonitorCronSet = false
 setInterval(async () => {
-  await runTaskRouterHealthMonitor(taskRouter, newTasksStore, agentsStore)
-}, 5 * 60 * 1000) // 5 minutes
-healthMonitorCronSet = true
+  await runTaskRouterHealthMonitor(taskRouter, newTasksStore, agentsStore, subAgentRegistry)
+}, 5 * 60 * 1000)
 
 // Seed initial project if it doesn't exist
 async function seedInitialProject() {
@@ -2193,6 +2232,60 @@ app.get('/api/agents/:id', async (req, res) => {
   } catch (err) {
     res.status(400).send(err?.message ?? 'invalid request')
   }
+})
+
+// ── Sub-Agent Status Endpoints ──────────────────────────────────────
+
+const AGENT_DEFINITIONS = [
+  { id: 'forge', name: 'Forge', role: 'Dev', emoji: '🔨' },
+  { id: 'patch', name: 'Patch', role: 'Dev', emoji: '🌟' },
+  { id: 'blueprint', name: 'Blueprint', role: 'Architect', emoji: '🏗️' },
+  { id: 'sentinel', name: 'Sentinel', role: 'QA', emoji: '🔍' },
+  { id: 'tars', name: 'TARS', role: 'PM', emoji: '🍊' },
+]
+
+// GET /api/agents/status — merged agent definitions + live sub-agent state
+app.get('/api/agents/status', (_req, res) => {
+  const activeSubAgents = subAgentRegistry.getActive()
+  const agents = AGENT_DEFINITIONS.map(def => {
+    const activeSession = activeSubAgents.find(s => s.agentId === def.id)
+    return {
+      ...def,
+      status: activeSession ? 'active' : 'idle',
+      currentTask: activeSession ? {
+        id: activeSession.taskId,
+        title: activeSession.taskTitle,
+        priority: activeSession.taskPriority,
+        tag: activeSession.taskTag,
+        startedAt: activeSession.spawnedAt,
+        runningFor: activeSession.spawnedAt ? Date.now() - activeSession.spawnedAt : 0,
+        sessionKey: activeSession.childSessionKey,
+        tokenUsage: activeSession.tokenUsage,
+      } : null,
+    }
+  })
+  res.json({ agents })
+})
+
+// GET /api/agents/active — lightweight active-only endpoint for UI polling
+app.get('/api/agents/active', (_req, res) => {
+  const active = subAgentRegistry.getActive().map(s => ({
+    agentId: s.agentId,
+    taskId: s.taskId,
+    taskTitle: s.taskTitle,
+    taskPriority: s.taskPriority,
+    runningFor: s.spawnedAt ? Date.now() - s.spawnedAt : 0,
+    tokenUsage: s.tokenUsage,
+  }))
+  res.json({ active, count: active.length })
+})
+
+// GET /api/agents/:agentId/history — recent sub-agent runs
+app.get('/api/agents/:agentId/history', (req, res) => {
+  const history = subAgentRegistry.getByAgent(req.params.agentId)
+    .sort((a, b) => (b.spawnedAt || 0) - (a.spawnedAt || 0))
+    .slice(0, 20)
+  res.json({ history })
 })
 
 app.put('/api/agents/:id/status', async (req, res) => {
