@@ -77,13 +77,14 @@ export function SystemStatusPage() {
       const res = await fetch('/health')
       if (res.ok) {
         const data = await res.json()
-        if (data.uptime) {
+        if (data.uptime !== undefined) {
+          const startedAt = new Date(new Date(data.timestamp).getTime() - data.uptime * 1000).toISOString()
           setBridge(prev => ({
             ...prev,
             status: 'online',
             uptime: formatUptime(data.uptime),
             version: data.version,
-            lastDeployed: data.timestamp,
+            lastDeployed: startedAt,
             details: {
               tasks: data.stats?.tasks?.total ?? 0,
               agentsOnline: data.stats?.agents?.online ?? 0,
@@ -100,7 +101,9 @@ export function SystemStatusPage() {
           }
         }
       }
-    } catch { /* ignore */ }
+    } catch {
+      setBridge(prev => ({ ...prev, status: 'offline' }))
+    }
   }
 
   const fetchTasks = async () => {
@@ -117,17 +120,18 @@ export function SystemStatusPage() {
     } catch { /* ignore */ }
   }
 
-  // UI is always online if this page loads
+  // UI is always online if this page loads. Use build timestamp injected during Docker build.
   useEffect(() => {
+    // Try to get build time from meta tag, fallback to page load time
+    const buildTime = document.querySelector('meta[name="build-time"]')?.getAttribute('content')
     setUi({
       name: 'UI Dashboard',
       status: 'online',
       port: 5173,
-      lastDeployed: document.querySelector('meta[name="build-time"]')?.getAttribute('content') || undefined,
+      lastDeployed: buildTime || new Date().toISOString(),
     })
   }, [])
 
-  usePoll(checkBridge, 10000)
   usePoll(checkHealth, 10000)
   usePoll(fetchTasks, 15000)
 
