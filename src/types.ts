@@ -475,3 +475,48 @@ export type AgentTaskWithIntegrations = AgentTask & {
     date: string
   }>
 }
+
+// ---- Task Work Tracking ----
+export type TaskCommit = {
+  hash: string
+  message: string
+  timestamp: string // ISO date string
+}
+
+export type TaskFileChange = {
+  path: string
+  additions: number
+  deletions: number
+}
+
+export type TaskTestResult = {
+  passed: number
+  failed: number
+  skipped: number
+}
+
+export type TaskBuildArtifact = {
+  name: string
+  size: number
+  path: string
+}
+
+export type TaskWork = {
+  taskId: string
+  commits: TaskCommit[]
+  files: TaskFileChange[]
+  testResults: TaskTestResult
+  artifacts: TaskBuildArtifact[]
+  updatedAt: string
+}
+
+export type TaskWorkSummary = {
+  commitCount: number
+  fileCount: number
+  testSummary: {
+    passed: number
+    failed: number
+    skipped: number
+    total: number
+  }
+}

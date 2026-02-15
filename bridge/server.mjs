@@ -1230,6 +1230,30 @@ app.put('/api/tasks/:id', async (req, res) => {
   const nextLane = update.lane !== undefined ? normalizeLane(update.lane) : before.lane
   const nextPriority = update.priority !== undefined ? normalizePriority(update.priority) : before.priority
 
+  // Check for work data when moving to review
+  if (nextLane === 'review' && before.lane !== 'review') {
+    const workData = before.work
+    const hasCommits = workData && Array.isArray(workData.commits) && workData.commits.length > 0
+    
+    if (!hasCommits) {
+      console.warn(`[TaskRouter] ⚠️ Task ${id} moved to review without work data (commits missing)`)
+      
+      // Log to activity feed
+      if (global.addActivity) {
+        global.addActivity({
+          type: 'warning',
+          agent: before.owner || 'unknown',
+          taskId: id,
+          taskTitle: before.title,
+          time: Date.now(),
+          message: `Task "${before.title}" moved to review without logging commits or work data`
+        })
+      }
+    } else {
+      console.log(`[TaskRouter] ✓ Task ${id} moved to review with work data: ${workData.commits.length} commit(s)`)
+    }
+  }
+
   // Build statusHistory entry for lane transition
   let nextStatusHistory = before.statusHistory ?? []
   if (nextLane !== before.lane) {
@@ -1351,6 +1375,160 @@ app.post('/api/tasks/:id/comment', async (req, res) => {
   res.json({ success: true, comment, task: updated })
   // Broadcast task update
   if (global.broadcastWS) global.broadcastWS("task-updated", updated)
+})
+
+// ---- Task Work Tracking API ----
+const TASK_WORK_DIR = path.join(WORKSPACE, '.clawhub', 'task-work')
+
+// Ensure task-work directory exists
+await fs.mkdir(TASK_WORK_DIR, { recursive: true }).catch(() => {})
+
+/** Load task work data from file */
+async function loadTaskWork(taskId) {
+  const filePath = path.join(TASK_WORK_DIR, `${taskId}.json`)
+  try {
+    const raw = await fs.readFile(filePath, 'utf8')
+    return JSON.parse(raw)
+  } catch (err) {
+    // File doesn't exist or can't be read - return empty work data
+    return {
+      taskId,
+      commits: [],
+      files: [],
+      testResults: { passed: 0, failed: 0, skipped: 0 },
+      artifacts: [],
+      updatedAt: new Date().toISOString()
+    }
+  }
+}
+
+/** Save task work data to file */
+async function saveTaskWork(taskId, workData) {
+  const filePath = path.join(TASK_WORK_DIR, `${taskId}.json`)
+  const data = {
+    ...workData,
+    taskId,
+    updatedAt: new Date().toISOString()
+  }
+  await fs.writeFile(filePath, JSON.stringify(data, null, 2), 'utf8')
+  return data
+}
+
+/** Compute work summary from work data */
+function computeWorkSummary(workData) {
+  const testResults = workData.testResults || { passed: 0, failed: 0, skipped: 0 }
+  return {
+    commitCount: Array.isArray(workData.commits) ? workData.commits.length : 0,
+    fileCount: Array.isArray(workData.files) ? workData.files.length : 0,
+    testSummary: {
+      passed: testResults.passed || 0,
+      failed: testResults.failed || 0,
+      skipped: testResults.skipped || 0,
+      total: (testResults.passed || 0) + (testResults.failed || 0) + (testResults.skipped || 0)
+    }
+  }
+}
+
+app.get('/api/tasks/:id/work', async (req, res) => {
+  try {
+    const taskId = req.params.id
+    
+    // Verify task exists
+    const task = tasks.find(t => t.id === taskId)
+    if (!task) {
+      return res.status(404).send('task not found')
+    }
+    
+    // Load work data
+    const workData = await loadTaskWork(taskId)
+    const summary = computeWorkSummary(workData)
+    
+    res.json({
+      ...workData,
+      ...summary
+    })
+  } catch (err) {
+    logger.error('Error loading task work', {
+      taskId: req.params.id,
+      error: err.message
+    })
+    res.status(500).send(err.message)
+  }
+})
+
+app.put('/api/tasks/:id/work', async (req, res) => {
+  try {
+    const taskId = req.params.id
+    
+    // Verify task exists
+    const task = tasks.find(t => t.id === taskId)
+    if (!task) {
+      return res.status(404).send('task not found')
+    }
+    
+    const body = req.body || {}
+    
+    // Validate and normalize work data
+    const workData = {
+      commits: Array.isArray(body.commits) ? body.commits.filter(c => 
+        typeof c === 'object' && 
+        typeof c.hash === 'string' && 
+        typeof c.message === 'string' && 
+        typeof c.timestamp === 'string'
+      ) : [],
+      files: Array.isArray(body.files) ? body.files.filter(f => 
+        typeof f === 'object' && 
+        typeof f.path === 'string' && 
+        typeof f.additions === 'number' && 
+        typeof f.deletions === 'number'
+      ) : [],
+      testResults: {
+        passed: typeof body.testResults?.passed === 'number' ? body.testResults.passed : 0,
+        failed: typeof body.testResults?.failed === 'number' ? body.testResults.failed : 0,
+        skipped: typeof body.testResults?.skipped === 'number' ? body.testResults.skipped : 0
+      },
+      artifacts: Array.isArray(body.artifacts) ? body.artifacts.filter(a => 
+        typeof a === 'object' && 
+        typeof a.name === 'string' && 
+        typeof a.size === 'number' && 
+        typeof a.path === 'string'
+      ) : []
+    }
+    
+    // Save work data
+    const saved = await saveTaskWork(taskId, workData)
+    const summary = computeWorkSummary(saved)
+    
+    logger.info('Task work updated', {
+      taskId,
+      commitCount: summary.commitCount,
+      fileCount: summary.fileCount,
+      testTotal: summary.testSummary.total
+    })
+    
+    // Log activity
+    pushActivity({
+      type: 'info',
+      msg: `work logged: ${task.title.substring(0, 50)} (${summary.commitCount} commits, ${summary.fileCount} files)`,
+      ts: saved.updatedAt
+    })
+    
+    res.json({
+      ...saved,
+      ...summary
+    })
+    
+    // Broadcast work update
+    if (global.broadcastWS) {
+      global.broadcastWS('task-work-updated', { taskId, ...summary })
+    }
+  } catch (err) {
+    logger.error('Error saving task work', {
+      taskId: req.params.id,
+      error: err.message
+    })
+    res.status(500).send(err.message)
+  }
 })
 
 // ---- Intakes API ----
@@ -2314,6 +2492,9 @@ app.get('/api/agents/status', (_req, res) => {
         runningFor: activeSession.spawnedAt ? Date.now() - activeSession.spawnedAt : 0,
         sessionKey: activeSession.childSessionKey,
         tokenUsage: activeSession.tokenUsage,
+        duration: activeSession.duration,
+        totalTokens: activeSession.totalTokens,
+        model: activeSession.model,
       } : null,
     }
   })
@@ -2329,6 +2510,9 @@ app.get('/api/agents/active', (_req, res) => {
     taskPriority: s.taskPriority,
     runningFor: s.spawnedAt ? Date.now() - s.spawnedAt : 0,
     tokenUsage: s.tokenUsage,
+    duration: s.duration,
+    totalTokens: s.totalTokens,
+    model: s.model,
   }))
   res.json({ active, count: active.length })
 })

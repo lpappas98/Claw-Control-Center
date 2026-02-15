@@ -5,6 +5,7 @@
 
 import { readFile, writeFile, mkdir } from 'node:fs/promises'
 import { dirname } from 'node:path'
+import { parseTranscriptBySessionKey } from './transcriptParser.mjs'
 
 export class SubAgentRegistry {
   constructor(persistPath) {
@@ -52,6 +53,10 @@ export class SubAgentRegistry {
       completedAt: null,
       tokenUsage: null,
       lastChecked: null,
+      // New fields for transcript metrics
+      duration: null,
+      totalTokens: null,
+      model: null,
     })
     await this._persist()
     console.log(`[SubAgentRegistry] Registered: ${agentId} → ${taskId} (session: ${childSessionKey})`)
@@ -63,8 +68,25 @@ export class SubAgentRegistry {
     if (entry) {
       entry.status = status
       entry.completedAt = Date.now()
+      
+      // Parse transcript to extract metrics
+      try {
+        const metrics = await parseTranscriptBySessionKey(childSessionKey)
+        entry.duration = metrics.duration
+        entry.totalTokens = metrics.totalTokens
+        entry.model = metrics.model
+        
+        // Use transcript status if provided and more specific
+        if (metrics.status && metrics.status !== 'unknown') {
+          entry.status = metrics.status
+        }
+        
+        console.log(`[SubAgentRegistry] Marked ${entry.status}: ${entry.agentId} → ${entry.taskId} (${entry.duration}ms, ${entry.totalTokens} tokens, model: ${entry.model})`)
+      } catch (err) {
+        console.warn(`[SubAgentRegistry] Failed to parse transcript for ${childSessionKey}: ${err.message}`)
+      }
+      
       await this._persist()
-      console.log(`[SubAgentRegistry] Marked ${status}: ${entry.agentId} → ${entry.taskId}`)
     }
   }
 
@@ -74,8 +96,25 @@ export class SubAgentRegistry {
       if (entry.taskId === taskId && entry.status === 'active') {
         entry.status = status
         entry.completedAt = Date.now()
+        
+        // Parse transcript to extract metrics
+        try {
+          const metrics = await parseTranscriptBySessionKey(entry.childSessionKey)
+          entry.duration = metrics.duration
+          entry.totalTokens = metrics.totalTokens
+          entry.model = metrics.model
+          
+          // Use transcript status if provided and more specific
+          if (metrics.status && metrics.status !== 'unknown') {
+            entry.status = metrics.status
+          }
+          
+          console.log(`[SubAgentRegistry] Marked ${entry.status} by taskId: ${entry.agentId} → ${taskId} (${entry.duration}ms, ${entry.totalTokens} tokens, model: ${entry.model})`)
+        } catch (err) {
+          console.warn(`[SubAgentRegistry] Failed to parse transcript for ${entry.childSessionKey}: ${err.message}`)
+        }
+        
         await this._persist()
-        console.log(`[SubAgentRegistry] Marked ${status} by taskId: ${entry.agentId} → ${taskId}`)
         return entry
       }
     }
