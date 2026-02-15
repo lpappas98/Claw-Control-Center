@@ -640,7 +640,7 @@ export default function ProjectsApp() {
   const handleBack = () => { setSelectedFeature(null); };
 
   return (
-    <div>
+    <div style={{ minHeight: "100vh", background: "#080c16", color: "#e2e8f0", fontFamily: "'DM Sans', -apple-system, sans-serif" }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap');
         * { box-sizing: border-box; margin: 0; padding: 0; }
