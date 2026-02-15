@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Alert } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import type { Adapter } from '../adapters/adapter'
@@ -93,6 +94,8 @@ export function MissionControl({
 }: {
   adapter: Adapter
 }) {
+  const navigate = useNavigate()
+  
   const liveFn = useCallback(async (): Promise<LiveSnapshot> => {
     if (adapter.getLiveSnapshot) return adapter.getLiveSnapshot()
 
@@ -302,27 +305,43 @@ export function MissionControl({
             <span style={{ fontSize: 11, color: '#334155', fontWeight: 500 }}>local</span>
           </div>
           <nav style={{ display: 'flex', gap: 2, overflowX: 'auto', flex: 1 }}>
-            {NAV_ITEMS.map(n => (
-              <button 
-                key={n} 
-                onClick={() => setActiveNav(n)} 
-                style={{
-                  padding: '6px 12px',
-                  borderRadius: 6,
-                  fontSize: 12,
-                  fontWeight: 500,
-                  whiteSpace: 'nowrap',
-                  border: 'none',
-                  cursor: 'pointer',
-                  background: activeNav === n ? 'rgba(30,41,59,0.7)' : 'transparent',
-                  color: activeNav === n ? '#f1f5f9' : '#64748b',
-                  transition: 'all 0.15s',
-                  fontFamily: 'inherit',
-                }}
-              >
-                {n}
-              </button>
-            ))}
+            {NAV_ITEMS.map(n => {
+              const routeMap: Record<typeof NAV_ITEMS[number], string> = {
+                'Mission Control': '/',
+                'Projects': '/projects',
+                'Activity': '/activity',
+                'Kanban': '/kanban',
+                'Recurring': '/recurring',
+                'Integrations': '/integrations',
+                'System': '/system',
+                'Config': '/config',
+                'Docs': '/docs',
+              }
+              return (
+                <button 
+                  key={n} 
+                  onClick={() => {
+                    setActiveNav(n)
+                    navigate(routeMap[n])
+                  }} 
+                  style={{
+                    padding: '6px 12px',
+                    borderRadius: 6,
+                    fontSize: 12,
+                    fontWeight: 500,
+                    whiteSpace: 'nowrap',
+                    border: 'none',
+                    cursor: 'pointer',
+                    background: activeNav === n ? 'rgba(30,41,59,0.7)' : 'transparent',
+                    color: activeNav === n ? '#f1f5f9' : '#64748b',
+                    transition: 'all 0.15s',
+                    fontFamily: 'inherit',
+                  }}
+                >
+                  {n}
+                </button>
+              )
+            })}
           </nav>
         </div>
       </header>
