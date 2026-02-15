@@ -56,78 +56,254 @@ Capture what matters. Decisions, context, things to remember. Skip the secrets u
 
 **APPLIES TO: All sub-agents spawned for task work**
 
-When you're assigned a task (via task ID), you MUST log your work before completion. This creates an audit trail and populates the task detail view.
+When you're assigned a task (via task ID), you MUST log your work before completion. This creates an audit trail and populates the task detail view with commits, file changes, test results, and artifacts.
 
 ### Required Steps Before Moving to Review
 
-1. **Commit all changes** with descriptive messages:
-   ```bash
-   git add .
-   git commit -m "feat(scope): description of changes"
-   ```
+#### 1. Commit All Changes
 
-2. **Collect commit data** from your session:
-   ```bash
-   # Get commits from this session (adjust -n count as needed)
-   git log -n 5 --format='{"hash":"%H","message":"%s","timestamp":"%aI"}' | \
-     jq -s '.' > /tmp/commits.json
-   ```
+Make commits throughout your work with clear, descriptive messages:
 
-3. **Log your work** via the bridge API:
-   ```bash
-   # Replace TASK_ID with your actual task ID
-   curl -X PUT http://localhost:8787/api/tasks/TASK_ID/work \
-     -H "Content-Type: application/json" \
-     -d "$(cat /tmp/commits.json | jq -c '{commits: .}')"
-   ```
+```bash
+git add .
+git commit -m "feat(scope): description of changes"
 
-4. **If you ran tests**, include results:
-   ```bash
-   # Example: after running tests, parse output and log
-   curl -X PUT http://localhost:8787/api/tasks/TASK_ID/work \
-     -H "Content-Type: application/json" \
-     -d '{
-       "commits": [{"hash":"abc123","message":"feat: impl","timestamp":"2026-02-15T23:00:00Z"}],
-       "testResults": {
-         "passed": 5,
-         "failed": 0,
-         "skipped": 0
-       }
-     }'
-   ```
+# Make multiple commits as you complete different parts
+git commit -m "test: add integration tests for X"
+git commit -m "docs: update README with new feature"
+```
 
-5. **Log artifacts** (if applicable):
-   - Branch name: Include in work data as `"branch": "feature/branch-name"`
-   - PR links: Include as `"prUrl": "https://github.com/owner/repo/pull/123"`
-   - Build artifacts: Include as `"artifacts": ["path/to/artifact"]`
+Use conventional commit prefixes:
+- `feat:` - new features
+- `fix:` - bug fixes
+- `test:` - test additions/changes
+- `docs:` - documentation
+- `refactor:` - code restructuring
+- `chore:` - maintenance tasks
 
-6. **Move task to review**:
-   ```bash
-   curl -X PUT http://localhost:8787/api/tasks/TASK_ID \
-     -H "Content-Type: application/json" \
-     -d '{"lane": "review"}'
-   ```
+#### 2. Collect Work Data
 
-### Sub-Agent Completion Checklist
+Gather all work artifacts before logging:
 
-Before claiming a task is complete, verify:
+```bash
+# Get commits from this session (adjust -n based on how many commits you made)
+git log -n 5 --format='{"hash":"%H","message":"%s","timestamp":"%aI"}' | \
+  jq -s '.' > /tmp/commits.json
 
-- [ ] All code changes committed with clear messages
-- [ ] Commits logged via `/api/tasks/:id/work` endpoint
-- [ ] Test results logged (if tests were run)
-- [ ] Artifacts documented (branch, PR, build outputs)
-- [ ] Code compiles/runs without errors
-- [ ] Acceptance criteria met (check task description)
-- [ ] Task moved to "review" lane via API
+# Get file changes with diff stats
+git diff --stat HEAD~5 HEAD | grep '|' | awk '{
+  gsub(/\+/, "", $NF); 
+  gsub(/-/, "", $(NF-1));
+  print "{\"path\":\"" $1 "\",\"additions\":" ($(NF) ? $(NF) : 0) ",\"deletions\":" ($(NF-1) ? $(NF-1) : 0) "}"
+}' | jq -s '.' > /tmp/files.json
 
-**If blocked:** Move task to "blocked" lane and document the blocker:
+# If you have artifacts (builds, bundles, etc.)
+# Create artifacts list manually if applicable
+echo '[
+  {"name":"bundle.js","size":245678,"path":"dist/bundle.js"},
+  {"name":"app.apk","size":12456789,"path":"build/app.apk"}
+]' > /tmp/artifacts.json
+```
+
+#### 3. Log Work Data to Task
+
+**Basic logging (commits only):**
+```bash
+curl -X PUT http://localhost:8787/api/tasks/TASK_ID/work \
+  -H "Content-Type: application/json" \
+  -d "$(cat /tmp/commits.json | jq -c '{commits: .}')"
+```
+
+**With file changes:**
+```bash
+# Merge commits and files
+jq -s '{commits: .[0], files: .[1]}' /tmp/commits.json /tmp/files.json | \
+  curl -X PUT http://localhost:8787/api/tasks/TASK_ID/work \
+    -H "Content-Type: application/json" \
+    -d @-
+```
+
+**Complete work data (commits + files + tests + artifacts):**
+```bash
+# Build complete work data payload
+jq -n --slurpfile commits /tmp/commits.json \
+      --slurpfile files /tmp/files.json \
+      --slurpfile artifacts /tmp/artifacts.json \
+      '{
+        commits: $commits[0],
+        files: $files[0],
+        testResults: {
+          passed: 15,
+          failed: 0,
+          skipped: 2
+        },
+        artifacts: $artifacts[0]
+      }' | \
+  curl -X PUT http://localhost:8787/api/tasks/TASK_ID/work \
+    -H "Content-Type: application/json" \
+    -d @-
+```
+
+#### 4. Parse and Log Test Results
+
+**If you ran npm/yarn tests:**
+```bash
+# Run tests and capture output
+npm test 2>&1 | tee /tmp/test-output.txt
+
+# Parse test results (example for Jest)
+PASSED=$(grep -oP '\d+(?= passed)' /tmp/test-output.txt || echo "0")
+FAILED=$(grep -oP '\d+(?= failed)' /tmp/test-output.txt || echo "0")
+SKIPPED=$(grep -oP '\d+(?= skipped)' /tmp/test-output.txt || echo "0")
+
+# Log results
+jq -n --slurpfile commits /tmp/commits.json \
+  --arg passed "$PASSED" --arg failed "$FAILED" --arg skipped "$SKIPPED" \
+  '{
+    commits: $commits[0],
+    testResults: {
+      passed: ($passed | tonumber),
+      failed: ($failed | tonumber),
+      skipped: ($skipped | tonumber)
+    }
+  }' | \
+  curl -X PUT http://localhost:8787/api/tasks/TASK_ID/work \
+    -H "Content-Type: application/json" \
+    -d @-
+```
+
+**For pytest (Python):**
+```bash
+pytest --tb=short 2>&1 | tee /tmp/test-output.txt
+PASSED=$(grep -oP '\d+(?= passed)' /tmp/test-output.txt || echo "0")
+FAILED=$(grep -oP '\d+(?= failed)' /tmp/test-output.txt || echo "0")
+SKIPPED=$(grep -oP '\d+(?= skipped)' /tmp/test-output.txt || echo "0")
+```
+
+**For Go tests:**
+```bash
+go test ./... -v 2>&1 | tee /tmp/test-output.txt
+PASSED=$(grep -c "PASS:" /tmp/test-output.txt || echo "0")
+FAILED=$(grep -c "FAIL:" /tmp/test-output.txt || echo "0")
+```
+
+#### 5. Document Artifacts
+
+Include any build outputs, branches, or PR links:
+
+```bash
+# Get current branch name
+BRANCH=$(git branch --show-current)
+
+# If you created a PR, note the URL
+# Build full work data with all metadata
+jq -n --slurpfile commits /tmp/commits.json \
+  --arg branch "$BRANCH" \
+  --arg prUrl "https://github.com/owner/repo/pull/123" \
+  '{
+    commits: $commits[0],
+    branch: $branch,
+    prUrl: $prUrl,
+    artifacts: [
+      {name: "bundle.js", size: 245678, path: "dist/bundle.js"}
+    ]
+  }' | \
+  curl -X PUT http://localhost:8787/api/tasks/TASK_ID/work \
+    -H "Content-Type: application/json" \
+    -d @-
+```
+
+#### 6. Move Task to Review
+
+After logging all work data:
+
 ```bash
 curl -X PUT http://localhost:8787/api/tasks/TASK_ID \
   -H "Content-Type: application/json" \
-  -d '{"lane": "blocked"}'
+  -d '{"lane": "review"}'
 ```
 
-**Why this matters:** Missing work data means the task appears incomplete in the UI, even if the code was written. Log your work to create accountability and visibility.
+### Sub-Agent Completion Checklist
+
+**Before claiming a task is complete, verify all of these:**
+
+- [ ] **Commits**: All code changes committed with clear, descriptive messages
+- [ ] **Work Data Logged**: Commits POSTed to `/api/tasks/:id/work` endpoint
+- [ ] **File Changes**: Diff stats included in work data (additions/deletions per file)
+- [ ] **Test Results**: If you ran tests, parse output and include pass/fail/skip counts
+- [ ] **Artifacts**: Document any build outputs, bundles, or generated files with size/path
+- [ ] **Branch Info**: Include branch name if you created a feature branch
+- [ ] **PR Link**: Include GitHub/GitLab PR URL if you opened one
+- [ ] **Builds Successfully**: Code compiles/builds without errors
+- [ ] **Tests Pass**: All tests passing (or failures documented)
+- [ ] **Acceptance Criteria**: Every criterion in task description is met
+- [ ] **Lane Updated**: Task moved to "review" lane via API
+- [ ] **Verify in UI**: Check http://localhost:8787 to confirm work data appears in TaskModal
+
+### Work Data API Reference
+
+**Endpoint:** `PUT /api/tasks/:id/work`
+
+**Expected payload structure:**
+```json
+{
+  "commits": [
+    {
+      "hash": "abc123def456...",
+      "message": "feat: implement feature X",
+      "timestamp": "2026-02-15T23:00:00Z"
+    }
+  ],
+  "files": [
+    {
+      "path": "src/components/Feature.tsx",
+      "additions": 145,
+      "deletions": 12
+    }
+  ],
+  "testResults": {
+    "passed": 15,
+    "failed": 0,
+    "skipped": 2
+  },
+  "artifacts": [
+    {
+      "name": "bundle.js",
+      "size": 245678,
+      "path": "dist/bundle.js"
+    }
+  ],
+  "branch": "feature/task-123",
+  "prUrl": "https://github.com/org/repo/pull/456"
+}
+```
+
+**All fields are optional except commits** (minimum: include at least one commit).
+
+### If Blocked
+
+Move task to "blocked" lane and document the blocker:
+
+```bash
+curl -X PUT http://localhost:8787/api/tasks/TASK_ID \
+  -H "Content-Type: application/json" \
+  -d '{"lane": "blocked", "note": "Blocked by: missing API credentials"}'
+```
+
+### Why This Matters
+
+**Missing work data = task appears incomplete:**
+- The TaskModal "Work Done" tab will be empty
+- No audit trail of what was actually completed
+- PM cannot verify scope was delivered
+- Future debugging loses context
+
+**Proper work logging creates:**
+- ✅ Full audit trail of changes
+- ✅ Visual progress in TaskModal UI
+- ✅ Test coverage visibility
+- ✅ Build artifact tracking
+- ✅ Accountability and transparency
 
 ## External vs Internal
 
