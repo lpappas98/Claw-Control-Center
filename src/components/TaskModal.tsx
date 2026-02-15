@@ -931,7 +931,7 @@ export function TaskModal({
       />
 
       {/* Modal */}
-      <div style={{
+      <div data-testid="task-modal" style={{
         position: 'relative',
         width: '100%',
         maxWidth: 800,

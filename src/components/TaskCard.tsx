@@ -29,6 +29,7 @@ export function TaskCard({ task, onClick, draggable = true, onDragStart }: TaskC
 
   return (
     <Card
+      data-testid="task-card"
       className="kanban-card p-3 cursor-pointer hover:shadow-md transition-shadow"
       onClick={onClick}
       draggable={draggable}
