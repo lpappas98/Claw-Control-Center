@@ -191,25 +191,49 @@ export class TaskRouter {
 
   // ── Agent spawning ────────────────────────────────────────────────
 
+  // ── Sequential spawn queue ─────────────────────────────────────────
+  // Processes one spawn at a time with 4s delay between each.
+  // Sub-agents run in parallel once spawned — only the spawn is serialized.
+  
+  _spawnQueue = []
+  _spawnProcessing = false
+  
   async spawnAgentSession(agentId, task) {
-    try {
-      // Small stagger to avoid overwhelming the gateway with simultaneous spawns
-      const activeCount = this.getActiveCount()
-      if (activeCount > 0) {
-        await new Promise(r => setTimeout(r, activeCount * 1500))
+    return new Promise((resolve) => {
+      this._spawnQueue.push({ agentId, task, resolve })
+      this._processSpawnQueue()
+    })
+  }
+
+  async _processSpawnQueue() {
+    if (this._spawnProcessing || this._spawnQueue.length === 0) return
+    this._spawnProcessing = true
+
+    while (this._spawnQueue.length > 0) {
+      const { agentId, task, resolve } = this._spawnQueue.shift()
+      
+      try {
+        console.log(`[TaskRouter] Spawning agent ${agentId} for task ${task.id}`)
+        const taskContext = this.buildTaskContext(agentId, task)
+
+        for (const callback of this.sessionCallbacks) {
+          await callback(agentId, taskContext)
+        }
+      } catch (err) {
+        console.error(`[TaskRouter] Error spawning session: ${err.message}`)
+        if (this.registry) await this.registry.markCompleteByTaskId(task.id, 'failed')
       }
       
-      console.log(`[TaskRouter] Spawning agent ${agentId} for task ${task.id}`)
-      const taskContext = this.buildTaskContext(agentId, task)
-
-      for (const callback of this.sessionCallbacks) {
-        await callback(agentId, taskContext)
+      resolve()
+      
+      // 4s delay before next spawn (only if more in queue)
+      if (this._spawnQueue.length > 0) {
+        console.log(`[TaskRouter] Waiting 4s before next spawn (${this._spawnQueue.length} queued)`)
+        await new Promise(r => setTimeout(r, 4000))
       }
-    } catch (err) {
-      console.error(`[TaskRouter] Error spawning session: ${err.message}`)
-      // Release task back on spawn failure
-      if (this.registry) await this.registry.markCompleteByTaskId(task.id, 'failed')
     }
+
+    this._spawnProcessing = false
   }
 
   buildTaskContext(agentId, task) {

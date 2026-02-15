@@ -76,7 +76,7 @@ async function spawnSubAgent(agentId, message, label) {
         runTimeoutSeconds: 600, // 10 minute timeout
       },
     }),
-    signal: AbortSignal.timeout(30000),
+    signal: AbortSignal.timeout(15000),
   })
 
   if (!res.ok) {
