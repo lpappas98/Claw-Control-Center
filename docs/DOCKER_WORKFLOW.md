@@ -41,18 +41,24 @@ When you run `docker restart claw-bridge`:
 ## Quick Commands
 
 ### Rebuild Bridge
+
+**⚠️ CRITICAL: Always include volume mounts or all tasks will be lost!**
+
 ```bash
 cd /home/openclaw/.openclaw/workspace
 docker build -t claw-bridge:latest -f docker/Dockerfile.bridge .
 docker rm -f claw-bridge
 docker run -d --name claw-bridge --network claw-net \
-  -p 0.0.0.0:8787:8787 \
-  -v $PWD/.clawhub:/data/.clawhub \
-  -v $PWD/logs:/app/logs \
-  -e NODE_ENV=production -e LOG_LEVEL=info -e PORT=8787 -e OPENCLAW_WORKSPACE=/data \
-  --restart unless-stopped \
+  -p 8787:8787 \
+  -v /home/openclaw/.openclaw/workspace/.clawhub:/data/.clawhub \
+  -e OPENCLAW_WORKSPACE=/data \
   claw-bridge:latest
 ```
+
+**Required flags:**
+- `-v /home/openclaw/.openclaw/workspace/.clawhub:/data/.clawhub` ← **MUST HAVE** or tasks disappear!
+- `-e OPENCLAW_WORKSPACE=/data` ← Tells bridge where to find data
+- `--network claw-net` ← Bridge and UI must be on same network
 
 ### Rebuild UI
 ```bash
