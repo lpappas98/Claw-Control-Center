@@ -3,9 +3,52 @@
  * Call this early in server startup to set up push-based execution
  */
 
+import { execFile } from 'node:child_process'
 import TaskRouter from './taskRouter.mjs'
 import { emitTaskQueued, emitTaskCompleted, emitTaskBlocked } from './taskEvents.mjs'
 import setupTaskRouterEndpoints from './taskRouterEndpoints.mjs'
+
+/**
+ * Build the message that will be sent to the agent when it spawns.
+ * This is the full task context — the agent reads this and works.
+ */
+function buildAgentMessage(taskContext) {
+  const t = taskContext
+  const lines = [
+    `## Task Assignment: ${t.title || 'Untitled'}`,
+    `**Task ID:** ${t.taskId}`,
+    `**Priority:** ${t.priority || 'P2'}`,
+    `**Owner:** ${t.owner || 'unassigned'}`,
+    '',
+  ]
+  
+  if (t.problem) lines.push(`### Problem`, t.problem, '')
+  if (t.scope) lines.push(`### Scope`, t.scope, '')
+  
+  if (t.acceptanceCriteria) {
+    lines.push(`### Acceptance Criteria`)
+    if (Array.isArray(t.acceptanceCriteria)) {
+      t.acceptanceCriteria.forEach(ac => lines.push(`- [ ] ${ac}`))
+    } else {
+      lines.push(t.acceptanceCriteria)
+    }
+    lines.push('')
+  }
+  
+  if (t.tags?.length) lines.push(`**Tags:** ${t.tags.join(', ')}`, '')
+  
+  lines.push(
+    `### Instructions`,
+    `1. Work on this task to completion.`,
+    `2. Move the task to development: PUT /api/tasks/${t.taskId} with {"lane": "development"}`,
+    `3. When done, move to review: PUT /api/tasks/${t.taskId} with {"lane": "review"}`,
+    `4. Call POST http://localhost:8787/api/agents/${t.owner}/heartbeat with {"status": "online"} every 60 seconds while working.`,
+    `5. The bridge API is at http://localhost:8787`,
+    ''
+  )
+  
+  return lines.join('\n')
+}
 
 /**
  * Initialize TaskRouter with stores and attach to server
@@ -49,14 +92,60 @@ export async function initializeTaskRouter(app, tasksStore, agentsStore) {
     if (originalTaskUpdatedCallback) originalTaskUpdatedCallback(task, oldTask)
   }
   
-  // Register callback for agent session spawning
-  // When router decides to spawn an agent, it will call this function
+  // Register callback for agent session spawning via OpenClaw gateway
   taskRouter.onSessionSpawn(async (agentId, taskContext) => {
-    console.log(`[TaskRouter] Spawning agent ${agentId} with task context`)
-    // The actual agent spawning would happen here via OpenClaw's session_spawn
-    // For now, we just log it
-    // In production, this would call the gateway to spawn an isolated agent session
-    // with the taskContext as the initial message
+    console.log(`[TaskRouter] 🚀 Spawning agent ${agentId} for task ${taskContext.taskId}`)
+    
+    // Build the task message that the agent will receive
+    const message = buildAgentMessage(taskContext)
+    
+    // Spawn via `openclaw agent` in the background
+    // This is non-blocking — the agent runs asynchronously
+    const timeout = 300 // 5 minute timeout per task
+    const args = [
+      'agent',
+      '--agent', agentId,
+      '--message', message,
+      '--timeout', String(timeout),
+      '--json'
+    ]
+    
+    console.log(`[TaskRouter] Executing: openclaw agent --agent ${agentId} --timeout ${timeout}`)
+    
+    const child = execFile('openclaw', args, { 
+      timeout: (timeout + 30) * 1000, // OS timeout slightly longer
+      maxBuffer: 10 * 1024 * 1024 // 10MB buffer for large responses
+    }, async (error, stdout, stderr) => {
+      try {
+        if (error) {
+          console.error(`[TaskRouter] Agent ${agentId} error for task ${taskContext.taskId}: ${error.message}`)
+          // Release the task back to queued on failure
+          await taskRouter.releaseTask(taskContext.taskId)
+          await taskRouter.onAgentSessionComplete(agentId, taskContext.taskId, 'error', error.message)
+          return
+        }
+        
+        // Parse the agent's response
+        let result = {}
+        try {
+          result = JSON.parse(stdout)
+        } catch {
+          result = { status: 'ok', raw: stdout?.substring(0, 500) }
+        }
+        
+        console.log(`[TaskRouter] ✅ Agent ${agentId} completed task ${taskContext.taskId} (status: ${result.status || 'unknown'})`)
+        
+        // Mark the agent session as complete
+        await taskRouter.onAgentSessionComplete(agentId, taskContext.taskId, 'completed')
+      } catch (completionErr) {
+        console.error(`[TaskRouter] Error handling agent completion: ${completionErr.message}`)
+      }
+    })
+    
+    // Log the spawned PID
+    if (child.pid) {
+      console.log(`[TaskRouter] Agent ${agentId} spawned with PID ${child.pid}`)
+    }
   })
   
   // Attach router to global for access from other modules

@@ -329,20 +329,16 @@ export class TaskRouter {
    */
   buildTaskContext(agentId, task) {
     return {
-      agent: agentId,
-      task: {
-        id: task.id,
-        title: task.title,
-        description: task.description,
-        priority: task.priority,
-        tags: task.tags || [],
-        project: task.project || null,
-        assignedTo: agentId,
-        acceptanceCriteria: task.metadata?.acceptanceCriteria || [],
-        problem: task.metadata?.problem || '',
-        scope: task.metadata?.scope || '',
-        context: task.metadata?.context || ''
-      },
+      taskId: task.id,
+      title: task.title,
+      description: task.description || '',
+      priority: task.priority,
+      tags: task.tags || [],
+      project: task.project || null,
+      owner: agentId,
+      acceptanceCriteria: task.acceptanceCriteria || [],
+      problem: task.problem || '',
+      scope: task.scope || '',
       createdAt: task.createdAt,
       updatedAt: task.updatedAt
     }
