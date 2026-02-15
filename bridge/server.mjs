@@ -983,12 +983,24 @@ app.put('/api/tasks/:id', async (req, res) => {
     nextStatusHistory = [historyEntry, ...nextStatusHistory]
   }
 
+  // Auto-assign tasks to QA when moved to review lane
+  let nextOwner = typeof update.owner === 'string' ? update.owner : before.owner
+  if (nextLane === 'review' && before.lane !== 'review') {
+    // Transitioning to review: auto-assign to QA (Sentinel)
+    nextOwner = 'qa'
+  } else if (before.lane === 'review' && nextLane !== 'review' && nextLane !== 'done') {
+    // Transitioning FROM review back to development/queued (not done): clear owner
+    if (update.owner === undefined) {
+      nextOwner = null
+    }
+  }
+
   const next = {
     ...before,
     title: typeof update.title === 'string' ? update.title : before.title,
     lane: nextLane,
     priority: nextPriority,
-    owner: typeof update.owner === 'string' ? update.owner : before.owner,
+    owner: nextOwner,
     problem: typeof update.problem === 'string' ? update.problem : before.problem,
     scope: typeof update.scope === 'string' ? update.scope : before.scope,
     acceptanceCriteria: Array.isArray(update.acceptanceCriteria)
