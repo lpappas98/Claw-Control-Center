@@ -1,0 +1,203 @@
+[
+  {
+    "id": "routine-ca8d1eb4549de-1771197187809",
+    "name": "Daily standup",
+    "description": "Morning standup meeting",
+    "schedule": "0 9 * * 1-5",
+    "taskTemplate": {
+      "title": "Daily standup",
+      "description": "Discuss progress and blockers",
+      "assignedTo": "pm-1",
+      "tags": [
+        "standup",
+        "meeting"
+      ],
+      "estimatedHours": 1
+    },
+    "enabled": true,
+    "lastRun": null,
+    "nextRun": 1771232400000,
+    "createdAt": 1771197187809,
+    "updatedAt": 1771197187809
+  },
+  {
+    "id": "routine-ae41058eb226c-1771197187813",
+    "name": "Minimal routine",
+    "description": "",
+    "schedule": "0 9 * * *",
+    "taskTemplate": {
+      "title": "",
+      "description": "",
+      "assignedTo": null,
+      "tags": [],
+      "estimatedHours": null
+    },
+    "enabled": true,
+    "lastRun": null,
+    "nextRun": 1771232400000,
+    "createdAt": 1771197187813,
+    "updatedAt": 1771197187813
+  },
+  {
+    "id": "routine-a08949888ac1f-1771197187814",
+    "name": "Test routine",
+    "description": "",
+    "schedule": "0 12 * * *",
+    "taskTemplate": {
+      "title": "",
+      "description": "",
+      "assignedTo": null,
+      "tags": [],
+      "estimatedHours": null
+    },
+    "enabled": true,
+    "lastRun": null,
+    "nextRun": 1771243200000,
+    "createdAt": 1771197187814,
+    "updatedAt": 1771197187814
+  },
+  {
+    "id": "routine-bbdb036a26904-1771197187816",
+    "name": "Get test",
+    "description": "",
+    "schedule": "0 * * * *",
+    "taskTemplate": {
+      "title": "",
+      "description": "",
+      "assignedTo": null,
+      "tags": [],
+      "estimatedHours": null
+    },
+    "enabled": true,
+    "lastRun": null,
+    "nextRun": 1771200000000,
+    "createdAt": 1771197187816,
+    "updatedAt": 1771197187816
+  },
+  {
+    "id": "routine-5f9056898423d-1771197187818",
+    "name": "Routine 1",
+    "description": "",
+    "schedule": "0 9 * * *",
+    "taskTemplate": {
+      "title": "",
+      "description": "",
+      "assignedTo": null,
+      "tags": [],
+      "estimatedHours": null
+    },
+    "enabled": true,
+    "lastRun": null,
+    "nextRun": 1771232400000,
+    "createdAt": 1771197187818,
+    "updatedAt": 1771197187818
+  },
+  {
+    "id": "routine-b8e240b952ced-1771197187819",
+    "name": "Routine 2",
+    "description": "",
+    "schedule": "0 12 * * *",
+    "taskTemplate": {
+      "title": "",
+      "description": "",
+      "assignedTo": null,
+      "tags": [],
+      "estimatedHours": null
+    },
+    "enabled": true,
+    "lastRun": null,
+    "nextRun": 1771243200000,
+    "createdAt": 1771197187819,
+    "updatedAt": 1771197187819
+  },
+  {
+    "id": "routine-86a1b2c3a7aec-1771197187820",
+    "name": "Enabled routine",
+    "description": "",
+    "schedule": "0 9 * * *",
+    "taskTemplate": {
+      "title": "",
+      "description": "",
+      "assignedTo": null,
+      "tags": [],
+      "estimatedHours": null
+    },
+    "enabled": true,
+    "lastRun": null,
+    "nextRun": 1771232400000,
+    "createdAt": 1771197187820,
+    "updatedAt": 1771197187820
+  },
+  {
+    "id": "routine-fc243584cfb1f-1771197187821",
+    "name": "Disabled routine",
+    "description": "",
+    "schedule": "0 12 * * *",
+    "taskTemplate": {
+      "title": "",
+      "description": "",
+      "assignedTo": null,
+      "tags": [],
+      "estimatedHours": null
+    },
+    "enabled": false,
+    "lastRun": null,
+    "nextRun": 1771243200000,
+    "createdAt": 1771197187821,
+    "updatedAt": 1771197187821
+  },
+  {
+    "id": "routine-a5193dbf390f-1771197187823",
+    "name": "Past routine",
+    "description": "",
+    "schedule": "0 * * * *",
+    "taskTemplate": {
+      "title": "",
+      "description": "",
+      "assignedTo": null,
+      "tags": [],
+      "estimatedHours": null
+    },
+    "enabled": true,
+    "lastRun": null,
+    "nextRun": 1771200000000,
+    "createdAt": 1771197187823,
+    "updatedAt": 1771197187823
+  },
+  {
+    "id": "routine-fd79bf4889378-1771197187825",
+    "name": "Disabled routine",
+    "description": "",
+    "schedule": "0 * * * *",
+    "taskTemplate": {
+      "title": "",
+      "description": "",
+      "assignedTo": null,
+      "tags": [],
+      "estimatedHours": null
+    },
+    "enabled": false,
+    "lastRun": null,
+    "nextRun": 1771200000000,
+    "createdAt": 1771197187825,
+    "updatedAt": 1771197187825
+  },
+  {
+    "id": "routine-e706bb7ecc2b-1771197187830",
+    "name": "Updated name",
+    "description": "New description",
+    "schedule": "0 9 * * *",
+    "taskTemplate": {
+      "title": "",
+      "description": "",
+      "assignedTo": null,
+      "tags": [],
+      "estimatedHours": null
+    },
+    "enabled": true,
+    "lastRun": null,
+    "nextRun": 1771232400000,
+    "createdAt": 1771197187830,
+    "updatedAt": 1771197187834
+  }
+]

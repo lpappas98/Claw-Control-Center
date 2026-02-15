@@ -78,6 +78,7 @@ import logger from './logger.mjs'
 import { createHealthChecker } from './healthChecks.mjs'
 import { analyzeIntake } from './openaiIntegration.mjs'
 import { initializeTaskRouter, runTaskRouterHealthMonitor } from './initializeTaskRouter.mjs'
+import { initializeTokenRotation } from './tokenRotation.mjs'
 import { SubAgentRegistry } from './subAgentRegistry.mjs'
 import { SubAgentTracker } from './subAgentTracker.mjs'
 
@@ -224,6 +225,16 @@ await aspectsStore.load()
 // Initialize routine executor
 const routineExecutor = getRoutineExecutor(routinesStore, newTasksStore, agentsStore, notificationsStore)
 routineExecutor.start()
+
+// Initialize token rotation manager
+const TOKEN_SECRET = process.env.JWT_SECRET || 'default-secret-change-in-production'
+const tokenRotationManager = initializeTokenRotation(TOKEN_SECRET, {
+  accessTokenExpiry: process.env.ACCESS_TOKEN_EXPIRY || '15m',
+  refreshTokenExpiry: process.env.REFRESH_TOKEN_EXPIRY || '7d',
+  rotationThreshold: parseFloat(process.env.TOKEN_ROTATION_THRESHOLD || '0.5'),
+  maxTokensPerUser: parseInt(process.env.MAX_TOKENS_PER_USER || '5', 10),
+})
+logger.info('Token rotation manager initialized')
 
 // Load gateway config for sub-agent spawning
 let gatewayToken = process.env.GATEWAY_TOKEN || ''
@@ -3447,6 +3458,162 @@ app.post('/api/integrations/telegram/notify', async (req, res) => {
     })
   }
 })
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Token Rotation Endpoints
+// ──────────────────────────────────────────────────────────────────────────────
+
+/**
+ * POST /api/auth/token
+ * Create initial token pair for a user
+ * Body: { userId: string, payload?: object }
+ */
+app.post('/api/auth/token', async (req, res) => {
+  try {
+    const { userId, payload = {} } = req.body
+
+    if (!userId) {
+      return res.status(400).json({ error: 'userId is required' })
+    }
+
+    const tokens = await tokenRotationManager.createTokenPair(userId, payload)
+
+    res.json({
+      success: true,
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
+      expiresAt: tokens.accessTokenExpiry.toISOString(),
+    })
+  } catch (err) {
+    logger.error('[Auth] Token creation error', { error: err.message, stack: err.stack })
+    res.status(500).json({ error: err.message })
+  }
+})
+
+/**
+ * POST /api/auth/refresh
+ * Rotate tokens - exchange refresh token for new access + refresh tokens
+ * Body: { refreshToken: string }
+ */
+app.post('/api/auth/refresh', async (req, res) => {
+  try {
+    const { refreshToken } = req.body
+
+    if (!refreshToken) {
+      return res.status(400).json({ error: 'refreshToken is required' })
+    }
+
+    const tokens = await tokenRotationManager.rotateTokens(refreshToken)
+
+    res.json({
+      success: true,
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
+      expiresAt: tokens.accessTokenExpiry.toISOString(),
+    })
+  } catch (err) {
+    logger.error('[Auth] Token rotation error', { error: err.message })
+    res.status(401).json({ error: err.message })
+  }
+})
+
+/**
+ * POST /api/auth/verify
+ * Verify an access token
+ * Body: { accessToken: string }
+ */
+app.post('/api/auth/verify', async (req, res) => {
+  try {
+    const { accessToken } = req.body
+
+    if (!accessToken) {
+      return res.status(400).json({ error: 'accessToken is required' })
+    }
+
+    const result = await tokenRotationManager.verifyAccessToken(accessToken)
+
+    res.json({
+      valid: result.valid,
+      payload: result.payload,
+      shouldRotate: result.shouldRotate,
+    })
+  } catch (err) {
+    logger.error('[Auth] Token verification error', { error: err.message })
+    res.status(401).json({ error: err.message, valid: false })
+  }
+})
+
+/**
+ * POST /api/auth/revoke
+ * Revoke a specific token
+ * Body: { token: string }
+ */
+app.post('/api/auth/revoke', async (req, res) => {
+  try {
+    const { token } = req.body
+
+    if (!token) {
+      return res.status(400).json({ error: 'token is required' })
+    }
+
+    tokenRotationManager.revokeToken(token)
+
+    res.json({
+      success: true,
+      message: 'Token revoked successfully',
+    })
+  } catch (err) {
+    logger.error('[Auth] Token revocation error', { error: err.message })
+    res.status(500).json({ error: err.message })
+  }
+})
+
+/**
+ * POST /api/auth/revoke-all
+ * Revoke all tokens for a user
+ * Body: { userId: string }
+ */
+app.post('/api/auth/revoke-all', async (req, res) => {
+  try {
+    const { userId } = req.body
+
+    if (!userId) {
+      return res.status(400).json({ error: 'userId is required' })
+    }
+
+    tokenRotationManager.revokeAllUserTokens(userId)
+
+    res.json({
+      success: true,
+      message: `All tokens revoked for user ${userId}`,
+    })
+  } catch (err) {
+    logger.error('[Auth] User token revocation error', { error: err.message })
+    res.status(500).json({ error: err.message })
+  }
+})
+
+/**
+ * GET /api/auth/stats
+ * Get token statistics
+ */
+app.get('/api/auth/stats', async (_req, res) => {
+  try {
+    const stats = tokenRotationManager.getStats()
+
+    res.json({
+      success: true,
+      stats,
+    })
+  } catch (err) {
+    logger.error('[Auth] Stats error', { error: err.message })
+    res.status(500).json({ error: err.message })
+  }
+})
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Health Endpoints
+// ──────────────────────────────────────────────────────────────────────────────
 
 // Health endpoints for monitoring
 app.get('/health', async (_req, res) => {

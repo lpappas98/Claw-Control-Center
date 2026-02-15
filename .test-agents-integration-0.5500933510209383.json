@@ -1,0 +1,45 @@
+[
+  {
+    "id": "pixel",
+    "name": "Pixel",
+    "emoji": "🎨",
+    "roles": [
+      "designer",
+      "ui"
+    ],
+    "status": "online",
+    "createdAt": 1771197187822,
+    "updatedAt": 1771197187822,
+    "activeTasks": [],
+    "metadata": {}
+  },
+  {
+    "id": "dev-backend",
+    "name": "Backend Dev",
+    "emoji": "🔧",
+    "roles": [
+      "backend-dev",
+      "api"
+    ],
+    "status": "online",
+    "createdAt": 1771197187823,
+    "updatedAt": 1771197187823,
+    "activeTasks": [],
+    "metadata": {}
+  },
+  {
+    "id": "agent-qa",
+    "name": "QA Agent",
+    "emoji": "✅",
+    "roles": [
+      "qa",
+      "testing",
+      "e2e"
+    ],
+    "status": "online",
+    "createdAt": 1771197187826,
+    "updatedAt": 1771197187826,
+    "activeTasks": [],
+    "metadata": {}
+  }
+]

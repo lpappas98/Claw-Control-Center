@@ -1,0 +1,78 @@
+[
+  {
+    "id": "routine-b063868e39e83-1771197187818",
+    "name": "Test execution",
+    "description": "",
+    "schedule": "0 * * * *",
+    "taskTemplate": {
+      "title": "Auto task",
+      "description": "Auto-created task",
+      "assignedTo": null,
+      "tags": [
+        "auto"
+      ],
+      "estimatedHours": null
+    },
+    "enabled": true,
+    "lastRun": 1771197187821,
+    "nextRun": 1771200000000,
+    "createdAt": 1771197187818,
+    "updatedAt": 1771197187821
+  },
+  {
+    "id": "routine-1fa71a0a72249-1771197187822",
+    "name": "Agent assignment",
+    "description": "",
+    "schedule": "0 * * * *",
+    "taskTemplate": {
+      "title": "Agent task",
+      "description": "",
+      "assignedTo": "agent-alice",
+      "tags": [
+        "important"
+      ],
+      "estimatedHours": null
+    },
+    "enabled": true,
+    "lastRun": 1771197187824,
+    "nextRun": 1771200000000,
+    "createdAt": 1771197187822,
+    "updatedAt": 1771197187824
+  },
+  {
+    "id": "routine-3427bfdb42fcd-1771197187824",
+    "name": "Update test",
+    "description": "",
+    "schedule": "0 * * * *",
+    "taskTemplate": {
+      "title": "",
+      "description": "",
+      "assignedTo": null,
+      "tags": [],
+      "estimatedHours": null
+    },
+    "enabled": true,
+    "lastRun": 1771197187825,
+    "nextRun": 1771200000000,
+    "createdAt": 1771197187824,
+    "updatedAt": 1771197187825
+  },
+  {
+    "id": "routine-af64e5f644c13-1771197187829",
+    "name": "Task description",
+    "description": "",
+    "schedule": "0 * * * *",
+    "taskTemplate": {
+      "title": "Description test",
+      "description": "",
+      "assignedTo": null,
+      "tags": [],
+      "estimatedHours": null
+    },
+    "enabled": true,
+    "lastRun": 1771197187834,
+    "nextRun": 1771200000000,
+    "createdAt": 1771197187829,
+    "updatedAt": 1771197187834
+  }
+]

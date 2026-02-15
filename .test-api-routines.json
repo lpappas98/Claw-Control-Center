@@ -1,0 +1,133 @@
+[
+  {
+    "id": "routine-03fa127d59c2f-1771197187817",
+    "name": "Test routine 1",
+    "description": "",
+    "schedule": "0 9 * * *",
+    "taskTemplate": {
+      "title": "",
+      "description": "",
+      "assignedTo": null,
+      "tags": [],
+      "estimatedHours": null
+    },
+    "enabled": true,
+    "lastRun": null,
+    "nextRun": 1771232400000,
+    "createdAt": 1771197187817,
+    "updatedAt": 1771197187817
+  },
+  {
+    "id": "routine-12b3e9588c056-1771197187820",
+    "name": "Test routine 2",
+    "description": "",
+    "schedule": "0 12 * * *",
+    "taskTemplate": {
+      "title": "",
+      "description": "",
+      "assignedTo": null,
+      "tags": [],
+      "estimatedHours": null
+    },
+    "enabled": true,
+    "lastRun": null,
+    "nextRun": 1771243200000,
+    "createdAt": 1771197187820,
+    "updatedAt": 1771197187820
+  },
+  {
+    "id": "routine-101c0c02abff-1771197187821",
+    "name": "New routine",
+    "description": "Test description",
+    "schedule": "0 14 * * 1-5",
+    "taskTemplate": {
+      "title": "Routine task",
+      "description": "Auto task",
+      "assignedTo": "dev-alice",
+      "tags": [
+        "auto",
+        "daily"
+      ],
+      "estimatedHours": 2
+    },
+    "enabled": true,
+    "lastRun": null,
+    "nextRun": 1771250400000,
+    "createdAt": 1771197187821,
+    "updatedAt": 1771197187821
+  },
+  {
+    "id": "routine-64bbdacc287d8-1771197187822",
+    "name": "Get test routine",
+    "description": "",
+    "schedule": "0 * * * *",
+    "taskTemplate": {
+      "title": "",
+      "description": "",
+      "assignedTo": null,
+      "tags": [],
+      "estimatedHours": null
+    },
+    "enabled": true,
+    "lastRun": null,
+    "nextRun": 1771200000000,
+    "createdAt": 1771197187822,
+    "updatedAt": 1771197187822
+  },
+  {
+    "id": "routine-b046f789c2361-1771197187824",
+    "name": "Updated name",
+    "description": "Updated description",
+    "schedule": "0 9 * * *",
+    "taskTemplate": {
+      "title": "",
+      "description": "",
+      "assignedTo": null,
+      "tags": [],
+      "estimatedHours": null
+    },
+    "enabled": false,
+    "lastRun": null,
+    "nextRun": 1771232400000,
+    "createdAt": 1771197187824,
+    "updatedAt": 1771197187825
+  },
+  {
+    "id": "routine-28f339f81cfdd-1771197187825",
+    "name": "Schedule update",
+    "description": "",
+    "schedule": "0 9 * * *",
+    "taskTemplate": {
+      "title": "",
+      "description": "",
+      "assignedTo": null,
+      "tags": [],
+      "estimatedHours": null
+    },
+    "enabled": true,
+    "lastRun": null,
+    "nextRun": 1771232400000,
+    "createdAt": 1771197187825,
+    "updatedAt": 1771197187825
+  },
+  {
+    "id": "routine-495495461ca22-1771197187828",
+    "name": "Manual trigger test",
+    "description": "",
+    "schedule": "0 * * * *",
+    "taskTemplate": {
+      "title": "Triggered task",
+      "description": "Manually triggered",
+      "assignedTo": null,
+      "tags": [
+        "manual"
+      ],
+      "estimatedHours": null
+    },
+    "enabled": true,
+    "lastRun": null,
+    "nextRun": 1771200000000,
+    "createdAt": 1771197187828,
+    "updatedAt": 1771197187828
+  }
+]

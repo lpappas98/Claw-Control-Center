@@ -1,0 +1,17 @@
+[
+  {
+    "id": "notif-110bdb8c43b9b-1771197187824",
+    "agentId": "agent-alice",
+    "type": "task-assigned",
+    "title": "New task from routine",
+    "text": "Task created from recurring routine: Agent assignment",
+    "taskId": "task-c88d76fbaf6be-1771197187823",
+    "projectId": null,
+    "from": null,
+    "read": false,
+    "delivered": false,
+    "deliveredAt": null,
+    "createdAt": 1771197187824,
+    "metadata": {}
+  }
+]

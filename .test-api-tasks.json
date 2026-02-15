@@ -1,0 +1,35 @@
+[
+  {
+    "id": "task-ca345683921d3-1771197187830",
+    "title": "Triggered task",
+    "description": "Manually triggered",
+    "lane": "queued",
+    "priority": "P2",
+    "assignedTo": null,
+    "createdBy": "api",
+    "parentId": null,
+    "projectId": null,
+    "project": null,
+    "aspect": null,
+    "tags": [
+      "manual"
+    ],
+    "estimatedHours": null,
+    "actualHours": 0,
+    "timeEntries": [],
+    "dependsOn": [],
+    "blocks": [],
+    "statusHistory": [
+      {
+        "at": 1771197187830,
+        "to": "queued",
+        "note": "created",
+        "by": "api"
+      }
+    ],
+    "comments": [],
+    "metadata": {},
+    "createdAt": 1771197187830,
+    "updatedAt": 1771197187830
+  }
+]

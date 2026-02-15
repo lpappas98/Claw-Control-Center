@@ -1,0 +1,130 @@
+[
+  {
+    "id": "task-aafd83a8500da-1771197187820",
+    "title": "Auto task",
+    "description": "Auto-created task",
+    "lane": "queued",
+    "priority": "P2",
+    "assignedTo": null,
+    "createdBy": "routine-executor",
+    "parentId": null,
+    "projectId": null,
+    "project": null,
+    "aspect": null,
+    "tags": [
+      "auto"
+    ],
+    "estimatedHours": null,
+    "actualHours": 0,
+    "timeEntries": [],
+    "dependsOn": [],
+    "blocks": [],
+    "statusHistory": [
+      {
+        "at": 1771197187820,
+        "to": "queued",
+        "note": "created",
+        "by": "routine-executor"
+      }
+    ],
+    "comments": [],
+    "metadata": {},
+    "createdAt": 1771197187820,
+    "updatedAt": 1771197187820
+  },
+  {
+    "id": "task-c88d76fbaf6be-1771197187823",
+    "title": "Agent task",
+    "description": "Auto-created from routine: Agent assignment",
+    "lane": "queued",
+    "priority": "P2",
+    "assignedTo": "agent-alice",
+    "createdBy": "routine-executor",
+    "parentId": null,
+    "projectId": null,
+    "project": null,
+    "aspect": null,
+    "tags": [
+      "important"
+    ],
+    "estimatedHours": null,
+    "actualHours": 0,
+    "timeEntries": [],
+    "dependsOn": [],
+    "blocks": [],
+    "statusHistory": [
+      {
+        "at": 1771197187823,
+        "to": "queued",
+        "note": "created",
+        "by": "routine-executor"
+      }
+    ],
+    "comments": [],
+    "metadata": {},
+    "createdAt": 1771197187823,
+    "updatedAt": 1771197187823
+  },
+  {
+    "id": "task-6061108a9acc8-1771197187825",
+    "title": "Untitled Task",
+    "description": "Auto-created from routine: Update test",
+    "lane": "queued",
+    "priority": "P2",
+    "assignedTo": null,
+    "createdBy": "routine-executor",
+    "parentId": null,
+    "projectId": null,
+    "project": null,
+    "aspect": null,
+    "tags": [],
+    "estimatedHours": null,
+    "actualHours": 0,
+    "timeEntries": [],
+    "dependsOn": [],
+    "blocks": [],
+    "statusHistory": [
+      {
+        "at": 1771197187825,
+        "to": "queued",
+        "note": "created",
+        "by": "routine-executor"
+      }
+    ],
+    "comments": [],
+    "metadata": {},
+    "createdAt": 1771197187825,
+    "updatedAt": 1771197187825
+  },
+  {
+    "id": "task-2e7abdc2fe5e2-1771197187833",
+    "title": "Description test",
+    "description": "Auto-created from routine: Task description",
+    "lane": "queued",
+    "priority": "P2",
+    "assignedTo": null,
+    "createdBy": "routine-executor",
+    "parentId": null,
+    "projectId": null,
+    "project": null,
+    "aspect": null,
+    "tags": [],
+    "estimatedHours": null,
+    "actualHours": 0,
+    "timeEntries": [],
+    "dependsOn": [],
+    "blocks": [],
+    "statusHistory": [
+      {
+        "at": 1771197187833,
+        "to": "queued",
+        "note": "created",
+        "by": "routine-executor"
+      }
+    ],
+    "comments": [],
+    "metadata": {},
+    "createdAt": 1771197187833,
+    "updatedAt": 1771197187833
+  }
+]
