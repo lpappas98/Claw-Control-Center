@@ -245,7 +245,7 @@ subAgentTracker.start()
 global.addActivity = (event) => {
   activity.unshift({ ...event, id: `act-${Date.now()}` })
   activity = activity.slice(0, 200)
-  activitySaver()
+  activitySaver.trigger()
   if (global.broadcastWS) global.broadcastWS('activity', event)
 }
 
