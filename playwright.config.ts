@@ -1,35 +1,72 @@
-// @ts-check
-const config = {
-  testDir: './e2e',
-  fullyParallel: false,
+import { defineConfig, devices } from '@playwright/test';
+
+/**
+ * Playwright Test Configuration
+ * @see https://playwright.dev/docs/test-configuration
+ */
+export default defineConfig({
+  testDir: './tests',
+  
+  /* Maximum time one test can run for */
+  timeout: 30 * 1000,
+  
+  /* Run tests in files in parallel */
+  fullyParallel: true,
+  
+  /* Fail the build on CI if you accidentally left test.only in the source code */
   forbidOnly: !!process.env.CI,
+  
+  /* Retry on CI only */
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : 1,
-  reporter: 'html',
+  
+  /* Opt out of parallel tests on CI */
+  workers: process.env.CI ? 1 : undefined,
+  
+  /* Reporter to use */
+  reporter: [
+    ['html'],
+    ['json', { outputFile: 'test-results/results.json' }],
+    ['list']
+  ],
+
+  /* Shared settings for all the projects below */
   use: {
-    baseURL: 'http://localhost:8787',
+    /* Base URL to use in actions like `await page.goto('/')` */
+    baseURL: 'http://localhost:5173',
+
+    /* Collect trace when retrying the failed test */
     trace: 'on-first-retry',
+    
+    /* Take screenshot on failure */
     screenshot: 'only-on-failure',
+    
+    /* Record video on failure */
+    video: 'retain-on-failure',
   },
 
+  /* Configure projects for major browsers */
   projects: [
     {
       name: 'chromium',
-      use: {
-        browserName: 'chromium',
-        headless: true,
-      },
+      use: { ...devices['Desktop Chrome'] },
     },
-  ],
 
-  webServer: [
     {
-      command: 'npm run bridge',
-      port: 8787,
-      reuseExistingServer: !process.env.CI,
-      timeout: 120 * 1000,
+      name: 'firefox',
+      use: { ...devices['Desktop Firefox'] },
+    },
+
+    {
+      name: 'webkit',
+      use: { ...devices['Desktop Safari'] },
     },
   ],
-};
 
-export default config;
+  /* Run your local dev server before starting the tests */
+  webServer: {
+    command: 'npm run dev',
+    url: 'http://localhost:5173',
+    reuseExistingServer: !process.env.CI,
+    timeout: 120 * 1000,
+  },
+});
