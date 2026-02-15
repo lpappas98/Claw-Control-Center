@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import './App.css'
+import { NavBar } from './components/NavBar'
 import { MissionControl } from './pages/MissionControl'
 import ProjectsPage from './pages/Projects'
 import { FeatureDetailPage } from './pages/FeatureDetailPage'
@@ -19,7 +20,11 @@ function AppContent() {
   const adapter = useMemo(() => toAdapter(cfg), [cfg])
 
   return (
-    <div className="app-shell">
+    <div className="app-shell" style={{ minHeight: '100vh', background: '#080c16', color: '#e2e8f0', fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif" }}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap');
+      `}</style>
+      <NavBar />
       <Routes>
         <Route path="/projects/:projectId/features/:featureId" element={<FeatureDetailPage />} />
         <Route path="/projects/:projectId" element={<ProjectsPage />} />
