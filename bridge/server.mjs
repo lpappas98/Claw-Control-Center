@@ -2224,17 +2224,7 @@ app.get('/api/agents', async (_req, res) => {
   }
 })
 
-app.get('/api/agents/:id', async (req, res) => {
-  try {
-    const agent = await agentsStore.get(req.params.id)
-    if (!agent) return res.status(404).send('agent not found')
-    res.json(agent)
-  } catch (err) {
-    res.status(400).send(err?.message ?? 'invalid request')
-  }
-})
-
-// ── Sub-Agent Status Endpoints ──────────────────────────────────────
+// ── Sub-Agent Status Endpoints (must be before /:id to avoid param capture) ──
 
 const AGENT_DEFINITIONS = [
   { id: 'forge', name: 'Forge', role: 'Dev', emoji: '🔨' },
@@ -2286,6 +2276,17 @@ app.get('/api/agents/:agentId/history', (req, res) => {
     .sort((a, b) => (b.spawnedAt || 0) - (a.spawnedAt || 0))
     .slice(0, 20)
   res.json({ history })
+})
+
+// GET /api/agents/:id — single agent from store (after specific routes)
+app.get('/api/agents/:id', async (req, res) => {
+  try {
+    const agent = await agentsStore.get(req.params.id)
+    if (!agent) return res.status(404).send('agent not found')
+    res.json(agent)
+  } catch (err) {
+    res.status(400).send(err?.message ?? 'invalid request')
+  }
 })
 
 app.put('/api/agents/:id/status', async (req, res) => {
