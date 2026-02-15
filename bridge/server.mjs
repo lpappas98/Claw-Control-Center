@@ -1,3 +1,4 @@
+import 'dotenv/config'
 import express from 'express'
 import cors from 'cors'
 import os from 'node:os'
@@ -1103,6 +1104,9 @@ app.post('/api/tasks', async (req, res) => {
   const now = new Date().toISOString()
   const lane = normalizeLane(body.lane)
   const priority = normalizePriority(body.priority)
+  
+  // Preserve explicit owner assignment; undefined allows auto-assignment
+  const explicitOwner = typeof body.owner === 'string' ? body.owner : undefined
 
   /** @type {import('../src/types').Task} */
   const next = {
@@ -1110,7 +1114,7 @@ app.post('/api/tasks', async (req, res) => {
     title,
     lane,
     priority,
-    owner: typeof body.owner === 'string' ? body.owner : undefined,
+    owner: explicitOwner,
     problem: typeof body.problem === 'string' ? body.problem : undefined,
     scope: typeof body.scope === 'string' ? body.scope : undefined,
     acceptanceCriteria: Array.isArray(body.acceptanceCriteria) ? body.acceptanceCriteria.filter((s) => typeof s === 'string') : undefined,
@@ -1137,7 +1141,48 @@ app.post('/api/tasks', async (req, res) => {
     msg: `task created: ${String(next.title).substring(0, 60)}`,
     ts: now,
   })
-  if (next.owner) {
+  
+  // Auto-assign if no explicit owner provided
+  if (!explicitOwner) {
+    try {
+      const assignmentResult = await autoAssignTask(next, agentsStore, newTasksStore, notificationsStore)
+      
+      if (assignmentResult.assigned) {
+        // Update task with assigned owner
+        next.owner = assignmentResult.agent
+        
+        // Update the task in the array
+        const taskIndex = tasks.findIndex(t => t.id === next.id)
+        if (taskIndex >= 0) {
+          tasks[taskIndex] = next
+          scheduleTasksSave()
+        }
+        
+        logger.info('Task auto-assigned', {
+          taskId: next.id,
+          agent: assignmentResult.agent,
+          roles: assignmentResult.roles,
+        })
+        
+        pushActivity({
+          type: 'info',
+          msg: `task auto-assigned: ${String(next.title).substring(0, 50)} → ${assignmentResult.agent}`,
+          ts: new Date().toISOString(),
+        })
+      } else {
+        logger.warn('Task auto-assignment failed', {
+          taskId: next.id,
+          reason: assignmentResult.reason,
+        })
+      }
+    } catch (err) {
+      logger.error('Auto-assignment error', {
+        taskId: next.id,
+        error: err.message,
+      })
+    }
+  } else {
+    // Explicit owner was provided
     pushActivity({
       type: 'info',
       msg: `task assigned: ${String(next.title).substring(0, 50)} → ${next.owner}`,
