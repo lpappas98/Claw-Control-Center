@@ -50,11 +50,12 @@ function agentProfile(slot: string, fallback?: string) {
 }
 
 function homeStatus(status: string, hasTask?: boolean) {
-  // If worker has an actual task, it's working. Otherwise it's idle/sleeping.
+  // Sub-agent model: 'active' means sub-agent is working on a task
+  if (status === 'active') return 'working'
   if (hasTask === true) return 'working'
   if (hasTask === false) return 'idle'
-  // Fallback to status field
-  return status === 'active' ? 'working' : 'sleeping'
+  if (status === 'waiting') return 'idle'
+  return 'sleeping'
 }
 
 const PINNED_SLOTS: Array<{ slot: string; name: string; role: string; emoji: string }> = [

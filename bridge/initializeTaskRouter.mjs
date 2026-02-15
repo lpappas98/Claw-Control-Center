@@ -123,6 +123,7 @@ export async function initializeTaskRouter(app, tasksStore, agentsStore, subAgen
   console.log('[TaskRouter] Initializing push-based execution model...')
   
   const taskRouter = new TaskRouter(tasksStore, agentsStore)
+  taskRouter.setRegistry(subAgentRegistry)
   await taskRouter.initialize()
   
   setupTaskRouterEndpoints(app, tasksStore, taskRouter)

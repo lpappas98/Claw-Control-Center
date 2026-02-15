@@ -16,6 +16,7 @@ import type {
   TaskCreate,
   TaskUpdate,
   WorkerHeartbeat,
+  WorkerStatus,
   Project,
   ProjectCreate,
   ProjectUpdate,
@@ -53,8 +54,29 @@ export function bridgeAdapter(opts: BridgeAdapterOptions): Adapter {
       return fetchJson<ActivityEvent[]>(`${base}/api/activity?${qs}`)
     },
 
-    listWorkers() {
-      return fetchJson<WorkerHeartbeat[]>(`${base}/api/workers`)
+    async listWorkers(): Promise<WorkerHeartbeat[]> {
+      try {
+        // Use new sub-agent status endpoint
+        const data = await fetchJson<{ agents: Array<{
+          id: string; name: string; role: string; emoji: string;
+          status: string; currentTask: {
+            id: string; title: string; priority: string; tag: string;
+            startedAt: number; runningFor: number; tokenUsage: number | null;
+          } | null;
+        }> }>(`${base}/api/agents/status`)
+        
+        return (data.agents || []).map(a => ({
+          slot: a.id,
+          label: a.name,
+          status: (a.status === 'active' ? 'active' : 'waiting') as WorkerStatus,
+          task: a.currentTask?.title || undefined,
+          lastBeatAt: a.currentTask?.startedAt ? new Date(a.currentTask.startedAt).toISOString() : undefined,
+          beats: [],
+        }))
+      } catch {
+        // Fallback to old endpoint
+        return fetchJson<WorkerHeartbeat[]>(`${base}/api/workers`)
+      }
     },
 
     listBlockers() {
