@@ -7,6 +7,7 @@ import ProjectsPage from './pages/Projects'
 import { FeatureDetailPage } from './pages/FeatureDetailPage'
 import { Activity } from './pages/Activity'
 import { Config } from './pages/Config'
+import IntakePage from './pages/IntakePage'
 // KanbanPage removed
 import { SystemStatusPage } from './pages/SystemStatusPage'
 import { loadAdapterConfig, toAdapter } from './lib/adapterState'
@@ -27,6 +28,7 @@ function AppContent() {
         <Route path="/projects/:projectId/features/:featureId" element={<FeatureDetailPage />} />
         <Route path="/projects/:projectId" element={<ProjectsPage />} />
         <Route path="/projects" element={<ProjectsPage />} />
+        <Route path="/intake" element={<IntakePage />} />
         <Route path="/activity" element={<Activity adapter={adapter} />} />
         {/* Kanban page removed */}
         <Route path="/system" element={<SystemStatusPage />} />
