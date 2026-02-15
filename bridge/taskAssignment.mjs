@@ -106,8 +106,8 @@ export async function findBestAgent(task, agentsStore) {
  * Auto-assign task to best available agent
  */
 export async function autoAssignTask(task, agentsStore, tasksStore, notificationsStore) {
-  // Skip if already assigned
-  if (task.assignedTo) return { assigned: false, reason: 'already-assigned' }
+  // Skip if already assigned (check both owner and assignedTo for compatibility)
+  if (task.owner || task.assignedTo) return { assigned: false, reason: 'already-assigned' }
 
   // Find best agent
   const agent = await findBestAgent(task, agentsStore)
