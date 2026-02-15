@@ -24,7 +24,7 @@ interface Task {
 }
 
 interface ActivityEvent {
-  id?: string; message: string; createdAt: string;
+  id?: string; message?: string; msg?: string; createdAt?: string; at?: string;
   meta?: { worker?: string; actor?: string; eventType?: string };
 }
 
@@ -86,10 +86,11 @@ function timeAgo(dateStr: string): string {
 }
 
 function guessActivityType(msg: string): string {
-  if (msg.includes("→ done") || msg.includes("completed")) return "done";
-  if (msg.includes("created")) return "create";
-  if (msg.includes("→")) return "move";
-  if (msg.includes("review") || msg.includes("QA")) return "review";
+  const s = String(msg || "");
+  if (s.includes("→ done") || s.includes("completed")) return "done";
+  if (s.includes("created")) return "create";
+  if (s.includes("→")) return "move";
+  if (s.includes("review") || s.includes("QA")) return "review";
   return "edit";
 }
 
@@ -303,17 +304,19 @@ function OverviewTab({ project, aspects, tasks, activity, onSelectFeature }: {
             <div style={{ flex: 1, overflowY: "auto" }}>
               {activity.length === 0 && <p style={{ fontSize: 12, color: "#475569" }}>No recent activity.</p>}
               {activity.map((a, i) => {
-                const type = guessActivityType(a.message);
+                const text = a.message || a.msg || "";
+                const type = guessActivityType(text);
                 const ic = ACT_ICON[type] || ACT_ICON.edit;
                 const agent = a.meta?.worker || a.meta?.actor || "System";
+                const ts = a.createdAt || a.at || "";
                 return (
                   <div key={i} style={{ display: "flex", gap: 10, padding: "8px 0", borderBottom: i < activity.length - 1 ? "1px solid rgba(30,41,59,0.3)" : "none" }}>
                     <div style={{ width: 22, height: 22, borderRadius: 6, background: `${ic.c}15`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, color: ic.c, fontWeight: 700, flexShrink: 0 }}>{ic.s}</div>
                     <div style={{ minWidth: 0, flex: 1 }}>
                       <p style={{ fontSize: 12, color: "#cbd5e1", margin: 0, lineHeight: 1.4 }}>
-                        <span style={{ fontWeight: 600, color: ACTOR[agent] || "#e2e8f0" }}>{agentName(agent)}</span> · {a.message}
+                        <span style={{ fontWeight: 600, color: ACTOR[agent] || "#e2e8f0" }}>{agentName(agent)}</span> · {text}
                       </p>
-                      <span style={{ fontSize: 11, color: "#334155" }}>{a.createdAt ? timeAgo(a.createdAt) : ""}</span>
+                      <span style={{ fontSize: 11, color: "#334155" }}>{ts ? timeAgo(ts) : ""}</span>
                     </div>
                   </div>
                 );
@@ -591,30 +594,9 @@ export default function ProjectsApp() {
 
       {/* Main content area */}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-        {/* Project bar + tabs */}
-        <div style={{ padding: "12px 20px", borderBottom: "1px solid rgba(30,41,59,0.4)", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <h1 style={{ fontSize: 18, fontWeight: 700, color: "#f1f5f9", margin: 0, cursor: selectedFeature ? "pointer" : "default" }}
-              onClick={() => setSelectedFeature(null)}>{project.name}</h1>
-            <span style={{ fontSize: 10, fontWeight: 600, padding: "3px 8px", borderRadius: 5, background: project.status === "active" ? "rgba(16,185,129,0.12)" : "rgba(100,116,139,0.12)", color: project.status === "active" ? "#6ee7b7" : "#64748b" }}>{project.status}</span>
-            <span style={{ fontSize: 12, color: "#475569" }}>{aspects.length} features · {totalTasks} tasks · {doneTasks} done</span>
-          </div>
-          {!selectedFeature && (
-            <div style={{ display: "flex", gap: 2 }}>
-              {TABS.map(t => (
-                <button key={t} onClick={() => setActiveTab(t)} style={{
-                  padding: "7px 16px", borderRadius: 8, fontSize: 12, fontWeight: 600,
-                  border: "none", cursor: "pointer", fontFamily: "inherit",
-                  background: activeTab === t ? "rgba(30,41,59,0.6)" : "transparent",
-                  color: activeTab === t ? "#f1f5f9" : "#475569",
-                  transition: "all 0.15s",
-                }}>{t}</button>
-              ))}
-            </div>
-          )}
-        </div>
+        {/* Removed duplicate nav bar - NavBar is global via App.tsx */}
 
-        {/* Views */}
+        {/* Views - removed internal tabs, navigation is now via sidebar */}
         <div style={{ flex: 1, overflow: "auto", padding: "16px 20px" }}>
           <div style={{ ...panel, padding: selectedFeature ? "0 16px" : "0 16px", overflow: "hidden" }}>
             {selectedFeature && selectedAspect ? (
