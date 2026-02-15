@@ -14,6 +14,7 @@ services:
       - LOG_LEVEL=info
       - PORT=8787
       - OPENCLAW_WORKSPACE=/data
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
     volumes:
       # Persistent data storage (bind mount to existing data)
       - ./.clawhub:/data/.clawhub

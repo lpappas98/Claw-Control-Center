@@ -1,10 +1,11 @@
 import { useNavigate, useLocation } from 'react-router-dom'
 
-const NAV_ITEMS = ['Mission Control', 'Projects', 'Activity', 'System', 'Config'] as const
+const NAV_ITEMS = ['Mission Control', 'Projects', 'Intake', 'Activity', 'System', 'Config'] as const
 
 const routeMap: Record<typeof NAV_ITEMS[number], string> = {
   'Mission Control': '/',
   'Projects': '/projects',
+  'Intake': '/intake',
   'Activity': '/activity',
   'System': '/system',
   'Config': '/config',
