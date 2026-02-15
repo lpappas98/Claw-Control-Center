@@ -37,11 +37,11 @@ export function setupTaskRouterEndpoints(app, tasksStore, taskRouter) {
         })
       }
 
-      // Update to in_progress
+      // Update to development (matches kanban UI lanes)
       const updated = await tasksStore.update(
         id,
         {
-          lane: 'in_progress',
+          lane: 'development',
           assignedTo: agentId,
           claimedAt: Date.now(),
           claimedBy: agentId

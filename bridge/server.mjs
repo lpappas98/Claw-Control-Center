@@ -209,7 +209,7 @@ const taskRouter = await initializeTaskRouter(app, newTasksStore, agentsStore)
 // Start health monitor cron (every 5 minutes)
 let healthMonitorCronSet = false
 setInterval(async () => {
-  await runTaskRouterHealthMonitor(taskRouter, newTasksStore)
+  await runTaskRouterHealthMonitor(taskRouter, newTasksStore, agentsStore)
 }, 5 * 60 * 1000) // 5 minutes
 healthMonitorCronSet = true
 

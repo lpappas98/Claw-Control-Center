@@ -162,15 +162,15 @@ export async function initializeTaskRouter(app, tasksStore, agentsStore) {
  * Health monitor cron - runs every 5 minutes
  * Detects orphaned sessions and triggers router for stuck queued tasks
  */
-export async function runTaskRouterHealthMonitor(taskRouter, tasksStore) {
+export async function runTaskRouterHealthMonitor(taskRouter, tasksStore, agentsStore = null) {
   console.log('[TaskRouter] Running health monitor...')
   
   try {
     // Get active sessions from router
     const activeSessions = taskRouter.getActiveSessions()
     
-    // Check for orphaned tasks that have been in_progress for >10 minutes
-    const tasks = await tasksStore.getAll({ lane: 'in_progress' })
+    // Check for orphaned tasks that have been in development for >10 minutes
+    const tasks = await tasksStore.getAll({ lane: 'development' })
     const now = Date.now()
     const orphanThresholdMs = 10 * 60 * 1000 // 10 minutes
     
@@ -192,6 +192,11 @@ export async function runTaskRouterHealthMonitor(taskRouter, tasksStore) {
     // Try to spawn any waiting tasks that couldn't be spawned due to concurrency
     await taskRouter.trySpawnWaitingTasks()
     
+    // Step 4: Mark agents offline if no heartbeat in 5 minutes
+    if (agentsStore) {
+      await agentsStore.pruneStale(5 * 60 * 1000)
+    }
+
     console.log('[TaskRouter] Health monitor complete')
   } catch (err) {
     console.error('[TaskRouter] Health monitor error:', err.message)

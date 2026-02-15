@@ -236,7 +236,7 @@ export class TaskRouter {
       const updated = await this.tasksStore.update(
         taskId,
         {
-          lane: 'in_progress',
+          lane: 'development',
           assignedTo: agentId,
           claimedAt: Date.now(),
           claimedBy: agentId

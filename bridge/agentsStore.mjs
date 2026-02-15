@@ -173,23 +173,30 @@ export class AgentsStore {
   }
 
   /**
-   * Remove stale agents (no heartbeat in 5 minutes)
+   * Mark stale agents as offline (no heartbeat in given threshold)
+   * Does NOT delete agents — just sets status to 'offline'
    */
   async pruneStale(maxAgeMs = 5 * 60 * 1000) {
     await this.ensureLoaded()
     const now = Date.now()
-    const before = this.agents.length
+    let count = 0
 
-    this.agents = this.agents.filter(a => {
-      if (!a.lastHeartbeat) return true // Keep if never heartbeated
-      return (now - a.lastHeartbeat) < maxAgeMs
-    })
-
-    if (this.agents.length !== before) {
-      await this.save()
+    for (const agent of this.agents) {
+      if (agent.status === 'offline') continue
+      if (!agent.lastHeartbeat) continue
+      if ((now - agent.lastHeartbeat) >= maxAgeMs) {
+        agent.status = 'offline'
+        agent.task = null
+        count++
+      }
     }
 
-    return before - this.agents.length // number removed
+    if (count > 0) {
+      await this.save()
+      console.log(`[AgentsStore] Marked ${count} agent(s) offline (no heartbeat in ${Math.round(maxAgeMs / 1000)}s)`)
+    }
+
+    return count
   }
 
   /**
