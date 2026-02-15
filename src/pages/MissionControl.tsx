@@ -763,7 +763,7 @@ export function MissionControl({
                                 color: '#c084fc',
                                 letterSpacing: '0.01em',
                               }}>
-                                📋 {task.details.project}
+{task.details.project}
                               </span>
                             )}
                             {task.agent && (
