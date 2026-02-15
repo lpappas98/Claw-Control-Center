@@ -58,6 +58,16 @@ Capture what matters. Decisions, context, things to remember. Skip the secrets u
 
 When you're assigned a task (via task ID), you MUST log your work before completion. This creates an audit trail and populates the task detail view with commits, file changes, test results, and artifacts.
 
+### Prerequisites
+
+The workflow examples use `jq` for JSON processing. If not installed:
+```bash
+# Install jq (Ubuntu/Debian)
+sudo apt-get update && sudo apt-get install -y jq
+
+# Or use Python alternatives (shown below - no dependencies needed)
+```
+
 ### Required Steps Before Moving to Review
 
 #### 1. Commit All Changes
@@ -109,9 +119,16 @@ echo '[
 
 **Basic logging (commits only):**
 ```bash
+# Using jq
 curl -X PUT http://localhost:8787/api/tasks/TASK_ID/work \
   -H "Content-Type: application/json" \
   -d "$(cat /tmp/commits.json | jq -c '{commits: .}')"
+
+# Alternative: Using Python (no jq required)
+python3 -c "import sys,json; commits=json.load(open('/tmp/commits.json')); print(json.dumps({'commits':commits}))" | \
+  curl -X PUT http://localhost:8787/api/tasks/TASK_ID/work \
+    -H "Content-Type: application/json" \
+    -d @-
 ```
 
 **With file changes:**
@@ -279,6 +296,90 @@ curl -X PUT http://localhost:8787/api/tasks/TASK_ID \
 ```
 
 **All fields are optional except commits** (minimum: include at least one commit).
+
+### Python-Based Workflow (No jq Required)
+
+If `jq` is not available, use this complete Python-based workflow:
+
+```bash
+# Create Python script to collect and log work data
+cat > /tmp/log_work.py << 'PYEOF'
+#!/usr/bin/env python3
+import subprocess
+import json
+import sys
+import requests
+
+TASK_ID = sys.argv[1] if len(sys.argv) > 1 else "TASK_ID"
+API_BASE = "http://localhost:8787"
+
+# Get commits from git
+result = subprocess.run(
+    ["git", "log", "-n", "5", "--format=%H|%s|%aI"],
+    capture_output=True, text=True
+)
+commits = []
+for line in result.stdout.strip().split('\n'):
+    if line:
+        hash, msg, timestamp = line.split('|', 2)
+        commits.append({"hash": hash, "message": msg, "timestamp": timestamp})
+
+# Get file changes
+result = subprocess.run(
+    ["git", "diff", "--stat", "HEAD~5", "HEAD"],
+    capture_output=True, text=True
+)
+files = []
+for line in result.stdout.strip().split('\n'):
+    if '|' in line:
+        parts = line.split('|')
+        path = parts[0].strip()
+        # Parse additions/deletions from the stats
+        stats = parts[1].strip().split()
+        additions = sum(1 for c in stats if c == '+')
+        deletions = sum(1 for c in stats if c == '-')
+        files.append({"path": path, "additions": additions, "deletions": deletions})
+
+# Build work data payload
+work_data = {
+    "commits": commits,
+    "files": files
+}
+
+# Optional: Add test results if available
+# work_data["testResults"] = {"passed": 10, "failed": 0, "skipped": 1}
+
+# Optional: Add artifacts if applicable
+# work_data["artifacts"] = [{"name": "bundle.js", "size": 12345, "path": "dist/bundle.js"}]
+
+# Optional: Add branch info
+result = subprocess.run(["git", "branch", "--show-current"], capture_output=True, text=True)
+if result.stdout.strip():
+    work_data["branch"] = result.stdout.strip()
+
+# Log work data
+response = requests.put(
+    f"{API_BASE}/api/tasks/{TASK_ID}/work",
+    headers={"Content-Type": "application/json"},
+    json=work_data
+)
+
+print(f"Work data logged: {response.status_code}")
+print(json.dumps(work_data, indent=2))
+PYEOF
+
+chmod +x /tmp/log_work.py
+
+# Run it with your task ID
+python3 /tmp/log_work.py TASK_ID
+```
+
+Then move to review:
+```bash
+curl -X PUT http://localhost:8787/api/tasks/TASK_ID \
+  -H "Content-Type: application/json" \
+  -d '{"lane": "review"}'
+```
 
 ### If Blocked
 
