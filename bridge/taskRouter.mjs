@@ -193,6 +193,12 @@ export class TaskRouter {
 
   async spawnAgentSession(agentId, task) {
     try {
+      // Small stagger to avoid overwhelming the gateway with simultaneous spawns
+      const activeCount = this.getActiveCount()
+      if (activeCount > 0) {
+        await new Promise(r => setTimeout(r, activeCount * 1500))
+      }
+      
       console.log(`[TaskRouter] Spawning agent ${agentId} for task ${task.id}`)
       const taskContext = this.buildTaskContext(agentId, task)
 
