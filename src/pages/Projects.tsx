@@ -28,6 +28,28 @@ type Aspect = {
 
 type ProjectTab = 'Overview' | 'Kanban'
 
+type Activity = {
+  id?: string
+  message?: string
+  msg?: string
+  at?: string
+  ts?: string
+  meta?: {
+    task?: string | number
+    [key: string]: unknown
+  }
+  [key: string]: unknown
+}
+
+type Task = {
+  id: string
+  title: string
+  priority?: string
+  owner?: string
+  lane?: string
+  [key: string]: unknown
+}
+
 // ─── ProjectHeader ────────────────────────────────────────────
 function ProjectHeader({ project }: { project: Project }) {
   return (
@@ -110,7 +132,7 @@ function AspectCard({ aspect }: { aspect: Aspect }) {
 
 // ─── ActivityFeed ─────────────────────────────────────────────
 function ActivityFeed({ projectName }: { projectName: string }) {
-  const [activities, setActivities] = useState<any[]>([])
+  const [activities, setActivities] = useState<Activity[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -120,7 +142,7 @@ function ActivityFeed({ projectName }: { projectName: string }) {
         const data = await res.json()
         // Filter activities that mention this project
         const filtered = (Array.isArray(data) ? data : [])
-          .filter((act: any) => {
+          .filter((act: Activity) => {
             const msg = (act.message || act.msg || '').toLowerCase()
             const meta = act.meta || {}
             return msg.includes(projectName.toLowerCase()) || 
@@ -153,10 +175,10 @@ function ActivityFeed({ projectName }: { projectName: string }) {
       <h4 style={{ margin: '0 0 8px 0', fontSize: 13, fontWeight: 600, color: '#cbd5e1' }}>Activity</h4>
       {activities.length > 0 ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: '200px', overflowY: 'auto' }}>
-          {activities.map((act: any, idx: number) => {
+          {activities.map((act: Activity, idx: number) => {
             const msg = act.message || act.msg || ''
             const ts = act.at || act.ts || ''
-            const timeStr = ts ? formatAgo(ts) : 'unknown'
+            const timeStr = ts && typeof ts === 'string' ? formatAgo(ts) : 'unknown'
             return (
               <div
                 key={idx}
@@ -327,8 +349,8 @@ function OverviewTab({ project, aspects }: { project: Project; aspects: Aspect[]
 }
 
 // ─── Kanban Tab ───────────────────────────────────────────────
-function KanbanTab({ projectId, onTaskClick }: { projectId: string; onTaskClick: (task: any) => void }) {
-  const [tasks, setTasks] = useState<any[]>([])
+function KanbanTab({ projectId, onTaskClick }: { projectId: string; onTaskClick: (task: Task) => void }) {
+  const [tasks, setTasks] = useState<Task[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -346,21 +368,21 @@ function KanbanTab({ projectId, onTaskClick }: { projectId: string; onTaskClick:
     fetchTasks()
   }, [projectId])
 
-  const columns = [
+  const columns = useMemo(() => [
     { id: 'proposed', title: 'Proposed', color: '#94a3b8' },
     { id: 'queued', title: 'Queued', color: '#fbbf24' },
     { id: 'development', title: 'Development', color: '#60a5fa' },
     { id: 'review', title: 'Review', color: '#a78bfa' },
     { id: 'done', title: 'Done', color: '#10b981' },
-  ]
+  ], [])
 
   const tasksByColumn = useMemo(() => {
-    const byCol: Record<string, any[]> = {}
+    const byCol: Record<string, Task[]> = {}
     columns.forEach((col) => {
       byCol[col.id] = tasks.filter((t) => t.lane === col.id)
     })
     return byCol
-  }, [tasks])
+  }, [tasks, columns])
 
   if (loading) {
     return <div style={{ padding: 20, color: '#94a3b8' }}>Loading tasks...</div>
@@ -420,7 +442,7 @@ function ProjectsPage() {
   const [aspects, setAspects] = useState<Aspect[]>([])
   const [tab, setTab] = useState<ProjectTab>('Overview')
   const [loading, setLoading] = useState(true)
-  const [openTask, setOpenTask] = useState<any | null>(null)
+  const [openTask, setOpenTask] = useState<Task | null>(null)
 
   const selectedProject = useMemo(() => projects.find((p) => p.id === selectedProjectId) || projects[0], [projects, selectedProjectId])
 
