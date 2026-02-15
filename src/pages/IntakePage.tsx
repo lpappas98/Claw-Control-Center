@@ -547,7 +547,7 @@ export default function IntakePage({}: AppProps) {
           return;
         }
         const data = await res.json();
-        setIntakeHistory(Array.isArray(data) ? data : []);
+        setIntakeHistory(data.items || []);
       } catch (err) {
         console.warn("Error loading intake history:", err);
         setIntakeHistory([]);
@@ -647,7 +647,7 @@ export default function IntakePage({}: AppProps) {
         );
         if (res.ok) {
           const data = await res.json();
-          setIntakeHistory(Array.isArray(data) ? data : []);
+          setIntakeHistory(data.items || []);
         }
       }
     } catch (err: any) {
