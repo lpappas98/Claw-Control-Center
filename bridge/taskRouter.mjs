@@ -218,13 +218,19 @@ export class TaskRouter {
   async claimTask(taskId, agentId) {
     try {
       const task = await this.tasksStore.get(taskId)
-      if (!task) return false
+      if (!task) {
+        console.log(`[TaskRouter] Claim failed: task ${taskId} not found`)
+        return false
+      }
 
       // Only claim if still in queued status
-      if (task.lane !== 'queued') return false
+      if (task.lane !== 'queued') {
+        console.log(`[TaskRouter] Claim failed: task ${taskId} is in ${task.lane}, not queued`)
+        return false
+      }
 
       // Update task to in_progress status
-      await this.tasksStore.update(
+      const updated = await this.tasksStore.update(
         taskId,
         {
           lane: 'in_progress',
@@ -235,6 +241,12 @@ export class TaskRouter {
         'router'
       )
 
+      if (!updated) {
+        console.log(`[TaskRouter] Claim failed: update returned null for task ${taskId}`)
+        return false
+      }
+
+      console.log(`[TaskRouter] ✅ Claimed task ${taskId} for agent ${agentId}`)
       return true
     } catch (err) {
       console.error(`[TaskRouter] Error claiming task: ${err.message}`)
