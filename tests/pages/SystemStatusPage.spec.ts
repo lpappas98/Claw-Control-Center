@@ -316,8 +316,9 @@ test.describe('System Status Page Tests', () => {
       // Check if meta tag exists
       const buildTimeMeta = await page.locator('meta[name="build-time"]').getAttribute('content');
       
-      // Might or might not exist
-      expect(typeof buildTimeMeta).toBe('string' || 'object');
+      // Might or might not exist (null if not found, string if found)
+      const typeOfMeta = typeof buildTimeMeta;
+      expect(['string', 'object']).toContain(typeOfMeta);
     });
   });
 
