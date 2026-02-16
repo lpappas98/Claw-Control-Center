@@ -7,6 +7,8 @@
  * - Workload balancing (prefer less-loaded agents)
  */
 
+import { isTestTask } from './testTaskDetection.mjs'
+
 // Role matching patterns
 const ROLE_PATTERNS = {
   'designer': [
@@ -106,6 +108,13 @@ export async function findBestAgent(task, agentsStore) {
  * Auto-assign task to best available agent
  */
 export async function autoAssignTask(task, agentsStore, tasksStore, notificationsStore) {
+  // Skip test tasks - they should not be assigned to real agents
+  if (isTestTask(task)) {
+    // Assign to test-agent instead of real agents
+    await tasksStore.assign(task.id, 'test-agent', 'auto-assign')
+    return { assigned: false, reason: 'test-task-isolated' }
+  }
+
   // Skip if already assigned (check both owner and assignedTo for compatibility)
   if (task.owner || task.assignedTo) return { assigned: false, reason: 'already-assigned' }
 

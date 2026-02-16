@@ -6,6 +6,7 @@
  */
 
 import { onTaskQueued, onTaskCompleted, onTaskBlocked } from './taskEvents.mjs'
+import { isTestTask } from './testTaskDetection.mjs'
 
 const MAX_CONCURRENT = 4
 
@@ -76,6 +77,12 @@ export class TaskRouter {
       if (!task) {
         task = await this.tasksStore.get(taskId)
         if (!task) return
+      }
+
+      // Skip test tasks - they should not spawn real agents
+      if (isTestTask(task)) {
+        console.log(`[TaskRouter] Skipping test task ${taskId} - will not spawn agent`)
+        return
       }
 
       let agentId = task.owner || task.assignedTo || agentAssignment

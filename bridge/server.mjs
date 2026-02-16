@@ -78,6 +78,7 @@ import logger from './logger.mjs'
 import { createHealthChecker } from './healthChecks.mjs'
 import { analyzeIntake } from './openaiIntegration.mjs'
 import { initializeTaskRouter, runTaskRouterHealthMonitor } from './initializeTaskRouter.mjs'
+import { initializeCleanup } from './testTaskCleanup.mjs'
 import { initializeTokenRotation } from './tokenRotation.mjs'
 import { SubAgentRegistry } from './subAgentRegistry.mjs'
 import { SubAgentTracker } from './subAgentTracker.mjs'
@@ -271,6 +272,10 @@ const taskRouter = await initializeTaskRouter(app, newTasksStore, agentsStore, s
 // Initialize SubAgentTracker (polls gateway every 15s)
 const subAgentTracker = new SubAgentTracker(subAgentRegistry, { gatewayUrl, gatewayToken, tasksStore: newTasksStore })
 subAgentTracker.start()
+
+// Initialize Test Task Cleanup Service (runs every 5 minutes)
+const testTaskCleanup = initializeCleanup(newTasksStore, WORK_DATA_DIR)
+console.log('[Server] Test task cleanup service started')
 
 // Make addActivity globally available for TaskRouter
 global.addActivity = (event) => {

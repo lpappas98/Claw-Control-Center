@@ -47,6 +47,7 @@ describe('Claw Control Center - E2E Tests', () => {
         title: 'E2E Test Task',
         description: 'Test task created via E2E',
         status: 'todo',
+        metadata: { testTask: true }
       });
 
       assert.ok(result.status < 500, `Server error: ${result.status}`);
@@ -80,6 +81,7 @@ describe('Claw Control Center - E2E Tests', () => {
       const blockerResult = await httpRequest('POST', '/api/tasks', {
         title: 'Blocker Task',
         status: 'todo',
+        metadata: { testTask: true }
       });
 
       assert.ok(blockerResult.status < 500, `Server error: ${blockerResult.status}`);
@@ -89,6 +91,7 @@ describe('Claw Control Center - E2E Tests', () => {
         title: 'Dependent Task',
         status: 'todo',
         dependencies: blockerResult.body?.id ? [blockerResult.body.id] : [],
+        metadata: { testTask: true }
       });
 
       assert.ok(dependentResult.status < 500, `Server error: ${dependentResult.status}`);
@@ -101,6 +104,7 @@ describe('Claw Control Center - E2E Tests', () => {
           httpRequest('POST', '/api/tasks', {
             title: `Batch Task ${i}`,
             status: 'todo',
+            metadata: { testTask: true }
           })
         );
       }
@@ -171,6 +175,7 @@ describe('Claw Control Center - E2E Tests', () => {
       const result = await httpRequest('POST', '/api/tasks', {
         title: 'Workflow Test Task',
         status: 'todo',
+        metadata: { testTask: true }
       });
 
       assert.ok(result.status < 500);
@@ -207,6 +212,7 @@ describe('Claw Control Center - E2E Tests', () => {
           frequency: 'daily',
           startDate: new Date().toISOString(),
         },
+        metadata: { testTask: true }
       });
 
       assert.ok(result.status < 500);
@@ -231,6 +237,7 @@ describe('Claw Control Center - E2E Tests', () => {
           httpRequest('POST', '/api/tasks', {
             title: `Load Test Task ${i}`,
             status: 'todo',
+            metadata: { testTask: true }
           })
         );
       }

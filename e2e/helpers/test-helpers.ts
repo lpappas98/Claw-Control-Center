@@ -210,6 +210,55 @@ export async function makeApiRequest(page: Page, method: string, endpoint: strin
   );
 }
 
+/**
+ * Create a test task via API (marked with testTask: true for auto-cleanup)
+ */
+export async function createTestTaskViaAPI(page: Page, taskData: {
+  title: string;
+  description?: string;
+  priority?: string;
+  lane?: string;
+  tags?: string[];
+}) {
+  return makeApiRequest(page, 'POST', '/api/tasks', {
+    ...taskData,
+    metadata: {
+      testTask: true
+    }
+  });
+}
+
+/**
+ * Delete a task via API (for cleanup)
+ */
+export async function deleteTaskViaAPI(page: Page, taskId: string) {
+  return makeApiRequest(page, 'DELETE', `/api/tasks/${taskId}`, null);
+}
+
+/**
+ * Cleanup all test tasks via API
+ */
+export async function cleanupAllTestTasks(page: Page) {
+  const response = await makeApiRequest(page, 'GET', '/api/tasks', null);
+  if (response.status === 200 && Array.isArray(response.data)) {
+    const testTasks = response.data.filter((task: any) => 
+      task.metadata?.testTask === true ||
+      task.id?.includes('-test-') ||
+      task.title?.toLowerCase().includes('test task') ||
+      task.title?.toLowerCase().includes('e2e')
+    );
+    
+    console.log(`Cleaning up ${testTasks.length} test tasks`);
+    
+    for (const task of testTasks) {
+      await deleteTaskViaAPI(page, task.id);
+    }
+    
+    return testTasks.length;
+  }
+  return 0;
+}
+
 // Screenshot helper
 export async function takeScreenshot(page: Page, name: string) {
   await page.screenshot({ 
