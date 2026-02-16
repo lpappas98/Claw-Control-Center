@@ -3654,6 +3654,39 @@ app.post('/api/calendar/setup', async (req, res) => {
   }
 })
 
+// Test Task Cleanup Endpoints
+
+/**
+ * Get test task cleanup stats
+ * GET /api/test-tasks/cleanup/stats
+ */
+app.get('/api/test-tasks/cleanup/stats', async (req, res) => {
+  try {
+    const stats = testTaskCleanup.getStats()
+    res.json(stats)
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+/**
+ * Manually trigger test task cleanup
+ * POST /api/test-tasks/cleanup/trigger
+ */
+app.post('/api/test-tasks/cleanup/trigger', async (req, res) => {
+  try {
+    await testTaskCleanup.triggerCleanup()
+    const stats = testTaskCleanup.getStats()
+    res.json({
+      success: true,
+      message: `Cleanup complete - deleted ${stats.lastDeletedCount} test tasks`,
+      stats
+    })
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message })
+  }
+})
+
 // Telegram Integration Endpoints
 
 /**
